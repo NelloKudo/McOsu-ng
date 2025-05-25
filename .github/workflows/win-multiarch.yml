@@ -67,7 +67,7 @@ jobs:
 
           git clone https://aur.archlinux.org/genie-git.git
           cd genie-git
-          su user -c "makepkg --sif --noconfirm"
+          su user -c "makepkg -sif --noconfirm"
           cd ..
 
       - name: Building McOsu-ng
