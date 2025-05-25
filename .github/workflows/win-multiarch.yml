@@ -64,12 +64,16 @@ jobs:
           useradd user -G wheel && echo "user ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
           chown -R user: .
           chown -R user: /tmp
+
+          git clone https://aur.archlinux.org/genie-git.git
+          cd genie-git
+          su user -c "makepkg --sif --noconfirm"
           cd ..
 
       - name: Building McOsu-ng
         run: |
           autoreconf
-          ./configure --disable-system-deps --enable-static --disable-native --host=${{ matrix.host }}
+          ./configure --disable-system-deps --enable-static --disable-native --with-soloud --host=${{ matrix.host }}
           make -j$(nproc) install
 
       - uses: actions/upload-artifact@v4
