@@ -37,7 +37,7 @@ public:
 	OsuRankingScreen();
 	virtual ~OsuRankingScreen();
 
-	virtual void draw(Graphics *g);
+	virtual void draw();
 	virtual void update();
 
 	virtual void setVisible(bool visible);
@@ -50,7 +50,7 @@ private:
 	virtual void updateLayout();
 	virtual void onBack();
 
-	void drawModImage(Graphics *g, OsuSkinImage *image, Vector2 &pos, Vector2 &max);
+	void drawModImage(OsuSkinImage *image, Vector2 &pos, Vector2 &max);
 
 	void onScrollDownClicked();
 
@@ -60,8 +60,6 @@ private:
 	UString getPPString();
 	Vector2 getPPPosRaw();
 	Vector2 getPPPosCenterRaw();
-
-	ConVar *m_osu_scores_enabled;
 
 	CBaseUIContainer *m_container;
 	CBaseUIScrollView *m_rankings;

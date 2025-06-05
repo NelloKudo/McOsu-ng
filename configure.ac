@@ -1,4 +1,3 @@
-AC_LANG([C++])
 AC_PREREQ([2.69])
 AC_INIT([McOsu-ng], [34.00], [william@horvath.blog], [], [https://github.com/whrvt/McOsu-ng]) # don't report bugs to McKay :)
 AC_CONFIG_SRCDIR([src/Engine/Engine.cpp])
@@ -111,14 +110,21 @@ AC_ARG_ENABLE([strip],
     AS_HELP_STRING([--enable-strip], [Strip the final binary (default: no for debug, yes otherwise)]))
 AC_ARG_ENABLE([asan],
     AS_HELP_STRING([--enable-asan], [Enable ASan/UBSan (turns debug on as well) (default: no)]))
+AC_ARG_ENABLE([tsan],
+    AS_HELP_STRING([--enable-tsan], [Enable TSan/UBSan (turns debug on as well) (default: no)]))
 AC_ARG_ENABLE([clang],
     AS_HELP_STRING([--enable-clang], [Use clang/clang++ instead of gcc/g++ (default: no)]))
+AC_ARG_ENABLE([omp],
+    AS_HELP_STRING([--enable-omp], [Use and link with OpenMP for faster parallel processing (default: no)]))
 AC_ARG_ENABLE([lto],
     AS_HELP_STRING([--enable-lto], [Enable Link Time Optimization (default: auto, use if functional)]))
 AC_ARG_ENABLE([system-deps],
     AS_HELP_STRING([--disable-system-deps], [Always build dependencies from source (default: no)]))
 AC_ARG_ENABLE([static],
     AS_HELP_STRING([--enable-static], [Enable static linking where possible (default: no)]))
+
+AC_ARG_WITH([renderer],
+    AS_HELP_STRING([--with-renderer={opengl,opengles,dx11}], [The renderer backend to build with (default: opengl)]))
 
 AC_ARG_WITH([sdlmixer],
     AS_HELP_STRING([--with-sdlmixer], [Use the SDL_mixer backend for audio instead of BASS (default: no)]))
@@ -144,8 +150,8 @@ AS_IF([test "$host_os" = "mingw32"], [
     enable_system_deps=no
     disable_system_deps=yes
     MCOSU_CPPFLAGS="$MCOSU_CPPFLAGS -D_UNICODE -DUNICODE"
-    MCOSU_CXXFLAGS="$MCOSU_CXXFLAGS -D_UNICODE -DUNICODE -municode -mwindows"
-    MCOSU_LDFLAGS="$MCOSU_LDFLAGS -municode -mwindows"
+    MCOSU_CXXFLAGS="$MCOSU_CXXFLAGS -D_UNICODE -DUNICODE -municode"
+    MCOSU_LDFLAGS="$MCOSU_LDFLAGS -municode"
     AS_IF([test "x$enable_clang" = "xyes"], [
         LLVMMINGW=1
         AC_SUBST([LLVMMINGW])
@@ -154,11 +160,49 @@ AS_IF([test "$host_os" = "mingw32"], [
     ])
 ])
 
+renderer=opengl
+AS_VAR_SET_IF([with_renderer],
+    [ac_save_IFS=$IFS
+        IFS=' ,'
+        set x $with_renderer
+        IFS=$ac_save_IFS
+        shift
+        for rend
+        do
+            case $rend in
+            opengles*) AC_DEFINE([MCENGINE_FEATURE_GLES32], [1], [Defined if the OpenGL ES 3.2 backend is to be used (WASM).]) renderer=opengles32 ;;
+            dx11) AC_DEFINE([MCENGINE_FEATURE_DIRECTX11], [1], [Defined if the DX11 backend is to be used.]) renderer=dx11 ;;
+            esac
+        done])
+
+AS_IF([test "$renderer" = "opengl"], [
+    AC_DEFINE([MCENGINE_FEATURE_OPENGL], [1], [Defined if the OpenGLLegacy backend is to be used.])
+])
+
+AS_IF([test "x$enable_asan" = "xyes" || test "x$enable_tsan" = "xyes"], [
+    AS_IF([test "x$enable_asan" = "xyes"], [
+        CXXFLAGS="$CXXFLAGS -fsanitize=address,undefined"
+        CFLAGS="$CFLAGS -fsanitize=address,undefined"
+    ], [
+        CXXFLAGS="$CXXFLAGS -fsanitize=undefined,thread"
+        CFLAGS="$CFLAGS -fsanitize=undefined,thread"
+    ])
+
+    AS_IF([test -z "$LLVMMINGW"],[
+        LDFLAGS="$LDFLAGS -static-libasan" CFLAGS="$CFLAGS -static-libasan" CXXFLAGS="$CXXFLAGS -static-libasan"
+    ])
+    enable_debug="yes"
+    ENABLE_ASAN=$enable_asan
+    AC_SUBST([ENABLE_ASAN])
+])
+
 AS_IF([test "x$enable_static" = "xyes"], [
     PKGTYPE="--static"
+    STATICBUILD=yes
 ])
 
 AC_SUBST([PKGTYPE])
+AC_SUBST([STATICBUILD])
 ac_cv_env_PKG_CONFIG_value="$PKG_CONFIG"
 ac_cv_env_PKG_CONFIG_set="set"
 
@@ -263,9 +307,6 @@ __EOF__
         CPPFLAGS="$CPPFLAGS -DWINVER=0x0501 -D_WIN32_WINNT=0x0501 -D_WIN32_WINDOWS=0x0501 -D_WIN32_IE=0x0501"
         CFLAGS="$CFLAGS -m32 -DWINVER=0x0501 -D_WIN32_WINNT=0x0501 -D_WIN32_WINDOWS=0x0501 -D_WIN32_IE=0x0501 -mfpmath=sse"
         CXXFLAGS="$CXXFLAGS -m32 -DWINVER=0x0501 -D_WIN32_WINNT=0x0501 -D_WIN32_WINDOWS=0x0501 -D_WIN32_IE=0x0501 -mfpmath=sse"
-        # won't work unfortunately, https://github.com/mstorsjo/llvm-mingw/issues/44
-        # but i tried
-        AS_IF([test "x$enable_clang" = "xyes"], [LDFLAGS="$LDFLAGS -Xlinker /subsystem:windows,5.0"])
         AC_SUBST([NASMOBJ],[win32])
     ], [
         # win10
@@ -273,7 +314,6 @@ __EOF__
         CFLAGS="$CFLAGS -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00 -D_WIN32_WINDOWS=0x0A00 -D_WIN32_IE=0x0A00"
         CXXFLAGS="$CXXFLAGS -DWINVER=0x0A00 -D_WIN32_WINNT=0x0A00 -D_WIN32_WINDOWS=0x0A00 -D_WIN32_IE=0x0A00"
         LDFLAGS="$LDFLAGS -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive,-Bdynamic"
-        AS_IF([test "x$enable_clang" = "xyes"], [LDFLAGS="$LDFLAGS -Xlinker /subsystem:windows,10.0"])
         AC_SUBST([NASMOBJ],[win64])
     ])
 
@@ -315,7 +355,7 @@ AC_SUBST([CXX])
 AS_IF([test "$host_cpu" = "x86_64"], [COMMON_FLAGS="$COMMON_FLAGS -mcmodel=small"])
 
 COMMON_FLAGS="$COMMON_FLAGS -ffunction-sections -fdata-sections -fwrapv -fno-strict-aliasing -fno-semantic-interposition"
-CXXFLAGS="$CXXFLAGS $COMMON_FLAGS"
+CXXFLAGS="$CXXFLAGS $COMMON_FLAGS -fno-rtti -fno-exceptions"
 CFLAGS="$CFLAGS $COMMON_FLAGS"
 AS_IF([test -z "$ubercompat" || test "x$enable_static" = "xyes"], [
     LDFLAGS="$LDFLAGS -static-libstdc++ -static-libgcc"
@@ -364,28 +404,25 @@ AS_IF([test "$host_os" = "linux-gnu"],[
 AC_CHECK_PROG([BEAR], [bear], [bear])
 AC_SUBST([BEAR])
 
-AS_IF([test "x$enable_asan" = "xyes"], [
-    CXXFLAGS="$CXXFLAGS -fsanitize=address,undefined"
-    CFLAGS="$CFLAGS -fsanitize=address,undefined"
-    AS_IF([test -z "$LLVMMINGW"],[
-        LDFLAGS="$LDFLAGS -static-libasan" CFLAGS="$CFLAGS -static-libasan" CXXFLAGS="$CXXFLAGS -static-libasan"
-    ])
-    enable_debug="yes"
-    ENABLE_ASAN=$enable_asan
-    AC_SUBST([ENABLE_ASAN])
-])
-
 AS_IF([test "x$enable_debug" = "xyes"], [
     with_mimalloc="no"
-    AS_IF([test -n "$ubercompat"],[
-        CXXFLAGS="$CXXFLAGS -gdwarf-4 -Og"
-        CFLAGS="$CFLAGS -gdwarf-4 -Og"
+    AS_IF([test -n "$host_os" = "mingw32"],[
+        CXXFLAGS="$CXXFLAGS -g -Og"
+        CFLAGS="$CFLAGS -g -Og"
     ], [
         CXXFLAGS="$CXXFLAGS -ggdb3 -gdwarf-5 -Og -fasynchronous-unwind-tables"
         CFLAGS="$CFLAGS -ggdb3 -gdwarf-5 -Og -fasynchronous-unwind-tables"
     ])
     ENABLE_DEBUG=$enable_debug
     MCOSU_CPPFLAGS="$MCOSU_CPPFLAGS -D_DEBUG"
+    AS_IF([test "$SYSNAME" = "windows"], [
+        AS_IF([test "x$enable_clang" = "xyes"], [
+            LDFLAGS="$LDFLAGS -Xlinker /subsystem:console"
+        ], [
+            MCOSU_CXXFLAGS="$MCOSU_CXXFLAGS -mconsole"
+            MCOSU_LDFLAGS="$MCOSU_LDFLAGS -mconsole"
+        ])
+    ])
     AC_SUBST([ENABLE_DEBUG])
     AS_IF([test "x$enable_strip" != "xyes"], [enable_strip=no]) # disable stripping unless its explicitly requested for debug (why tho?)
 ], [
@@ -393,20 +430,29 @@ AS_IF([test "x$enable_debug" = "xyes"], [
         CPPFLAGS="$CPPFLAGS -DNDEBUG -D_NDEBUG"
         CXXFLAGS="${CXXFLAGS//-g -O2/} -O3 -g0" # where do those -g -O2 flags even come from...
         CFLAGS="${CFLAGS//-g -O2/} -O3 -g0"
-        AS_IF([test "x$enable_clang" = "xyes"], [
-            CXXFLAGS="$CXXFLAGS"
-            CFLAGS="$CFLAGS"
-        ],[
+
+        AS_IF([test "x$enable_clang" != "xyes"], [
             CXXFLAGS="$CXXFLAGS -fipa-pta"
             CFLAGS="$CFLAGS -fipa-pta"
         ])
     ])
-    CXXFLAGS="$CXXFLAGS -fno-rtti" # disallow dynamic_cast
-    MCOSU_CXXFLAGS="$MCOSU_CXXFLAGS -fno-exceptions" # disables std::thread constructor exception handling
+    AS_IF([test "x$enable_strip" != "xno"], [
+        MCOSU_LDFLAGS="$MCOSU_LDFLAGS -Wl,-s,--gc-sections" # strip and GC
+    ], [
+        # if "don't strip" was explicitly requested, add some debug info to the binary
+        AS_IF([test "x$enable_strip" = "xno"], [
+            CXXFLAGS="$CXXFLAGS -g"
+            CFLAGS="$CFLAGS -g"
+            MCOSU_LDFLAGS="$MCOSU_LDFLAGS -Wl,--no-gc-sections"
+        ])
+    ])
 ])
 
-AS_IF([test "x$enable_strip" != "xno"], [
-    MCOSU_LDFLAGS="$MCOSU_LDFLAGS -Wl,-s,--gc-sections" # strip and GC
+AS_IF([test "x$enable_omp" = "xyes"], [
+    AS_IF([test "x$enable_clang" = "xyes"], [
+        MCOSU_CXXFLAGS="$MCOSU_CXXFLAGS -fopenmp-optimistic-collapse"
+    ])
+    MCOSU_CXXFLAGS="$MCOSU_CXXFLAGS -fopenmp"
 ])
 
 AS_IF([test "x$enable_lto" != "xno"], [
@@ -454,20 +500,39 @@ AC_SUBST([DEPS_PREFIX], ['${abs_top_builddir}/build/deps'])
 AC_SUBST([DEPS_CACHE], ['${abs_top_srcdir}/build/cache'])
 AC_SUBST([bindir], [$bindir-$host_cpu])
 
-AS_IF([test "$SYSNAME" = "linux"], [
-    PKG_CHECK_AUTO([X11], [x11], [have_x11=yes], [have_x11=no])
-    PKG_CHECK_AUTO([XI], [xi], [have_xi=yes], [have_xi=no])
-    PKG_CHECK_AUTO([EGL], [egl], [have_egl=yes], [have_egl=no])
-], [
-    AC_SUBST([EGL_CFLAGS], [""])
-    AC_SUBST([EGL_LIBS], [""])
+AS_IF([test "$renderer" != "dx11"], [
+    PKG_CHECK_AUTO([GL], [gl], [have_gl=yes], [have_gl=no])
+    PKG_CHECK_AUTO([GLU], [glu], [have_glu=yes], [have_glu=no])
+    AS_IF([test "$SYSNAME" = "linux"], [
+        PKG_CHECK_AUTO([X11], [x11], [have_x11=yes], [have_x11=no])
+        PKG_CHECK_AUTO([XI], [xi], [have_xi=yes], [have_xi=no])
+        PKG_CHECK_AUTO([EGL], [egl], [have_egl=yes], [have_egl=no])
+    ], [
+        AC_SUBST([EGL_CFLAGS], [""])
+        AC_SUBST([EGL_LIBS], [""])
+    ])
+],[
+    AS_IF([test "$SYSNAME" = "linux"], [
+        PKG_CHECK_AUTO([DXGI], [dxvk-dxgi], [have_dxgi=yes], [have_dxgi=no])
+        PKG_CHECK_AUTO([D3D11], [dxvk-d3d11], [have_d3d11=yes], [have_d3d11=no])
+        PKG_CHECK_AUTO([VKD3D], [libvkd3d-utils], [have_vkd3d=yes], [have_vkd3d=no])
+        AS_IF([test "x$have_dxgi" != "xyes" || test "x$have_d3d11" != "xyes" || test "x$have_vkd3d" != "xyes"], [
+            AC_MSG_ERROR([Missing dxvk-native or libvkd3d-utils libraries for D3D11 on Linux])
+        ])
+        FORCE_SDL_DYNAMIC=1 # dxvk double-loads the wrong library version if we statically link to sdl, so until i (if ever) build dxvk in-tree
+                            # it needs to be forced dynamic
+    ],[
+        AC_SUBST([D3D11_CFLAGS], [""])
+        AC_SUBST([D3D11_LIBS], [["-ld3d11 -ld3dcompiler_47 -ldxgi"]])
+        AC_SUBST([DXGI_CFLAGS], [""])
+        AC_SUBST([DXGI_LIBS], [["-ldxgi"]])
+        AC_SUBST([VKD3D_CFLAGS], [""])
+        AC_SUBST([VKD3D_LIBS], [[""]])
+    ])
 ])
 
-PKG_CHECK_AUTO([GL], [gl], [have_gl=yes], [have_gl=no])
-PKG_CHECK_AUTO([GLU], [glu], [have_glu=yes], [have_glu=no])
-
 SDL3_MIN_VERSION=3.4.0 # needs SDL_SetRelativeMouseTransform, not in any current (3.2.x) releases
-SDL3_BUILD_VERSION=c08b1049d3064af32b876432e766d473f61442e2 # git
+SDL3_BUILD_VERSION=a26e5f32e0f553379f9c15a1902d52a38953f148 # git
 FREETYPE2_MIN_VERSION=2.10.0
 FREETYPE2_BUILD_VERSION=2.13.3
 LIBJPEG_MIN_VERSION=3.0.0
@@ -494,7 +559,7 @@ AC_SUBST([MIMALLOC_PREFIX],[$DEPS_PREFIX])
 # TODO: add all deps and transitive deps (fun!)
 AS_IF([test "x$enable_system_deps" != "xno"], [
     PKG_CHECK_AUTO([SDL3], [sdl3 >= $SDL3_MIN_VERSION], [have_sdl3=yes], [have_sdl3=no])
-    PKG_CHECK_AUTO([LIBJPEG], [libjpeg >= $LIBJPEG_MIN_VERSION], [have_libjpeg=yes], [have_libjpeg=no])
+    PKG_CHECK_AUTO([LIBJPEG], [libturbojpeg >= $LIBJPEG_MIN_VERSION], [have_libjpeg=yes], [have_libjpeg=no])
     PKG_CHECK_AUTO([LIBPNG], [libpng >= $LIBPNG_MIN_VERSION], [have_libpng=yes], [have_libpng=no])
     PKG_CHECK_AUTO([ZLIB], [zlib >= $ZLIB_MIN_VERSION], [have_zlib=yes], [have_zlib=no])
     PKG_CHECK_AUTO([BZIP2], [bzip2 >= $BZIP2_MIN_VERSION], [have_bzip2=yes], [have_bzip2=no])
@@ -506,7 +571,7 @@ AS_IF([test "x$enable_system_deps" != "xno"], [
 AS_IF([test "x$have_sdl3" != "xyes"], [have_sdl3="build from source"])
 SDL3_VERSION=$SDL3_BUILD_VERSION
 SDL3_PREFIX="${DEPS_PREFIX}"
-AS_IF([test "x$enable_static" = "xyes"], [
+AS_IF([test "$STATICBUILD" = "yes" && test -z "$FORCE_SDL_DYNAMIC"], [
     SDL3_STATIC=1
 ])
 AC_SUBST([SDL3_VERSION])
@@ -553,7 +618,7 @@ FMT_PREFIX="${DEPS_PREFIX}"
 AC_SUBST([FMT_VERSION])
 AC_SUBST([FMT_PREFIX])
 
-AS_IF([test "x$have_glm" != "xyes"], [have_glm="build from source"])
+AS_IF([test "x$have_glm" != "xyes" && test "x$renderer" != dx11], [have_glm="build from source"])
 AC_SUBST([GLM_VERSION], [1.0.1])
 AC_SUBST([GLM_PREFIX],[$DEPS_PREFIX])
 AC_SUBST([GLM_CFLAGS], [""])
@@ -565,7 +630,7 @@ AM_CONDITIONAL([BUILD_BZIP2], [test "x$have_bzip2" != "xyes"])
 AM_CONDITIONAL([BUILD_ZLIB], [test "x$have_zlib" != "xyes"])
 AM_CONDITIONAL([BUILD_FREETYPE2], [test "x$have_freetype2" != "xyes"])
 AM_CONDITIONAL([BUILD_FMT], [test "x$have_fmt" != "xyes"])
-AM_CONDITIONAL([BUILD_GLM], [test "x$have_glm" != "xyes"])
+AM_CONDITIONAL([BUILD_GLM], [test "x$have_glm" != "xyes" && test "x$renderer" != dx11])
 AM_CONDITIONAL([BUILD_MIMALLOC], [test "x$enable_debug" != "xyes" &&
                                 { { test "$SYSNAME" = "windows" && test "x$with_mimalloc" = "xyes" ; } ||
                                   { test "$SYSNAME" != "windows" && test "x$with_mimalloc" != "xno" ; };
@@ -599,6 +664,9 @@ AC_SUBST([ASSETS_DIR])
 BUNDLED_LIBS_DIR=libraries
 BUNDLED_BASS_DIR=$BUNDLED_LIBS_DIR/bass
 BUNDLED_BASS_FX_DIR=$BUNDLED_LIBS_DIR/bassfx
+BUNDLED_BASS_MIX_DIR=$BUNDLED_LIBS_DIR/bassmix
+BUNDLED_BASS_ASIO_DIR=$BUNDLED_LIBS_DIR/bassasio
+BUNDLED_BASS_WASAPI_DIR=$BUNDLED_LIBS_DIR/basswasapi
 
 # sanity check
 AS_IF([test "x$with_sdlmixer" != "xyes" && test "x$with_soloud" != "xyes"], [
@@ -608,7 +676,19 @@ AS_IF([test "x$with_sdlmixer" != "xyes" && test "x$with_soloud" != "xyes"], [
     AS_IF([test -f "$srcdir/$BUNDLED_BASS_FX_DIR/lib/$SYSNAME/$host_cpu/${LIBPREFIX}bass_fx$DLLEXT"],
         [],
         [AC_MSG_ERROR([Required bundled library ${LIBPREFIX}bass_fx$DLLEXT not found])])
-    BASS_CFLAGS="-I\$(srcdir)/\$(BUNDLED_BASS_DIR)/include -I\$(srcdir)/\$(BUNDLED_BASS_FX_DIR)/include"
+    AS_IF([test -f "$srcdir/$BUNDLED_BASS_MIX_DIR/lib/$SYSNAME/$host_cpu/${LIBPREFIX}bassmix$DLLEXT"],
+        [],
+        [AC_MSG_ERROR([Required bundled library ${LIBPREFIX}bassmix$DLLEXT not found])])
+    BASS_CFLAGS="-I\$(srcdir)/\$(BUNDLED_BASS_DIR)/include -I\$(srcdir)/\$(BUNDLED_BASS_FX_DIR)/include -I\$(srcdir)/\$(BUNDLED_BASS_MIX_DIR)/include"
+    AS_IF([test "$SYSNAME" = "windows"],[
+        AS_IF([test -f "$srcdir/$BUNDLED_BASS_ASIO_DIR/lib/$SYSNAME/$host_cpu/${LIBPREFIX}bassasio$DLLEXT"],
+            [],
+            [AC_MSG_ERROR([Required bundled library ${LIBPREFIX}bassasio$DLLEXT not found])])
+        AS_IF([test -f "$srcdir/$BUNDLED_BASS_WASAPI_DIR/lib/$SYSNAME/$host_cpu/${LIBPREFIX}basswasapi$DLLEXT"],
+            [],
+            [AC_MSG_ERROR([Required bundled library ${LIBPREFIX}basswasapi$DLLEXT not found])])
+        BASS_CFLAGS="$BASS_CFLAGS -I\$(srcdir)/\$(BUNDLED_BASS_ASIO_DIR)/include -I\$(srcdir)/\$(BUNDLED_BASS_WASAPI_DIR)/include"
+    ])
     AC_DEFINE([MCENGINE_FEATURE_BASS], [1], [Define if the BASS audio backend is desired.])
 ], [
     BASS_CFLAGS=""
@@ -624,9 +704,16 @@ AC_SUBST([BASS_CFLAGS])
 AC_SUBST([BUNDLED_LIBS_DIR])
 AC_SUBST([BUNDLED_BASS_DIR])
 AC_SUBST([BUNDLED_BASS_FX_DIR])
+AC_SUBST([BUNDLED_BASS_MIX_DIR])
+AC_SUBST([BUNDLED_BASS_ASIO_DIR])
+AC_SUBST([BUNDLED_BASS_WASAPI_DIR])
 
 # the source file is also added through autogen.sh to Makefile.sources
-AC_SUBST([GLAD_CFLAGS], ["-I\$(srcdir)/\$(BUNDLED_LIBS_DIR)/glad -I\$(srcdir)/\$(BUNDLED_LIBS_DIR)/glad/glad"])
+BUNDLED_INCLUDES="-I\$(srcdir)/\$(BUNDLED_LIBS_DIR)/include"
+AS_IF([test "$renderer" != "dx11"], [
+    BUNDLED_INCLUDES="$BUNDLED_INCLUDES -I\$(srcdir)/\$(BUNDLED_LIBS_DIR)/include/glad"
+])
+AC_SUBST([BUNDLED_INCLUDES])
 
 AC_MSG_CHECKING([for default config in $srcdir/$ASSETS_DIR/cfg])
 AS_IF([test -f "$srcdir/$ASSETS_DIR/cfg/override.cfg"], [
@@ -677,6 +764,7 @@ AC_MSG_NOTICE([
 McOsu-ng build configuration:
     Build target:       ${target}
     Install prefix:     ${prefix}
+    Renderer:           ${renderer}
     Preprocessor flags: ${CPPFLAGS}
     ccache:             ${CCACHE-no}
     clang:              ${CLANG-no}
@@ -689,8 +777,10 @@ McOsu-ng build configuration:
     SDL_mixer:          ${with_sdlmixer-no}
     SoLoud:             ${with_soloud-no}
     LTO:                ${enable_lto-auto}
+    OpenMP:             ${enable_omp-no}
     Debug build:        ${enable_debug-no}
     ASan build:         ${enable_asan-no}
+    TSan build:         ${enable_tsan-no}
     Native build:       ${enable_native-yes}
     System deps:        ${enable_system_deps-yes}
     Static linking:     ${enable_static-no}

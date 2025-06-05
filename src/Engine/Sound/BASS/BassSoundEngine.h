@@ -12,8 +12,7 @@
 #include "SoundEngine.h"
 #ifdef MCENGINE_FEATURE_BASS
 
-class BassSound;
-class SoundEngineThread;
+#include "BassSound.h"
 
 class BassSoundEngine final : public SoundEngine
 {
@@ -36,24 +35,26 @@ public:
 
 	std::vector<UString> getOutputDevices() override;
 
-	SoundEngineType* getSndEngine() override {return this;}
-	[[nodiscard]] const SoundEngineType* getSndEngine() const override {return this;}
+	SoundEngineType *getSndEngine() override { return this; }
+	[[nodiscard]] const SoundEngineType *getSndEngine() const override { return this; }
 
 private:
 	void updateOutputDevices(bool handleOutputDeviceChanges, bool printInfo) override;
 	bool initializeOutputDevice(int id = -1, bool force = false) override;
 
+	// helpers
+	bool initializeBass(int id, bool canReinitInsteadOfFreeInit);
+	bool initializeWasapi(int id);
+	void applyRuntimeConfigs(bool &needsReinit);
+	bool playChannelWithAttributes(BassSound *bassSound, SOUNDHANDLE handle, float pan, float pitch);
+
 	void onFreqChanged(UString oldValue, UString newValue);
 
 	friend class BassSound;
-	uint32_t m_iBASSVersion;
-
-#ifdef MCENGINE_FEATURE_MULTITHREADING
-	SoundEngineThread *m_thread;
-#endif
 };
 
 #else
-class BassSoundEngine : public SoundEngine{};
+class BassSoundEngine : public SoundEngine
+{};
 #endif
 #endif

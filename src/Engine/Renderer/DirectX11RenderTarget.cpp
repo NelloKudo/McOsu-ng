@@ -39,9 +39,9 @@ void DirectX11RenderTarget::init()
 
 	HRESULT hr;
 
-	DirectX11Interface *g = ((DirectX11Interface*)graphics);
+	auto *graphics = static_cast<DirectX11Interface*>(g);
 	if (m_interfaceOverrideHack != NULL)
-		g = m_interfaceOverrideHack;
+		graphics = m_interfaceOverrideHack;
 
 	// create color texture
 	D3D11_TEXTURE2D_DESC colorTextureDesc;
@@ -58,7 +58,7 @@ void DirectX11RenderTarget::init()
 		colorTextureDesc.Width = (UINT)m_vSize.x;
 		colorTextureDesc.Height = (UINT)m_vSize.y;
 	}
-	hr = g->getDevice()->CreateTexture2D(&colorTextureDesc, NULL, &m_renderTexture);
+	hr = graphics->getDevice()->CreateTexture2D(&colorTextureDesc, NULL, &m_renderTexture);
 	if (FAILED(hr))
 	{
 		engine->showMessageErrorFatal("RenderTarget Error", UString::format("Couldn't color CreateTexture2D(%ld, %x, %x)!", hr, hr, MAKE_DXGI_HRESULT(hr)));
@@ -80,7 +80,7 @@ void DirectX11RenderTarget::init()
 		depthStencilTextureDesc.Width = (UINT)m_vSize.x;
 		depthStencilTextureDesc.Height = (UINT)m_vSize.y;
 	}
-	hr = g->getDevice()->CreateTexture2D(&depthStencilTextureDesc, NULL, &m_depthStencilTexture);
+	hr = graphics->getDevice()->CreateTexture2D(&depthStencilTextureDesc, NULL, &m_depthStencilTexture);
 	if (FAILED(hr))
 	{
 		engine->showMessageErrorFatal("RenderTarget Error", UString::format("Couldn't depthStencil CreateTexture2D(%ld, %x, %x)!", hr, hr, MAKE_DXGI_HRESULT(hr)));
@@ -94,7 +94,7 @@ void DirectX11RenderTarget::init()
 		renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION::D3D11_RTV_DIMENSION_TEXTURE2D;
 		renderTargetViewDesc.Texture2D.MipSlice = 0;
 	}
-	hr = g->getDevice()->CreateRenderTargetView(m_renderTexture, &renderTargetViewDesc, &m_renderTargetView);
+	hr = graphics->getDevice()->CreateRenderTargetView(m_renderTexture, &renderTargetViewDesc, &m_renderTargetView);
 	if (FAILED(hr))
 	{
 		engine->showMessageErrorFatal("RenderTarget Error", UString::format("Couldn't CreateRenderTargetView(%ld, %x, %x)!", hr, hr, MAKE_DXGI_HRESULT(hr)));
@@ -109,7 +109,7 @@ void DirectX11RenderTarget::init()
 		depthStencilViewDesc.Flags = 0;
 		depthStencilViewDesc.Texture2D.MipSlice = 0;
 	}
-	hr = g->getDevice()->CreateDepthStencilView(m_depthStencilTexture, &depthStencilViewDesc, &m_depthStencilView);
+	hr = graphics->getDevice()->CreateDepthStencilView(m_depthStencilTexture, &depthStencilViewDesc, &m_depthStencilView);
 	if (FAILED(hr))
 	{
 		engine->showMessageErrorFatal("RenderTarget Error", UString::format("Couldn't CreateDepthStencilView(%ld, %x, %x)!", hr, hr, MAKE_DXGI_HRESULT(hr)));
@@ -124,7 +124,7 @@ void DirectX11RenderTarget::init()
 		shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
 		shaderResourceViewDesc.Texture2D.MipLevels = 1;
 	}
-	hr = g->getDevice()->CreateShaderResourceView(m_renderTexture, &shaderResourceViewDesc, &m_shaderResourceView);
+	hr = graphics->getDevice()->CreateShaderResourceView(m_renderTexture, &shaderResourceViewDesc, &m_shaderResourceView);
 	if (FAILED(hr))
 	{
 		engine->showMessageErrorFatal("RenderTarget Error", UString::format("Couldn't CreateShaderResourceView(%ld, %x, %x)!", hr, hr, MAKE_DXGI_HRESULT(hr)));
@@ -163,7 +163,7 @@ void DirectX11RenderTarget::destroy()
 	m_renderTexture = NULL;
 }
 
-void DirectX11RenderTarget::draw(Graphics *g, int x, int y)
+void DirectX11RenderTarget::draw(int x, int y)
 {
 	if (!m_bReady)
 	{
@@ -179,7 +179,7 @@ void DirectX11RenderTarget::draw(Graphics *g, int x, int y)
 	unbind();
 }
 
-void DirectX11RenderTarget::draw(Graphics *g, int x, int y, int width, int height)
+void DirectX11RenderTarget::draw(int x, int y, int width, int height)
 {
 	if (!m_bReady)
 	{
@@ -195,7 +195,7 @@ void DirectX11RenderTarget::draw(Graphics *g, int x, int y, int width, int heigh
 	unbind();
 }
 
-void DirectX11RenderTarget::drawRect(Graphics *g, int x, int y, int width, int height)
+void DirectX11RenderTarget::drawRect(int x, int y, int width, int height)
 {
 	if (!m_bReady)
 	{
@@ -243,7 +243,7 @@ void DirectX11RenderTarget::enable()
 {
 	if (!m_bReady) return;
 
-	DirectX11Interface *dx11 = (DirectX11Interface*)graphics;
+	auto *dx11 = static_cast<DirectX11Interface*>(g);
 
 	// backup
 	// HACKHACK: slow af
@@ -255,7 +255,7 @@ void DirectX11RenderTarget::enable()
 
 	// clear
 	Color clearColor = m_clearColor;
-	if (debug_rt->getBool())
+	if (cv::debug_rt.getBool())
 		clearColor = argb(0.5f, 0.0f, 0.5f, 0.0f);
 
 	float fClearColor[4] = {clearColor.Rf(), clearColor.Gf(), clearColor.Bf(), clearColor.Af()};
@@ -274,7 +274,7 @@ void DirectX11RenderTarget::disable()
 	// restore
 	// HACKHACK: slow af
 	{
-		((DirectX11Interface*)graphics)->getDeviceContext()->OMSetRenderTargets(1, &m_prevRenderTargetView, m_prevDepthStencilView);
+		static_cast<DirectX11Interface*>(g)->getDeviceContext()->OMSetRenderTargets(1, &m_prevRenderTargetView, m_prevDepthStencilView);
 
 		// refcount
 		{
@@ -297,7 +297,7 @@ void DirectX11RenderTarget::bind(unsigned int textureUnit)
 {
 	if (!m_bReady) return;
 
-	DirectX11Interface *dx11 = (DirectX11Interface*)graphics;
+	auto *dx11 = static_cast<DirectX11Interface*>(g);
 
 	m_iTextureUnitBackup = textureUnit;
 
@@ -319,7 +319,7 @@ void DirectX11RenderTarget::unbind()
 	// restore
 	// HACKHACK: slow af
 	{
-		((DirectX11Interface*)graphics)->getDeviceContext()->PSSetShaderResources(m_iTextureUnitBackup, 1, &m_prevShaderResourceView);
+		static_cast<DirectX11Interface*>(g)->getDeviceContext()->PSSetShaderResources(m_iTextureUnitBackup, 1, &m_prevShaderResourceView);
 
 		// refcount
 		{

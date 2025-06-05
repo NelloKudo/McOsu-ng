@@ -16,9 +16,9 @@ OsuBeatmapExample::OsuBeatmapExample() : OsuBeatmap()
 	m_fFakeExtraLoadingTime = 0.0f;
 }
 
-void OsuBeatmapExample::draw(Graphics *g)
+void OsuBeatmapExample::draw()
 {
-	OsuBeatmap::draw(g);
+	OsuBeatmap::draw();
 	if (!canDraw()) return;
 
 	if (m_bFakeExtraLoading)
@@ -34,19 +34,9 @@ void OsuBeatmapExample::draw(Graphics *g)
 	// draw all hitobjects and stuff
 }
 
-void OsuBeatmapExample::drawVR(Graphics *g, Matrix4 &mvp, OsuVR *vr)
+void OsuBeatmapExample::draw3D()
 {
-	OsuBeatmap::drawVR(g, mvp, vr);
-	if (!canDraw()) return;
-
-	if (isLoading()) return; // only start drawing the rest of the playfield if everything has loaded
-
-	// draw all hitobjects and stuff
-}
-
-void OsuBeatmapExample::draw3D(Graphics *g)
-{
-	OsuBeatmap::draw3D(g);
+	OsuBeatmap::draw3D();
 	if (!canDraw()) return;
 
 	if (isLoading()) return; // only start drawing the rest of the playfield if everything has loaded

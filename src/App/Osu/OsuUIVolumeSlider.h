@@ -35,10 +35,10 @@ public:
 
 	float getMinimumExtraTextWidth();
 
-	inline bool isSelected() const {return m_bSelected;}
+	[[nodiscard]] inline bool isSelected() const {return m_bSelected;}
 
 private:
-	virtual void drawBlock(Graphics *g);
+	virtual void drawBlock();
 
 	virtual void onMouseInside();
 

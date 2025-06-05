@@ -166,7 +166,7 @@ unsigned char OsuFile::readByte()
 {
 	if (!m_bReady || m_readPointer >= (m_buffer + m_iFileSize)) return 0;
 
-	const unsigned char value = (unsigned char)*m_readPointer;
+	const auto value = (unsigned char)*m_readPointer;
 	m_readPointer += 1;
 
 	return value;
@@ -312,7 +312,7 @@ OsuFile::TIMINGPOINT OsuFile::readTimingPoint()
 	const double bpm = readDouble();
 	const double offset = readDouble();
 	const bool timingChange = (bool)readByte();
-	return (struct TIMINGPOINT) {bpm, offset, timingChange};
+	return {.msPerBeat=bpm, .offset=offset, .timingChange=timingChange};
 }
 
 void OsuFile::readByteArray()
@@ -320,7 +320,7 @@ void OsuFile::readByteArray()
 	const int numBytes = readInt();
 	for (int i=0; i<numBytes; i++)
 	{
-		readByte();
+		skipByte();
 	}
 }
 

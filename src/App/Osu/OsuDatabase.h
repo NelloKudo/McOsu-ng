@@ -82,7 +82,7 @@ public:
 		unsigned long long sortHack;
 		std::string md5hash;
 
-		bool isLegacyScoreEqualToImportedLegacyScore(const OsuDatabase::Score &importedLegacyScore) const
+		[[nodiscard]] bool isLegacyScoreEqualToImportedLegacyScore(const OsuDatabase::Score &importedLegacyScore) const
 		{
 			if (!isLegacyScore) return false;
 			if (!importedLegacyScore.isImportedLegacyScore) return false;
@@ -110,7 +110,7 @@ public:
 				 && isNumMissesEqual);
 		}
 
-		bool isScoreEqualToCopiedScoreIgnoringPlayerName(const OsuDatabase::Score &copiedScore) const
+		[[nodiscard]] bool isScoreEqualToCopiedScoreIgnoringPlayerName(const OsuDatabase::Score &copiedScore) const
 		{
 			const bool isScoreValueEqual = (score == copiedScore.score);
 			const bool isTimestampEqual = (unixTimestamp == copiedScore.unixTimestamp);
@@ -167,16 +167,10 @@ public:
 		unsigned long long totalScore;
 	};
 
-	struct SCORE_SORTING_COMPARATOR
-	{
-		virtual ~SCORE_SORTING_COMPARATOR() {;}
-		virtual bool operator() (OsuDatabase::Score const &a, OsuDatabase::Score const &b) const = 0;
-	};
-
 	struct SCORE_SORTING_METHOD
 	{
 		UString name;
-		SCORE_SORTING_COMPARATOR *comparator;
+		std::function<bool(OsuDatabase::Score const &, OsuDatabase::Score const &)> comparator;
 	};
 
 public:
@@ -189,25 +183,25 @@ public:
 	void cancel();
 	void save();
 
-	OsuDatabaseBeatmap *addBeatmap(UString beatmapFolderPath);
+	OsuDatabaseBeatmap *addBeatmap(const UString &beatmapFolderPath);
 
-	int addScore(std::string beatmapMD5Hash, OsuDatabase::Score score);
-	void deleteScore(std::string beatmapMD5Hash, uint64_t scoreUnixTimestamp);
-	void sortScores(std::string beatmapMD5Hash);
+	int addScore(const std::string &beatmapMD5Hash, const OsuDatabase::Score &score);
+	void deleteScore(const std::string &beatmapMD5Hash, uint64_t scoreUnixTimestamp);
+	void sortScores(const std::string &beatmapMD5Hash);
 	void forceScoreUpdateOnNextCalculatePlayerStats() {m_bDidScoresChangeForStats = true;}
 	void forceScoresSaveOnNextShutdown() {m_bDidScoresChangeForSave = true;}
 
-	bool addCollection(UString collectionName);
-	bool renameCollection(UString oldCollectionName, UString newCollectionName);
-	void deleteCollection(UString collectionName);
-	void addBeatmapToCollection(UString collectionName, std::string beatmapMD5Hash, bool doSaveImmediatelyIfEnabled = true);
-	void removeBeatmapFromCollection(UString collectionName, std::string beatmapMD5Hash, bool doSaveImmediatelyIfEnabled = true);
+	bool addCollection(const UString &collectionName);
+	bool renameCollection(const UString &oldCollectionName, const UString &newCollectionName);
+	void deleteCollection(const UString &collectionName);
+	void addBeatmapToCollection(const UString &collectionName, const std::string &beatmapMD5Hash, bool doSaveImmediatelyIfEnabled = true);
+	void removeBeatmapFromCollection(const UString &collectionName, const std::string &beatmapMD5Hash, bool doSaveImmediatelyIfEnabled = true);
 	void triggerSaveCollections() {saveCollections();}
 
 	std::vector<UString> getPlayerNamesWithPPScores();
 	std::vector<UString> getPlayerNamesWithScoresForUserSwitcher();
-	PlayerPPScores getPlayerPPScores(UString playerName);
-	PlayerStats calculatePlayerStats(UString playerName);
+	PlayerPPScores getPlayerPPScores(const UString &playerName);
+	PlayerStats calculatePlayerStats(const UString &playerName);
 	static float getWeightForIndex(int i);
 	static float getBonusPPForNumScores(size_t numScores);
 	unsigned long long getRequiredScoreForLevel(int level);
@@ -231,8 +225,8 @@ public:
 private:
 	friend class OsuDatabaseLoader;
 
-	static ConVar *m_name_ref;
-	static ConVar *m_osu_songbrowser_scores_sortingtype_ref;
+	
+	
 
 	void addScoreRaw(const std::string &beatmapMD5Hash, const OsuDatabase::Score &score);
 
@@ -246,10 +240,10 @@ private:
 	void loadScores();
 	void saveScores();
 
-	void loadCollections(UString collectionFilePath, bool isLegacy, const std::unordered_map<std::string, OsuDatabaseBeatmap*> &hashToDiff2, const std::unordered_map<std::string, OsuDatabaseBeatmap*> &hashToBeatmap);
+	void loadCollections(const UString& collectionFilePath, bool isLegacy, const std::unordered_map<std::string, OsuDatabaseBeatmap*> &hashToDiff2, const std::unordered_map<std::string, OsuDatabaseBeatmap*> &hashToBeatmap);
 	void saveCollections();
 
-	OsuDatabaseBeatmap *loadRawBeatmap(UString beatmapPath); // only used for raw loading without db
+	OsuDatabaseBeatmap *loadRawBeatmap(const UString& beatmapPath); // only used for raw loading without db
 
 	void onScoresRename(UString args);
 	void onScoresExport();

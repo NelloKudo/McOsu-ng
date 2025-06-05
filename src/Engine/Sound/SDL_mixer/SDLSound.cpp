@@ -15,12 +15,6 @@
 #include "File.h"
 #include "ResourceManager.h"
 
-extern ConVar debug_snd;
-extern ConVar snd_speed_compensate_pitch;
-extern ConVar snd_play_interp_duration;
-extern ConVar snd_play_interp_ratio;
-extern ConVar snd_wav_file_min_size;
-
 SDLSound::SDLSound(UString filepath, bool stream, bool threeD, bool loop, bool prescan) : Sound(filepath, stream, threeD, loop, prescan)
 {
 	m_HCHANNEL = 0;
@@ -38,34 +32,16 @@ SDLSound::~SDLSound()
 
 void SDLSound::init()
 {
-	if (m_sFilePath.length() < 2 || !(m_bAsyncReady.load()))
+	if (m_bIgnored || m_sFilePath.length() < 2 || !(m_bAsyncReady.load()))
 		return;
 	m_bReady = m_bAsyncReady.load();
 }
 
 void SDLSound::initAsync()
 {
-	if (ResourceManager::debug_rm->getBool())
-		debugLog("Resource Manager: Loading {:s}\n", m_sFilePath.toUtf8());
-
-	// HACKHACK: workaround for malformed WAV files
-	{
-		const int minWavFileSize = snd_wav_file_min_size.getInt();
-		if (minWavFileSize > 0)
-		{
-			UString fileExtensionLowerCase = env->getFileExtensionFromFilePath(m_sFilePath);
-			fileExtensionLowerCase.lowerCase();
-			if (fileExtensionLowerCase == "wav")
-			{
-				McFile wavFile(m_sFilePath);
-				if (wavFile.getFileSize() < (size_t)minWavFileSize)
-				{
-					debugLog("Sound: Ignoring malformed/corrupt WAV file ({}) {:s}\n", (int)wavFile.getFileSize(), m_sFilePath.toUtf8());
-					return;
-				}
-			}
-		}
-	}
+	Sound::initAsync();
+	if (m_bIgnored)
+		return;
 
 	if (m_bStream)
 		m_mixChunkOrMixMusic = Mix_LoadMUS(m_sFilePath.toUtf8());
@@ -79,7 +55,7 @@ void SDLSound::initAsync()
 	m_bAsyncReady = (m_mixChunkOrMixMusic != NULL);
 }
 
-SDLSound::SOUNDHANDLE SDLSound::getHandle()
+SOUNDHANDLE SDLSound::getHandle()
 {
 	return m_HCHANNEL;
 }
@@ -155,7 +131,7 @@ void SDLSound::setPosition(double percent)
 	}
 }
 
-void SDLSound::setPositionMS(unsigned long ms, bool internal)
+void SDLSound::setPositionMS(unsigned long ms)
 {
 	if (!m_bReady || ms > getLengthMS())
 		return;
@@ -402,7 +378,7 @@ float SDLSound::getPitch()
 
 float SDLSound::getFrequency()
 {
-	const float default_freq = convar->getConVarByName("snd_freq")->getFloat();
+	const float default_freq = cv::snd_freq.getFloat();
 	if (!m_bReady)
 		return default_freq;
 
@@ -427,7 +403,7 @@ bool SDLSound::isFinished()
 void SDLSound::rebuild(UString newFilePath)
 {
 	m_sFilePath = newFilePath;
-	reload();
+	resourceManager->reloadResource(this);
 }
 
 #endif // defined(MCENGINE_FEATURE_SDL_MIXER)

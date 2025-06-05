@@ -9,22 +9,21 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
+#include "App.h"
 #include "KeyboardListener.h"
-#include "McMath.h"
 #include "Timing.h"
 #include "cbase.h"
+
 #include "fmt/color.h"
 
 #include <source_location>
 
-class App;
 class Mouse;
 class ConVar;
 class Keyboard;
 class InputDevice;
 class SoundEngine;
 class NetworkHandler;
-class OpenVRInterface;
 class ResourceManager;
 class AnimationHandler;
 class SteamworksInterface;
@@ -34,6 +33,7 @@ class CBaseUIContainer;
 class VisualProfiler;
 class ConsoleBox;
 class Console;
+class McMath;
 
 #ifdef _DEBUG
 #define debugLog(...) Engine::ContextLogger::log(std::source_location::current(), __VA_ARGS__)
@@ -94,7 +94,6 @@ private:
 	static std::unique_ptr<SoundEngine> s_soundEngineInstance;
 	static std::unique_ptr<ResourceManager> s_resourceManagerInstance;
 	static std::unique_ptr<NetworkHandler> s_networkHandlerInstance;
-	static std::unique_ptr<OpenVRInterface> s_openVRInstance;
 	static std::unique_ptr<AnimationHandler> s_animationHandlerInstance;
 	static std::unique_ptr<SteamworksInterface> s_steamInstance;
 	static std::unique_ptr<DiscordInterface> s_discordInstance;
@@ -113,11 +112,22 @@ public:
 
 	// timing
 	void setFrameTime(double delta);
-	[[nodiscard]] inline double getTime() const { return m_dTime; }
-	[[nodiscard]] inline double getTimeRunning() const { return m_dRunTime; }
-	[[nodiscard]] inline double getFrameTime() const { return m_dFrameTime; }
-	[[nodiscard]] inline unsigned long getFrameCount() const { return m_iFrameCount; }
-	[[nodiscard]] inline bool vsyncFrame() const { return m_fFrameThrottleTime > 0; }
+
+	template <typename T = double>
+		requires(std::floating_point<T> || std::convertible_to<double, T>)
+	[[nodiscard]] constexpr T getTime() const { return static_cast<T>(m_dTime); }
+	template <typename T = double>
+		requires(std::floating_point<T> || std::convertible_to<double, T>)
+	[[nodiscard]] constexpr T getTimeRunning() const { return static_cast<T>(m_dRunTime); }
+	template <typename T = double>
+		requires(std::floating_point<T> || std::convertible_to<double, T>)
+	[[nodiscard]] constexpr T getFrameTime() const { return static_cast<T>(m_dFrameTime); }
+
+	[[nodiscard]] inline uint64_t getFrameCount() const { return m_iFrameCount; }
+	// clang-format off
+	// NOTE: if engine_throttle cvar is off, this will always return true
+	[[nodiscard]] inline bool throttledShouldRun(unsigned int howManyVsyncFramesToWaitBetweenExecutions) { return (m_fVsyncFrameCounterTime == 0.0f) && !(m_iVsyncFrameCount % howManyVsyncFramesToWaitBetweenExecutions);}
+	// clang-format on
 
 	// vars
 	[[nodiscard]] inline bool hasFocus() const { return m_bHasFocus; }
@@ -129,6 +139,7 @@ public:
 	[[nodiscard]] inline ConsoleBox *getConsoleBox() const { return m_consoleBox; }
 	[[nodiscard]] inline Console *getConsole() const { return m_console; }
 	[[nodiscard]] inline CBaseUIContainer *getGUI() const { return m_guiContainer; }
+	static void printVersion();
 
 private:
 	// input devices
@@ -140,9 +151,10 @@ private:
 	Timer *m_timer;
 	double m_dTime;
 	double m_dRunTime;
-	unsigned long m_iFrameCount;
+	uint64_t m_iFrameCount;
+	uint8_t m_iVsyncFrameCount; // this will wrap quickly, and that's fine, it should be used as a dividend in a modular expression anyways
+	float m_fVsyncFrameCounterTime;
 	double m_dFrameTime;
-	float m_fFrameThrottleTime;
 	void onEngineThrottleChanged(float newVal);
 
 	// primary screen
@@ -170,7 +182,6 @@ private:
 	McMath *m_math;
 
 public:
-	// logging stuff (should use the debugLog interface)
 	class ContextLogger
 	{
 	public:
@@ -179,7 +190,7 @@ public:
 		static void log(const std::source_location &loc, fmt::format_string<Args...> fmt, Args &&...args)
 		{
 			auto contextPrefix =
-			    fmt::format("[{}:{}:{}] [{}]: ", Environment::getFileNameFromFilePath(loc.file_name()).toUtf8(), loc.line(), loc.column(), loc.function_name());
+			    fmt::format("[{}:{}:{}] [{}]: ", Environment::getFileNameFromFilePath(loc.file_name()), loc.line(), loc.column(), loc.function_name());
 
 			auto message = fmt::format(fmt, std::forward<Args>(args)...);
 			Engine::logImpl(contextPrefix + message);
@@ -189,7 +200,7 @@ public:
 		static void log(const std::source_location &loc, Color color, fmt::format_string<Args...> fmt, Args &&...args)
 		{
 			auto contextPrefix =
-			    fmt::format("[{}:{}:{}] [{}]: ", Environment::getFileNameFromFilePath(loc.file_name()).toUtf8(), loc.line(), loc.column(), loc.function_name());
+			    fmt::format("[{}:{}:{}] [{}]: ", Environment::getFileNameFromFilePath(loc.file_name()), loc.line(), loc.column(), loc.function_name());
 
 			auto message = fmt::format(fmt, std::forward<Args>(args)...);
 			Engine::logImpl(contextPrefix + message, color);
@@ -212,18 +223,32 @@ public:
 			Engine::logImpl(contextPrefix + message, color);
 		}
 	};
-
+	template <typename... Args>
+	static void logRaw(fmt::format_string<Args...> fmt, Args &&...args)
+	{
+		auto message = fmt::format(fmt, std::forward<Args>(args)...);
+		Engine::logImpl(message);
+	}
 private:
 	// logging stuff (implementation)
-	static void logToConsole(std::optional<Color> color, UString message);
+	static void logToConsole(std::optional<Color> color, const UString &message);
 
 	static void logImpl(const std::string &message, Color color = rgb(255, 255, 255))
 	{
-		if (color == rgb(255, 255, 255) || !Environment::isatty())
-			fmt::print("{}", message);
+		if constexpr (Env::cfg(OS::WINDOWS)) // hmm... odd bug with fmt::print (or mingw?), when the stdout isn't redirected to a file
+		{
+			if (color == rgb(255, 255, 255) || !Environment::isaTTY())
+				printf("%s", fmt::format("{}", message).c_str());
+			else
+				printf("%s", fmt::format(fmt::fg(fmt::rgb(color.R(), color.G(), color.B())), "{}", message).c_str());
+		}
 		else
-			fmt::print(fmt::fg(fmt::rgb(color.r, color.g, color.b)), "{}", message);
-
+		{
+			if (color == rgb(255, 255, 255) || !Environment::isaTTY())
+				fmt::print("{}", message);
+			else
+				fmt::print(fmt::fg(fmt::rgb(color.R(), color.G(), color.B())), "{}", message);
+		}
 		logToConsole(color, UString(message));
 	}
 };
@@ -231,11 +256,10 @@ private:
 extern Mouse *mouse;
 extern Keyboard *keyboard;
 extern App *app;
-extern Graphics *graphics;
+extern Graphics *g;
 extern SoundEngine *soundEngine;
 extern ResourceManager *resourceManager;
 extern NetworkHandler *networkHandler;
-extern OpenVRInterface *openVR;
 extern AnimationHandler *animationHandler;
 extern SteamworksInterface *steam;
 extern DiscordInterface *discord;

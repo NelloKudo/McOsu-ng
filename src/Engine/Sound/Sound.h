@@ -13,11 +13,10 @@
 
 class SoundEngine;
 
+typedef uint32_t SOUNDHANDLE;
+
 class Sound : public Resource
 {
-public:
-	typedef unsigned long SOUNDHANDLE;
-
 public:
 	Sound(UString filepath, bool stream, bool threeD, bool loop, bool prescan);
 	~Sound() override;
@@ -27,7 +26,7 @@ public:
 
 	// Public interface
 	virtual void setPosition(double percent) = 0;
-	virtual void setPositionMS(unsigned long ms) { setPositionMS(ms, false); }
+	virtual void setPositionMS(unsigned long ms) = 0;
 	virtual void setVolume(float volume) = 0;
 	virtual void setSpeed(float speed) = 0;
 	virtual void setPitch(float pitch) = 0;
@@ -50,11 +49,11 @@ public:
 	virtual bool isPlaying() = 0;
 	virtual bool isFinished() = 0;
 
-	[[nodiscard]] inline double getLastPlayTime() const { return m_fLastPlayTime; }
-	[[nodiscard]] inline bool isStream() const { return m_bStream; }
-	[[nodiscard]] inline bool is3d() const { return m_bIs3d; }
-	[[nodiscard]] inline bool isLooped() const { return m_bIsLooped; }
-	[[nodiscard]] inline bool isOverlayable() const { return m_bIsOverlayable; }
+	[[nodiscard]] virtual double getLastPlayTime() const { return m_fLastPlayTime; }
+	[[nodiscard]] virtual bool isStream() const { return m_bStream; }
+	[[nodiscard]] virtual bool is3d() const { return m_bIs3d; }
+	[[nodiscard]] virtual bool isLooped() const { return m_bIsLooped; }
+	[[nodiscard]] virtual bool isOverlayable() const { return m_bIsOverlayable; }
 
 	virtual void rebuild(UString newFilePath) = 0;
 
@@ -68,16 +67,18 @@ protected:
 	void initAsync() override = 0;
 	void destroy() override = 0;
 
-	virtual void setPositionMS(unsigned long ms, bool internal) = 0;
-
 	bool m_bStream;
 	bool m_bIs3d;
 	bool m_bIsLooped;
 	bool m_bPrescan;
 	bool m_bIsOverlayable;
 
+	bool m_bIgnored;
+
 	float m_fVolume;
 	double m_fLastPlayTime;
+private:
+	static bool isValidAudioFile(const UString& filePath, const UString &fileExt);
 };
 
 #endif

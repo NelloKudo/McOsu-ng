@@ -23,8 +23,9 @@
 #include "OpenGLStateCache.h"
 
 #include <utility>
-
+namespace cv {
 ConVar r_image_unbind_after_drawimage("r_image_unbind_after_drawimage", true, FCVAR_NONE);
+}
 
 OpenGLLegacyInterface::OpenGLLegacyInterface() : Graphics()
 {
@@ -39,10 +40,7 @@ OpenGLLegacyInterface::OpenGLLegacyInterface() : Graphics()
 	m_fZ = 1;
 
 	m_syncobj = new OpenGLSync();
-}
 
-void OpenGLLegacyInterface::init()
-{
 	// enable
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_BLEND);
@@ -85,7 +83,7 @@ void OpenGLLegacyInterface::beginScene()
 	// push main transforms
 	pushTransform();
 	setProjectionMatrix(defaultProjectionMatrix);
-	translate(r_globaloffset_x->getFloat(), r_globaloffset_y->getFloat());
+	translate(cv::r_globaloffset_x.getFloat(), cv::r_globaloffset_y.getFloat());
 
 	// and apply them
 	updateTransform();
@@ -104,6 +102,7 @@ void OpenGLLegacyInterface::endScene()
 {
 	popTransform();
 
+#ifdef _DEBUG
 	checkStackLeaks();
 
 	if (m_clipRectStack.size() > 0)
@@ -111,6 +110,8 @@ void OpenGLLegacyInterface::endScene()
 		engine->showMessageErrorFatal("ClipRect Stack Leak", "Make sure all push*() have a pop*()!");
 		engine->shutdown();
 	}
+
+#endif
 
 	m_syncobj->end();
 	m_bInScene = false;
@@ -129,7 +130,7 @@ void OpenGLLegacyInterface::setColor(Color color)
 	m_color = color;
 	// glColor4f(((unsigned char)(m_color >> 16))  / 255.0f, ((unsigned char)(m_color >> 8)) / 255.0f, ((unsigned char)(m_color >> 0)) / 255.0f, ((unsigned char)(m_color >> 24)) /
 	// 255.0f);
-	glColor4ub(m_color.r, m_color.g, m_color.b, m_color.a);
+	glColor4ub(m_color.R(), m_color.G(), m_color.B(), m_color.A());
 }
 
 void OpenGLLegacyInterface::setAlpha(float alpha)
@@ -391,10 +392,10 @@ void OpenGLLegacyInterface::drawImage(Image *image)
 		}
 		glEnd();
 	}
-	if (r_image_unbind_after_drawimage.getBool())
+	if (cv::r_image_unbind_after_drawimage.getBool())
 		image->unbind();
 
-	if (r_debug_drawimage->getBool())
+	if (cv::r_debug_drawimage.getBool())
 	{
 		setColor(0xbbff00ff);
 		drawRect(x, y, width, height);
@@ -408,7 +409,7 @@ void OpenGLLegacyInterface::drawString(McFont *font, UString text)
 
 	updateTransform();
 
-	if (r_debug_flush_drawstring->getBool())
+	if (cv::r_debug_flush_drawstring.getBool())
 	{
 		glFinish();
 		glFlush();
@@ -416,7 +417,7 @@ void OpenGLLegacyInterface::drawString(McFont *font, UString text)
 		glFlush();
 	}
 
-	font->drawString(this, text);
+	font->drawString(text);
 }
 
 void OpenGLLegacyInterface::drawVAO(VertexArrayObject *vao)
@@ -464,7 +465,7 @@ void OpenGLLegacyInterface::drawVAO(VertexArrayObject *vao)
 
 void OpenGLLegacyInterface::setClipRect(McRect clipRect)
 {
-	if (r_debug_disable_cliprect->getBool())
+	if (cv::r_debug_disable_cliprect.getBool())
 		return;
 	// if (m_bIs3DScene) return; // HACKHACK:TODO:
 

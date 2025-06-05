@@ -16,8 +16,6 @@
 #include "OpenGLHeaders.h"
 #include "OpenGLStateCache.h"
 
-extern ConVar debug_opengl;
-
 OpenGLRenderTarget::OpenGLRenderTarget(int x, int y, int width, int height, Graphics::MULTISAMPLE_TYPE multiSampleType) : RenderTarget(x, y, width, height, multiSampleType)
 {
 	m_iFrameBuffer = 0;
@@ -202,7 +200,7 @@ void OpenGLRenderTarget::init()
 
 #endif
 
-	if (debug_opengl.getBool()) // put this behind a flag because glCheckFramebufferStatus causes unnecessary command queue syncs
+	if (cv::debug_opengl.getBool()) // put this behind a flag because glCheckFramebufferStatus causes unnecessary command queue syncs
 	{
 		// error checking
 		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -266,9 +264,9 @@ void OpenGLRenderTarget::enable()
 
 	// set new viewport
 	int newViewX = -m_vPos.x;
-	int newViewY = (m_vPos.y - graphics->getResolution().y) + m_vSize.y;
-	int newViewWidth = graphics->getResolution().x;
-	int newViewHeight = graphics->getResolution().y;
+	int newViewY = (m_vPos.y - g->getResolution().y) + m_vSize.y;
+	int newViewWidth = g->getResolution().x;
+	int newViewHeight = g->getResolution().y;
 
 	glViewport(newViewX, newViewY, newViewWidth, newViewHeight);
 
@@ -276,7 +274,7 @@ void OpenGLRenderTarget::enable()
 	OpenGLStateCache::getInstance().setCurrentViewport(newViewX, newViewY, newViewWidth, newViewHeight);
 
 	// clear
-	if (debug_rt->getBool())
+	if (cv::debug_rt.getBool())
 		glClearColor(0.0f, 0.5f, 0.0f, 0.5f);
 	else
 		glClearColor(m_clearColor.Rf(), m_clearColor.Gf(), m_clearColor.Bf(), m_clearColor.Af());
@@ -296,7 +294,7 @@ void OpenGLRenderTarget::disable()
 	if (isMultiSampled())
 	{
 		// HACKHACK: force disable antialiasing
-		graphics->setAntialiasing(false);
+		g->setAntialiasing(false);
 
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_iFrameBuffer);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_iResolveFrameBuffer);
@@ -366,7 +364,7 @@ void OpenGLRenderTarget::blitResolveFrameBufferIntoFrameBuffer(OpenGLRenderTarge
 	if (isMultiSampled())
 	{
 		// HACKHACK: force disable antialiasing
-		graphics->setAntialiasing(false);
+		g->setAntialiasing(false);
 
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_iResolveFrameBuffer);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, rt->getFrameBuffer());
@@ -385,7 +383,7 @@ void OpenGLRenderTarget::blitFrameBufferIntoFrameBuffer(OpenGLRenderTarget *rt)
 #if (defined(MCENGINE_FEATURE_OPENGL) || defined(MCENGINE_FEATURE_GLES32)) && !defined(MCENGINE_PLATFORM_WASM)
 
 	// HACKHACK: force disable antialiasing
-	graphics->setAntialiasing(false);
+	g->setAntialiasing(false);
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_iFrameBuffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, rt->getFrameBuffer());

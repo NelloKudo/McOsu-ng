@@ -36,7 +36,7 @@ public:
 	OsuModSelector();
 	virtual ~OsuModSelector();
 
-	virtual void draw(Graphics *g);
+	virtual void draw();
 	virtual void update();
 
 	virtual void onKeyDown(KeyboardEvent &key);
@@ -166,10 +166,6 @@ private:
 	std::vector<OsuUIButton*> m_actionButtons;
 	OsuUIButton *m_resetModsButton;
 	OsuUIButton *m_closeButton;
-
-	// convar refs
-	ConVar *m_osu_drain_type_ref;
-	ConVar *m_osu_mod_touchdevice_ref;
 };
 
 #endif

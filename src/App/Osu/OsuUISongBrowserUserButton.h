@@ -20,7 +20,7 @@ class OsuUISongBrowserUserButton : public CBaseUIButton
 public:
 	OsuUISongBrowserUserButton();
 
-	virtual void draw(Graphics *g);
+	virtual void draw();
 	virtual void update();
 
 	void updateUserStats();
@@ -31,7 +31,7 @@ private:
 	virtual void onMouseInside();
 	virtual void onMouseOutside();
 
-	ConVar *m_osu_scores_enabled_ref;
+	;
 
 	float m_fPP;
 	float m_fAcc;

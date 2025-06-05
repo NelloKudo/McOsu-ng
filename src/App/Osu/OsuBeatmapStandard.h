@@ -19,11 +19,10 @@ public:
 	OsuBeatmapStandard();
 	~OsuBeatmapStandard() override;
 
-	void draw(Graphics *g) override;
-	void drawInt(Graphics *g) override;
-	void drawVR(Graphics *g, Matrix4 &mvp, OsuVR *vr) override;
-	void draw3D(Graphics *g) override;
-	void draw3D2(Graphics *g) override;
+	void draw() override;
+	void drawInt() override;
+	void draw3D() override;
+	void draw3D2() override;
 	void update() override;
 
 	void onModUpdate() override {onModUpdate(true, true);}
@@ -38,7 +37,6 @@ public:
 	[[nodiscard]] Vector2 pixels2OsuCoords(Vector2 pixelCoords) const; // only used for positional audio atm
 	[[nodiscard]] Vector2 osuCoords2Pixels(Vector2 coords) const; // hitobjects should use this one (includes lots of special behaviour)
 	[[nodiscard]] Vector2 osuCoords2RawPixels(Vector2 coords) const; // raw transform from osu!pixels to absolute screen pixels (without any mods whatsoever)
-	[[nodiscard]] Vector2 osuCoords2VRPixels(Vector2 coords) const; // this gets called by osuCoords2Pixels() during a VR draw(), for easier backwards compatibility
 	[[nodiscard]] Vector3 osuCoordsTo3D(Vector2 coords, const OsuHitObject *hitObject) const;
 	[[nodiscard]] Vector3 osuCoordsToRaw3D(Vector2 coords) const; // (without any mods whatsoever)
 	[[nodiscard]] Vector2 osuCoords2LegacyPixels(Vector2 coords) const; // only applies vanilla osu mods and static mods to the coordinates (used for generating the static slider mesh) centered at (0, 0, 0)
@@ -77,21 +75,21 @@ public:
 	[[nodiscard]] inline bool isSpinnerActive() const {return m_bIsSpinnerActive;}
 
 private:
-	static ConVar *m_osu_draw_statistics_pp_ref;
-	static ConVar *m_osu_draw_statistics_livestars_ref;
-	static ConVar *m_osu_mod_fullalternate_ref;
-	static ConVar *m_fposu_distance_ref;
-	static ConVar *m_fposu_curved_ref;
-	static ConVar *m_fposu_3d_curve_multiplier_ref;
-	static ConVar *m_fposu_mod_strafing_ref;
-	static ConVar *m_fposu_mod_strafing_frequency_x_ref;
-	static ConVar *m_fposu_mod_strafing_frequency_y_ref;
-	static ConVar *m_fposu_mod_strafing_frequency_z_ref;
-	static ConVar *m_fposu_mod_strafing_strength_x_ref;
-	static ConVar *m_fposu_mod_strafing_strength_y_ref;
-	static ConVar *m_fposu_mod_strafing_strength_z_ref;
-	static ConVar *m_fposu_mod_3d_depthwobble_ref;
-	static ConVar *m_osu_slider_scorev2_ref;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 	static inline Vector2 mapNormalizedCoordsOntoUnitCircle(const Vector2 &in)
 	{
@@ -123,8 +121,8 @@ private:
 	void onUnpaused() override;
 	void onRestart(bool quick) override;
 
-	void drawFollowPoints(Graphics *g);
-	void drawHitObjects(Graphics *g);
+	void drawFollowPoints();
+	void drawHitObjects();
 
 	void updateAutoCursorPos();
 	void updatePlayfieldMetrics();
@@ -189,7 +187,6 @@ private:
 	// custom
 	bool m_bIsPreLoading;
 	int m_iPreLoadingIndex;
-	bool m_bIsVRDraw; // for switching legacy drawing to osuCoords2Pixels/osuCoords2VRPixels
 	bool m_bWasHREnabled; // dynamic stack recalculation
 
 	RenderTarget *m_mafhamActiveRenderTarget;

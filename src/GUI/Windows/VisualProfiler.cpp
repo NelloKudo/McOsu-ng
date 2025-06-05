@@ -18,7 +18,7 @@
 #include "SoundEngine.h"
 
 #include <cstring>
-
+namespace cv {
 ConVar vprof_graph("vprof_graph", true, FCVAR_NONE, "whether to draw the graph when the overlay is enabled");
 ConVar vprof_graph_height("vprof_graph_height", 250.0f, FCVAR_NONE);
 ConVar vprof_graph_width("vprof_graph_width", 800.0f, FCVAR_NONE);
@@ -32,8 +32,9 @@ ConVar vprof_spike("vprof_spike", 0, FCVAR_NONE, "measure and display largest sp
 ConVar vprof_display_mode("vprof_display_mode", 0, FCVAR_NONE, "which info blade to show on the top right (gpu/engine/app/etc. info), use CTRL + TAB to cycle through, 0 = disabled");
 
 ConVar debug_vprof("debug_vprof", false, FCVAR_NONE);
+}
 
-ConVar *VisualProfiler::m_vprof_ref = NULL;
+
 
 VisualProfiler *vprof = NULL;
 
@@ -41,8 +42,7 @@ VisualProfiler::VisualProfiler() : WindowUIElement(0, 0, 0, 0, "")
 {
 	vprof = this;
 
-	if (m_vprof_ref == NULL)
-		m_vprof_ref = convar->getConVarByName("vprof");
+
 
 	m_spike.node.depth = -1;
 	m_spike.node.node = NULL;
@@ -76,13 +76,13 @@ VisualProfiler::~VisualProfiler()
 	vprof = NULL;
 }
 
-void VisualProfiler::draw(Graphics *g)
+void VisualProfiler::draw()
 {
 	VPROF_BUDGET("VisualProfiler::draw", VPROF_BUDGETGROUP_DRAW);
-	if (!m_vprof_ref->getBool() || !m_bVisible) return;
+	if (!cv::vprof.getBool() || !m_bVisible) return;
 
 	// draw miscellaneous debug infos
-	const int displayMode = vprof_display_mode.getInt();
+	const int displayMode = cv::vprof_display_mode.getInt();
 	if (displayMode != INFO_BLADE_DISPLAY_MODE::INFO_BLADE_DISPLAY_MODE_DEFAULT)
 	{
 		McFont *textFont = m_font;
@@ -109,7 +109,7 @@ void VisualProfiler::draw(Graphics *g)
 					addTextLine(UString::format("NativeRes: %i x %i", (int)env->getNativeScreenSize().x, (int)env->getNativeScreenSize().y), textFont, m_textLines);
 					addTextLine(UString::format("Env DPI Scale: %f", env->getDPIScale()), textFont, m_textLines);
 					addTextLine(UString::format("Env DPI: %i", (int)env->getDPI()), textFont, m_textLines);
-					//addTextLine(UString::format("Renderer: %s", typeid(g).name()), textFont, m_textLines); // TODO: add g->getName() or something
+					//addTextLine(UString::format("Renderer: %s", typeid().name()), textFont, m_textLines); // TODO: add g->getName() or something
 					addTextLine(UString::format("VRAM: %i MB avail. / %i MB tot.", vramAvailableMB, vramTotalMB), textFont, m_textLines);
 				}
 				break;
@@ -124,20 +124,20 @@ void VisualProfiler::draw(Graphics *g)
 					const double dilation = (timeRunning - time);
 					const Vector2 envMousePos = env->getMousePos();
 
-					addTextLine(UString::format("ConVars: %zu", convar->getConVarArray().size()), textFont, m_textLines);
-					addTextLine(UString::format("Monitor: [%i] of %zu", env->getMonitor(), env->getMonitors().size()), textFont, m_textLines);
-					addTextLine(UString::format("Env Mouse Pos: %i x %i", (int)envMousePos.x, (int)envMousePos.y), textFont, m_textLines);
-					addTextLine(UString::format("Sound Device: %s", soundEngine->getOutputDevice().toUtf8()), textFont, m_textLines);
-					addTextLine(UString::format("Sound Volume: %f", soundEngine->getVolume()), textFont, m_textLines);
-					addTextLine(UString::format("RM Threads: %zu", resourceManager->getNumThreads()), textFont, m_textLines);
-					addTextLine(UString::format("RM LoadingWork: %zu", resourceManager->getNumLoadingWork()), textFont, m_textLines);
-					addTextLine(UString::format("RM LoadingWorkAD: %zu", resourceManager->getNumLoadingWorkAsyncDestroy()), textFont, m_textLines);
-					addTextLine(UString::format("RM Named Resources: %zu", resourceManager->getResources().size()), textFont, m_textLines);
-					addTextLine(UString::format("Animations: %zu", anim->getNumActiveAnimations()), textFont, m_textLines);
-					addTextLine(UString::format("Frame: %lu", engine->getFrameCount()), textFont, m_textLines);
-					addTextLine(UString::format("Time: %f", time), textFont, m_textLines);
-					addTextLine(UString::format("Realtime: %f", timeRunning), textFont, m_textLines);
-					addTextLine(UString::format("Time Dilation: %f", dilation), textFont, m_textLines);
+					addTextLine(UString::fmt("ConVars: {}", convar->getConVarArray().size()), textFont, m_textLines);
+					addTextLine(UString::fmt("Monitor: [{}] of {}", env->getMonitor(), env->getMonitors().size()), textFont, m_textLines);
+					addTextLine(UString::fmt("Env Mouse Pos: {} x {}", (int)envMousePos.x, (int)envMousePos.y), textFont, m_textLines);
+					addTextLine(UString::fmt("Sound Device: {:s}", soundEngine->getOutputDevice()), textFont, m_textLines);
+					addTextLine(UString::fmt("Sound Volume: {:.4f}", soundEngine->getVolume()), textFont, m_textLines);
+					addTextLine(UString::fmt("RM Threads: {}", resourceManager->getNumActiveThreads()), textFont, m_textLines);
+					addTextLine(UString::fmt("RM LoadingWork: {}", resourceManager->getNumLoadingWork()), textFont, m_textLines);
+					addTextLine(UString::fmt("RM LoadingWorkAD: {}", resourceManager->getNumLoadingWorkAsyncDestroy()), textFont, m_textLines);
+					addTextLine(UString::fmt("RM Named Resources: {}", resourceManager->getResources().size()), textFont, m_textLines);
+					addTextLine(UString::fmt("Animations: {}", anim->getNumActiveAnimations()), textFont, m_textLines);
+					addTextLine(UString::fmt("Frame: {}", engine->getFrameCount()), textFont, m_textLines);
+					addTextLine(UString::fmt("Time: {:.4f}", time), textFont, m_textLines);
+					addTextLine(UString::fmt("Realtime: {:.4f}", timeRunning), textFont, m_textLines);
+					addTextLine(UString::fmt("Time Dilation: {:.4f}", dilation), textFont, m_textLines);
 
 					for (size_t i=0; i<m_engineTextLines.size(); i++)
 					{
@@ -166,7 +166,7 @@ void VisualProfiler::draw(Graphics *g)
 		if (m_textLines.size() > 0)
 		{
 			const Color textColor = 0xffffffff;
-			const int margin = vprof_graph_margin.getFloat() * env->getDPIScale();
+			const int margin = cv::vprof_graph_margin.getFloat() * env->getDPIScale();
 			const int marginBox = 6 * env->getDPIScale();
 
 			int largestLineWidth = 0;
@@ -202,7 +202,7 @@ void VisualProfiler::draw(Graphics *g)
 					g->pushTransform();
 					{
 						g->translate(engine->getScreenWidth() - m_textLines[i].width*textScale, 0);
-						drawStringWithShadow(g, textFont, m_textLines[i].text, textColor);
+						drawStringWithShadow(textFont, m_textLines[i].text, textColor);
 					}
 					g->popTransform();
 				}
@@ -216,7 +216,7 @@ void VisualProfiler::draw(Graphics *g)
 	}
 
 	// draw profiler node tree extended details
-	if (debug_vprof.getBool())
+	if (cv::debug_vprof.getBool())
 	{
 		VPROF_BUDGET("DebugText", VPROF_BUDGETGROUP_DRAW);
 
@@ -262,11 +262,11 @@ void VisualProfiler::draw(Graphics *g)
 	}
 
 	// draw extended spike details tree (profiler node snapshot)
-	if (vprof_spike.getBool() && !debug_vprof.getBool())
+	if (cv::vprof_spike.getBool() && !cv::debug_vprof.getBool())
 	{
 		if (m_spike.node.node != NULL)
 		{
-			if (vprof_spike.getInt() == 2)
+			if (cv::vprof_spike.getInt() == 2)
 			{
 				VPROF_BUDGET("DebugText", VPROF_BUDGETGROUP_DRAW);
 
@@ -293,13 +293,13 @@ void VisualProfiler::draw(Graphics *g)
 	}
 
 	// draw graph
-	if (vprof_graph.getBool())
+	if (cv::vprof_graph.getBool())
 	{
 		VPROF_BUDGET("LineGraph", VPROF_BUDGETGROUP_DRAW);
 
 		const int width = getGraphWidth();
 		const int height = getGraphHeight();
-		const int margin = vprof_graph_margin.getFloat() * env->getDPIScale();
+		const int margin = cv::vprof_graph_margin.getFloat() * env->getDPIScale();
 
 		const int xPos = engine->getScreenWidth() - width - margin;
 		const int yPos = engine->getScreenHeight() - height - margin + (mouse->isMiddleDown() ? mouse->getPos().y - engine->getScreenHeight() : 0);
@@ -337,10 +337,10 @@ void VisualProfiler::draw(Graphics *g)
 			g->pushTransform();
 			{
 				g->translate((int)(xPos + margin), (int)(yPos + m_font->getHeight() + margin));
-				drawStringWithShadow(g, m_font, UString::format("%g ms", vprof_graph_range_max.getFloat()), 0xffffffff);
+				drawStringWithShadow(m_font, UString::format("%g ms", cv::vprof_graph_range_max.getFloat()), 0xffffffff);
 
 				g->translate(0, (int)(height - m_font->getHeight() - 2*margin));
-				drawStringWithShadow(g, m_font, "0 ms", 0xffffffff);
+				drawStringWithShadow(m_font, "0 ms", 0xffffffff);
 			}
 			g->popTransform();
 
@@ -355,7 +355,7 @@ void VisualProfiler::draw(Graphics *g)
 				{
 					const int stringWidth = (int)(m_font->getStringWidth(m_groups[i].name));
 					g->translate(-stringWidth, 0);
-					drawStringWithShadow(g, m_font, m_groups[i].name, m_groups[i].color);
+					drawStringWithShadow(m_font, m_groups[i].name, m_groups[i].color);
 					g->translate(stringWidth, (int)(-m_font->getHeight() - padding));
 				}
 			}
@@ -363,11 +363,11 @@ void VisualProfiler::draw(Graphics *g)
 		}
 
 		// draw top spike text above graph
-		if (vprof_spike.getBool() && !debug_vprof.getBool())
+		if (cv::vprof_spike.getBool() && !cv::debug_vprof.getBool())
 		{
 			if (m_spike.node.node != NULL)
 			{
-				if (vprof_spike.getInt() == 1)
+				if (cv::vprof_spike.getInt() == 1)
 				{
 					const int margin = 6 * env->getDPIScale();
 
@@ -375,7 +375,7 @@ void VisualProfiler::draw(Graphics *g)
 					g->pushTransform();
 					{
 						g->translate((int)(xPos + margin), (int)(yPos - 2*margin));
-						///drawStringWithShadow(g, UString::format("[%s] = %g ms", m_spike.node.node->getName(), m_spike.timeLastFrame * 1000.0), m_groups[m_spike.node.node->getGroupID()].color);
+						///drawStringWithShadow(UString::format("[%s] = %g ms", m_spike.node.node->getName(), m_spike.timeLastFrame * 1000.0), m_groups[m_spike.node.node->getGroupID()].color);
 						g->drawString(m_font, UString::format("Spike = %g ms", m_spike.timeLastFrame * 1000.0));
 					}
 					g->popTransform();
@@ -385,7 +385,7 @@ void VisualProfiler::draw(Graphics *g)
 	}
 }
 
-void VisualProfiler::drawStringWithShadow(Graphics *g, McFont *font, const UString &string, Color color)
+void VisualProfiler::drawStringWithShadow(McFont *font, const UString &string, Color color)
 {
 	if (font == NULL) return;
 
@@ -407,11 +407,11 @@ void VisualProfiler::update()
 {
 	VPROF_BUDGET("VisualProfiler::update", VPROF_BUDGETGROUP_UPDATE);
 	CBaseUIElement::update();
-	if (!m_vprof_ref->getBool() || !m_bVisible) return;
+	if (!cv::vprof.getBool() || !m_bVisible) return;
 
 	const bool isFrozen = (keyboard->isShiftDown() && (!m_bRequiresAltShiftKeysToFreeze || keyboard->isAltDown()));
 
-	if (debug_vprof.getBool() || vprof_spike.getBool())
+	if (cv::debug_vprof.getBool() || cv::vprof_spike.getBool())
 	{
 		if (!isFrozen)
 		{
@@ -432,7 +432,7 @@ void VisualProfiler::update()
 
 
 			// run spike collector and updater
-			if (vprof_spike.getBool())
+			if (cv::vprof_spike.getBool())
 			{
 				const int graphWidth = getGraphWidth();
 
@@ -518,8 +518,8 @@ void VisualProfiler::update()
 		const int numGroups = m_groups.size();
 		const int graphWidth = getGraphWidth();
 		const int graphHeight = getGraphHeight();
-		const float maxRange = vprof_graph_range_max.getFloat();
-		const float alpha = vprof_graph_alpha.getFloat();
+		const float maxRange = cv::vprof_graph_range_max.getFloat();
+		const float alpha = cv::vprof_graph_alpha.getFloat();
 
 		// lazy rebuild line vao if parameters change
 		if (m_bScheduledForceRebuildLineVao
@@ -544,7 +544,7 @@ void VisualProfiler::update()
 			{
 				for (int g=0; g<numGroups; g++)
 				{
-					const Color color = argb((unsigned char)(m_fPrevVaoAlpha * 255.0f), m_groups[g].color.r, m_groups[g].color.g, m_groups[g].color.b);
+					const Color color = argb(m_fPrevVaoAlpha, m_groups[g].color.Rf(), m_groups[g].color.Gf(), m_groups[g].color.Bf());
 
 					//m_lineVao->addVertex(x, -(((float)graphHeight)/(float)numGroups)*g, 0);
 					m_lineVao->addVertex(x, 0, 0);
@@ -573,7 +573,7 @@ void VisualProfiler::update()
 				// it is usually slightly negative (in the order of 10 microseconds, includes rounding errors and timer inaccuracies)
 				// if the overhead ever gets positive then either there are no nodes covering all paths below VPROF_MAIN(), or there is a serious problem with measuring time via Timing::getTimeReal()
 				double profilingOverheadTime = 0.0;
-				if (vprof_graph_draw_overhead.getBool())
+				if (cv::vprof_graph_draw_overhead.getBool())
 				{
 					const int rootGroupID = 0;
 					double sumGroupTimes = 0.0;
@@ -612,27 +612,27 @@ void VisualProfiler::update()
 void VisualProfiler::incrementInfoBladeDisplayMode()
 {
 
-	vprof_display_mode.setValue((vprof_display_mode.getInt() + 1) % INFO_BLADE_DISPLAY_MODE::INFO_BLADE_DISPLAY_MODE_COUNT);
+	cv::vprof_display_mode.setValue((cv::vprof_display_mode.getInt() + 1) % INFO_BLADE_DISPLAY_MODE::INFO_BLADE_DISPLAY_MODE_COUNT);
 }
 
 void VisualProfiler::decrementInfoBladeDisplayMode()
 {
-	if (vprof_display_mode.getInt() - 1 < INFO_BLADE_DISPLAY_MODE::INFO_BLADE_DISPLAY_MODE_DEFAULT)
-		vprof_display_mode.setValue(INFO_BLADE_DISPLAY_MODE::INFO_BLADE_DISPLAY_MODE_COUNT - 1);
+	if (cv::vprof_display_mode.getInt() - 1 < INFO_BLADE_DISPLAY_MODE::INFO_BLADE_DISPLAY_MODE_DEFAULT)
+		cv::vprof_display_mode.setValue(INFO_BLADE_DISPLAY_MODE::INFO_BLADE_DISPLAY_MODE_COUNT - 1);
 	else
-		vprof_display_mode.setValue(vprof_display_mode.getInt() - 1);
+		cv::vprof_display_mode.setValue(cv::vprof_display_mode.getInt() - 1);
 }
 
 void VisualProfiler::addInfoBladeEngineTextLine(const UString &text)
 {
-	if (!m_vprof_ref->getBool() || !m_bVisible || vprof_display_mode.getInt() != INFO_BLADE_DISPLAY_MODE::INFO_BLADE_DISPLAY_MODE_ENGINE_INFO) return;
+	if (!cv::vprof.getBool() || !m_bVisible || cv::vprof_display_mode.getInt() != INFO_BLADE_DISPLAY_MODE::INFO_BLADE_DISPLAY_MODE_ENGINE_INFO) return;
 
 	m_engineTextLines.push_back(text);
 }
 
 void VisualProfiler::addInfoBladeAppTextLine(const UString &text)
 {
-	if (!m_vprof_ref->getBool() || !m_bVisible || vprof_display_mode.getInt() != INFO_BLADE_DISPLAY_MODE::INFO_BLADE_DISPLAY_MODE_APP_INFO) return;
+	if (!cv::vprof.getBool() || !m_bVisible || cv::vprof_display_mode.getInt() != INFO_BLADE_DISPLAY_MODE::INFO_BLADE_DISPLAY_MODE_APP_INFO) return;
 
 	m_appTextLines.push_back(text);
 }
@@ -651,7 +651,7 @@ void VisualProfiler::setProfile(ProfilerProfile *profile)
 
 bool VisualProfiler::isEnabled()
 {
-	return m_vprof_ref->getBool();
+	return cv::vprof.getBool();
 }
 
 void VisualProfiler::collectProfilerNodesRecursive(const ProfilerNode *node, int depth, std::vector<NODE> &nodes, SPIKE &spike)
@@ -714,12 +714,12 @@ void VisualProfiler::collectProfilerNodesSpikeRecursive(const ProfilerNode *node
 
 int VisualProfiler::getGraphWidth()
 {
-	return (vprof_graph_width.getFloat() * env->getDPIScale());
+	return (cv::vprof_graph_width.getFloat() * env->getDPIScale());
 }
 
 int VisualProfiler::getGraphHeight()
 {
-	return (vprof_graph_height.getFloat() * env->getDPIScale());
+	return (cv::vprof_graph_height.getFloat() * env->getDPIScale());
 }
 
 void VisualProfiler::addTextLine(const UString &text, McFont *font, std::vector<TEXT_LINE> &textLines)

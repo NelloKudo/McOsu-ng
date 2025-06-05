@@ -16,11 +16,11 @@
 #include "CBaseUIContainer.h"
 #include "CBaseUICheckbox.h"
 #include "CBaseUISlider.h"
-
+namespace cv {
 ConVar vs_repeat("vs_repeat", false, FCVAR_NONE);
 ConVar vs_shuffle("vs_shuffle", false, FCVAR_NONE);
 ConVar vs_volume("vs_volume", 1.0f, FCVAR_NONE);
-
+}
 
 
 class VSControlBarButton : public CBaseUIButton
@@ -29,7 +29,7 @@ public:
 	VSControlBarButton(float xPos, float yPos, float xSize, float ySize, UString name, UString text) : CBaseUIButton(xPos, yPos, xSize, ySize, name, text) {;}
 	virtual ~VSControlBarButton() {;}
 
-	virtual void draw(Graphics *g)
+	virtual void draw()
 	{
 		if (!m_bVisible) return;
 
@@ -41,11 +41,11 @@ public:
 		g->setColor(rgb(204, 204, 204));
 		g->drawRect(m_vPos.x, m_vPos.y, m_vSize.x, m_vSize.y);
 
-		drawText(g);
+		drawText();
 	}
 
 protected:
-	virtual void drawText(Graphics *g)
+	virtual void drawText()
 	{
 		if (m_font != NULL && m_sText.length() > 0)
 		{
@@ -91,9 +91,9 @@ public:
 	VSControlBarSlider(float xPos, float yPos, float xSize, float ySize, UString name) : CBaseUISlider(xPos, yPos, xSize, ySize, name) {;}
 	virtual ~VSControlBarSlider() {;}
 
-	virtual void draw(Graphics *g)
+	virtual void draw()
 	{
-		CBaseUISlider::draw(g);
+		CBaseUISlider::draw();
 		if (!m_bVisible) return;
 
 		g->drawQuad(Vector2(m_vPos.x+std::round(m_vBlockPos.x)+1, m_vPos.y+std::round(m_vBlockPos.y)+1),
@@ -122,7 +122,7 @@ public:
 	VSControlBarCheckbox(float xPos, float yPos, float xSize, float ySize, UString name, UString text) : CBaseUICheckbox(xPos, yPos, xSize, ySize, name, text) {;}
 	virtual ~VSControlBarCheckbox() {;}
 
-	virtual void draw(Graphics *g)
+	virtual void draw()
 	{
 		if (!m_bVisible) return;
 
@@ -134,7 +134,7 @@ public:
 		g->setColor(rgb(204, 204, 204));
 		g->drawRect(m_vPos.x, m_vPos.y, m_vSize.x, m_vSize.y);
 
-		drawText(g);
+		drawText();
 	}
 };
 
@@ -142,7 +142,7 @@ public:
 
 VSControlBar::VSControlBar(int x, int y, int xSize, int ySize, McFont *font) : WindowUIElement(x, y, xSize, ySize, "")
 {
-	vs_volume.setCallback(fastdelegate::MakeDelegate(this, &VSControlBar::onVolumeChanged));
+	cv::vs_volume.setCallback(fastdelegate::MakeDelegate(this, &VSControlBar::onVolumeChanged));
 
 	const float dpiScale = env->getDPIScale();
 	const int height = 22 * dpiScale;
@@ -171,7 +171,7 @@ VSControlBar::VSControlBar(int x, int y, int xSize, int ySize, McFont *font) : W
 	m_volume->setFrameColor(rgb(204, 204, 204));
 	m_volume->setBackgroundColor(0xffffffff);
 	m_volume->setBounds(0.0f, 1.0f);
-	m_volume->setInitialValue(vs_volume.getFloat());
+	m_volume->setInitialValue(cv::vs_volume.getFloat());
 	m_volume->setLiveUpdate(true);
 	m_container->addBaseUIElement(m_volume);
 
@@ -209,7 +209,7 @@ VSControlBar::~VSControlBar()
 	SAFE_DELETE(m_container);
 }
 
-void VSControlBar::draw(Graphics *g)
+void VSControlBar::draw()
 {
 	if (!m_bVisible) return;
 
@@ -221,7 +221,7 @@ void VSControlBar::draw(Graphics *g)
 		g->fillGradient(m_vPos.x, m_vPos.y, m_vSize.x, m_vSize.y, top, top, bottom, bottom);
 	}
 
-	m_container->draw(g);
+	m_container->draw();
 }
 
 void VSControlBar::update()
@@ -234,17 +234,17 @@ void VSControlBar::update()
 
 void VSControlBar::onRepeatCheckboxChanged(CBaseUICheckbox *box)
 {
-	vs_repeat.setValue((float)box->isChecked());
+	cv::vs_repeat.setValue((float)box->isChecked());
 }
 
 void VSControlBar::onShuffleCheckboxChanged(CBaseUICheckbox *box)
 {
-	vs_shuffle.setValue((float)box->isChecked());
+	cv::vs_shuffle.setValue((float)box->isChecked());
 }
 
 void VSControlBar::onVolumeChanged(UString oldValue, UString newValue)
 {
-	m_volume->setValue(vs_volume.getFloat());
+	m_volume->setValue(cv::vs_volume.getFloat());
 }
 
 void VSControlBar::onMoved()

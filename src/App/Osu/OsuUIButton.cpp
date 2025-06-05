@@ -28,7 +28,7 @@ OsuUIButton::OsuUIButton(float xPos, float yPos, float xSize, float ySize, UStri
 	m_bFocusStolenDelay = false;
 }
 
-void OsuUIButton::draw(Graphics *g)
+void OsuUIButton::draw()
 {
 	if (!m_bVisible) return;
 
@@ -44,10 +44,10 @@ void OsuUIButton::draw(Graphics *g)
 
 	float middleWidth = m_vSize.x - leftWidth - rightWidth;
 
-	const auto red = static_cast<Channel>(std::max(static_cast<float>(m_color.r)*m_fBrightness, m_fAnim*255.0f));
-	const auto green = static_cast<Channel>(std::max(static_cast<float>(m_color.g)*m_fBrightness, m_fAnim*255.0f));
-	const auto blue = static_cast<Channel>(std::max(static_cast<float>(m_color.b)*m_fBrightness, m_fAnim*255.0f));
-	g->setColor(argb(std::clamp<int>(m_color.a + (isMouseInside() ? (int)(m_fAlphaAddOnHover*255.0f) : 0), 0, 255), red, green, blue));
+	const auto red = static_cast<Channel>(std::max(static_cast<float>(m_color.R())*m_fBrightness, m_fAnim*255.0f));
+	const auto green = static_cast<Channel>(std::max(static_cast<float>(m_color.G())*m_fBrightness, m_fAnim*255.0f));
+	const auto blue = static_cast<Channel>(std::max(static_cast<float>(m_color.B())*m_fBrightness, m_fAnim*255.0f));
+	g->setColor(argb(std::clamp<int>(m_color.A() + (isMouseInside() ? (int)(m_fAlphaAddOnHover*255.0f) : 0), 0, 255), red, green, blue));
 
 	buttonLeft->bind();
 	{
@@ -67,7 +67,7 @@ void OsuUIButton::draw(Graphics *g)
 	}
 	buttonRight->unbind();
 
-	drawText(g);
+	drawText();
 }
 
 void OsuUIButton::update()

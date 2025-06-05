@@ -29,11 +29,11 @@ OsuScreenBackable::~OsuScreenBackable()
 	SAFE_DELETE(m_backButton);
 }
 
-void OsuScreenBackable::draw(Graphics *g)
+void OsuScreenBackable::draw()
 {
 	if (!m_bVisible) return;
 
-	m_backButton->draw(g);
+	m_backButton->draw();
 }
 
 void OsuScreenBackable::update()
@@ -48,7 +48,7 @@ void OsuScreenBackable::onKeyDown(KeyboardEvent &e)
 	OsuScreen::onKeyDown(e);
 	if (!m_bVisible || e.isConsumed()) return;
 
-	if (e == KEY_ESCAPE || e == OsuKeyBindings::GAME_PAUSE.getVal<KEYCODE>())
+	if (e == KEY_ESCAPE || e == cv::osu::keybinds::GAME_PAUSE.getVal<KEYCODE>())
 		onBack();
 
 	e.consume();
@@ -76,7 +76,7 @@ void OsuScreenBackable::stealFocus()
 void OsuScreenBackable::updateLayout()
 {
 	m_backButton->updateLayout();
-	m_backButton->setPosY(osu->getScreenHeight() - m_backButton->getSize().y);
+	m_backButton->setPosY(osu->getVirtScreenHeight() - m_backButton->getSize().y);
 }
 
 void OsuScreenBackable::onResolutionChange(Vector2 newResolution)

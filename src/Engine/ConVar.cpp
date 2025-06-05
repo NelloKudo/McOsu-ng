@@ -8,32 +8,32 @@
 #include "ConVar.h"
 
 #include <algorithm>
+#include <utility>
 
 #include "Engine.h"
-
-//#define ALLOW_DEVELOPMENT_CONVARS // NOTE: comment this out on release
-
-
-
-ConVar ConVars::sv_cheats("sv_cheats", true, FCVAR_NONE);
-
-
-
-static std::vector<ConVar*> &_getGlobalConVarArray()
+#include "File.h"
+// #define ALLOW_DEVELOPMENT_CONVARS // NOTE: comment this out on release
+namespace cv::ConVars
 {
-	static std::vector<ConVar*> g_vConVars; // (singleton)
+ConVar sv_cheats("sv_cheats", true, FCVAR_NONE);
+}
+
+static std::vector<ConVar *> &_getGlobalConVarArray()
+{
+	static std::vector<ConVar *> g_vConVars; // (singleton)
 	return g_vConVars;
 }
 
-static std::unordered_map<std::string, ConVar*> &_getGlobalConVarMap()
+static std::unordered_map<std::string, ConVar *> &_getGlobalConVarMap()
 {
-	static std::unordered_map<std::string, ConVar*> g_vConVarMap; // (singleton)
+	static std::unordered_map<std::string, ConVar *> g_vConVarMap; // (singleton)
 	return g_vConVarMap;
 }
 
-static void _addConVar(ConVar *c)
+void ConVar::addConVar(ConVar *c)
 {
-	if (c->isFlagSet(FCVAR_UNREGISTERED)) return;
+	if (c->isFlagSet(FCVAR_UNREGISTERED))
+		return;
 
 	if (_getGlobalConVarArray().size() < 1)
 		_getGlobalConVarArray().reserve(1024);
@@ -61,20 +61,20 @@ static ConVar *_getConVar(const UString &name)
 
 ConVar::~ConVar()
 {
-    if (!isFlagSet(FCVAR_UNREGISTERED))
-    {
-        std::vector<ConVar*> &conVarArray = _getGlobalConVarArray();
-        std::unordered_map<std::string, ConVar*> &conVarMap = _getGlobalConVarMap();
+	if (!isFlagSet(FCVAR_UNREGISTERED))
+	{
+		std::vector<ConVar *> &conVarArray = _getGlobalConVarArray();
+		std::unordered_map<std::string, ConVar *> &conVarMap = _getGlobalConVarMap();
 
-        auto it = std::ranges::find(conVarArray, this);
-        if (it != conVarArray.end())
-            conVarArray.erase(it);
+		auto it = std::ranges::find(conVarArray, this);
+		if (it != conVarArray.end())
+			conVarArray.erase(it);
 
-        std::string nameStr(m_sName.toUtf8(), m_sName.lengthUtf8());
-        auto mapIt = conVarMap.find(nameStr);
-        if (mapIt != conVarMap.end() && mapIt->second == this)
-            conVarMap.erase(mapIt);
-    }
+		std::string nameStr(m_sName.toUtf8(), m_sName.lengthUtf8());
+		auto mapIt = conVarMap.find(nameStr);
+		if (mapIt != conVarMap.end() && mapIt->second == this)
+			conVarMap.erase(mapIt);
+	}
 }
 
 UString ConVar::typeToString(CONVAR_TYPE type)
@@ -94,16 +94,8 @@ UString ConVar::typeToString(CONVAR_TYPE type)
 	return "";
 }
 
-
-
-void ConVar::init(int flags)
+void ConVar::initBase(int flags)
 {
-	m_callbackfunc = NULL;
-	m_callbackfuncargs = NULL;
-	m_callbackfuncfloat = NULL;
-	m_changecallback = NULL;
-	m_changecallbackfloat = NULL;
-
 	m_fValue = 0.0f;
 	m_fDefaultValue = 0.0f;
 
@@ -112,381 +104,54 @@ void ConVar::init(int flags)
 	m_iFlags = flags;
 
 #ifdef ALLOW_DEVELOPMENT_CONVARS
-
 	m_iFlags &= ~FCVAR_DEVELOPMENTONLY;
-
 #endif
+
+	// m_callback/m_changeCallback are default-init to std::monostate (i.e. nothing)
 }
 
-void ConVar::init(UString &name, int flags)
-{
-	init(flags);
-
-	m_sName = name;
-
-	m_bHasValue = false;
-	m_type = CONVAR_TYPE::CONVAR_TYPE_STRING;
-}
-
-void ConVar::init(UString &name, int flags, ConVarCallback callback)
-{
-	init(flags);
-
-	m_sName = name;
-	m_callbackfunc = callback;
-
-	m_bHasValue = false;
-	m_type = CONVAR_TYPE::CONVAR_TYPE_STRING;
-}
-
-void ConVar::init(UString &name, int flags, UString helpString, ConVarCallback callback)
-{
-	init(name, flags, callback);
-
-	m_sHelpString = helpString;
-}
-
-void ConVar::init(UString &name, int flags, ConVarCallbackArgs callbackARGS)
-{
-	init(flags);
-
-	m_sName = name;
-	m_callbackfuncargs = callbackARGS;
-
-	m_bHasValue = false;
-	m_type = CONVAR_TYPE::CONVAR_TYPE_STRING;
-}
-
-void ConVar::init(UString &name, int flags, UString helpString, ConVarCallbackArgs callbackARGS)
-{
-	init(name, flags, callbackARGS);
-
-	m_sHelpString = helpString;
-}
-
-void ConVar::init(UString &name, int flags, ConVarCallbackFloat callbackFLOAT)
-{
-	init(flags);
-
-	m_sName = name;
-	m_callbackfuncfloat = callbackFLOAT;
-
-	m_bHasValue = false;
-	m_type = CONVAR_TYPE::CONVAR_TYPE_INT;
-}
-
-void ConVar::init(UString &name, int flags, UString helpString, ConVarCallbackFloat callbackFLOAT)
-{
-	init(name, flags, callbackFLOAT);
-
-	m_sHelpString = helpString;
-}
-
-void ConVar::init(UString &name, float defaultValue, int flags, UString helpString, ConVarChangeCallback callback)
-{
-	init(flags);
-
-	m_type = CONVAR_TYPE::CONVAR_TYPE_FLOAT;
-	m_sName = name;
-	setDefaultFloatInt(defaultValue);
-	{
-		setValueInt(defaultValue);
-	}
-	m_sHelpString = helpString;
-	m_changecallback = callback;
-}
-
-void ConVar::init(UString &name, UString defaultValue, int flags, UString helpString, ConVarChangeCallback callback)
-{
-	init(flags);
-
-	m_type = CONVAR_TYPE::CONVAR_TYPE_STRING;
-	m_sName = name;
-	setDefaultStringInt(defaultValue);
-	{
-		setValueInt(defaultValue);
-	}
-	m_sHelpString = helpString;
-	m_changecallback = callback;
-}
-
-void ConVar::init(UString &name, float defaultValue, int flags, UString helpString, ConVarChangeCallbackFloat callback)
-{
-	init(flags);
-
-	m_type = CONVAR_TYPE::CONVAR_TYPE_FLOAT;
-	m_sName = name;
-	setDefaultFloatInt(defaultValue);
-	{
-		setValueInt(defaultValue);
-	}
-	m_sHelpString = helpString;
-	m_changecallbackfloat = callback;
-}
-
-void ConVar::init(UString &name, UString defaultValue, int flags, UString helpString, ConVarChangeCallbackFloat callback)
-{
-	init(flags);
-
-	m_type = CONVAR_TYPE::CONVAR_TYPE_STRING;
-	m_sName = name;
-	setDefaultStringInt(defaultValue);
-	{
-		setValueInt(defaultValue);
-	}
-	m_sHelpString = helpString;
-	m_changecallbackfloat = callback;
-}
-
+// command-only constructor
 ConVar::ConVar(UString name)
 {
-	init(name, FCVAR_NONE);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, int flags, ConVarCallback callback)
-{
-	init(name, flags, callback);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, int flags, const char *helpString, ConVarCallback callback)
-{
-	init(name, flags, helpString, callback);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, int flags, ConVarCallbackArgs callbackARGS)
-{
-	init(name, flags, callbackARGS);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, int flags, const char *helpString, ConVarCallbackArgs callbackARGS)
-{
-	init(name, flags, helpString, callbackARGS);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, int flags, ConVarCallbackFloat callbackFLOAT)
-{
-	init(name, flags, callbackFLOAT);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, int flags, const char *helpString, ConVarCallbackFloat callbackFLOAT)
-{
-	init(name, flags, helpString, callbackFLOAT);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, float fDefaultValue, int flags)
-{
-	init(name, fDefaultValue, flags, UString(""), (ConVarChangeCallback)NULL);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, float fDefaultValue, int flags, ConVarChangeCallback callback)
-{
-	init(name, fDefaultValue, flags, UString(""), callback);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, float fDefaultValue, int flags, ConVarChangeCallbackFloat callback)
-{
-	init(name, fDefaultValue, flags, UString(""), callback);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, float fDefaultValue, int flags, const char *helpString)
-{
-	init(name, fDefaultValue, flags, UString(helpString), (ConVarChangeCallback)NULL);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, float fDefaultValue, int flags, const char *helpString, ConVarChangeCallback callback)
-{
-	init(name, fDefaultValue, flags, UString(helpString), callback);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, float fDefaultValue, int flags, const char *helpString, ConVarChangeCallbackFloat callback)
-{
-	init(name, fDefaultValue, flags, UString(helpString), callback);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, int iDefaultValue, int flags)
-{
-	init(name, (float)iDefaultValue, flags, "", (ConVarChangeCallback)NULL);
-	{
-		m_type = CONVAR_TYPE::CONVAR_TYPE_INT;
-	}
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, int iDefaultValue, int flags, ConVarChangeCallback callback)
-{
-	init(name, (float)iDefaultValue, flags, "", callback);
-	{
-		m_type = CONVAR_TYPE::CONVAR_TYPE_INT;
-	}
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, int iDefaultValue, int flags, ConVarChangeCallbackFloat callback)
-{
-	init(name, (float)iDefaultValue, flags, "", callback);
-	{
-		m_type = CONVAR_TYPE::CONVAR_TYPE_INT;
-	}
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, int iDefaultValue, int flags, const char *helpString)
-{
-	init(name, (float)iDefaultValue, flags, UString(helpString), (ConVarChangeCallback)NULL);
-	{
-		m_type = CONVAR_TYPE::CONVAR_TYPE_INT;
-	}
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, int iDefaultValue, int flags, const char *helpString, ConVarChangeCallback callback)
-{
-	init(name, (float)iDefaultValue, flags, UString(helpString), callback);
-	{
-		m_type = CONVAR_TYPE::CONVAR_TYPE_INT;
-	}
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, int iDefaultValue, int flags, const char *helpString, ConVarChangeCallbackFloat callback)
-{
-	init(name, (float)iDefaultValue, flags, UString(helpString), callback);
-	{
-		m_type = CONVAR_TYPE::CONVAR_TYPE_INT;
-	}
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, bool bDefaultValue, int flags)
-{
-	init(name, bDefaultValue ? 1.0f : 0.0f, flags, "", (ConVarChangeCallback)NULL);
-	{
-		m_type = CONVAR_TYPE::CONVAR_TYPE_BOOL;
-	}
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, bool bDefaultValue, int flags, ConVarChangeCallback callback)
-{
-	init(name, bDefaultValue ? 1.0f : 0.0f, flags, "", callback);
-	{
-		m_type = CONVAR_TYPE::CONVAR_TYPE_BOOL;
-	}
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, bool bDefaultValue, int flags, ConVarChangeCallbackFloat callback)
-{
-	init(name, bDefaultValue ? 1.0f : 0.0f, flags, "", callback);
-	{
-		m_type = CONVAR_TYPE::CONVAR_TYPE_BOOL;
-	}
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, bool bDefaultValue, int flags, const char *helpString)
-{
-	init(name, bDefaultValue ? 1.0f : 0.0f, flags, UString(helpString), (ConVarChangeCallback)NULL);
-	{
-		m_type = CONVAR_TYPE::CONVAR_TYPE_BOOL;
-	}
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, bool bDefaultValue, int flags, const char *helpString, ConVarChangeCallback callback)
-{
-	init(name, bDefaultValue ? 1.0f : 0.0f, flags, UString(helpString), callback);
-	{
-		m_type = CONVAR_TYPE::CONVAR_TYPE_BOOL;
-	}
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, bool bDefaultValue, int flags, const char *helpString, ConVarChangeCallbackFloat callback)
-{
-	init(name, bDefaultValue ? 1.0f : 0.0f, flags, UString(helpString), callback);
-	{
-		m_type = CONVAR_TYPE::CONVAR_TYPE_BOOL;
-	}
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, const char *sDefaultValue, int flags)
-{
-	init(name, UString(sDefaultValue), flags, UString(""), (ConVarChangeCallback)NULL);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, const char *sDefaultValue, int flags, const char *helpString)
-{
-	init(name, UString(sDefaultValue), flags, UString(helpString), (ConVarChangeCallback)NULL);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, const char *sDefaultValue, int flags, ConVarChangeCallback callback)
-{
-	init(name, UString(sDefaultValue), flags, UString(""), callback);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, const char *sDefaultValue, int flags, ConVarChangeCallbackFloat callback)
-{
-	init(name, UString(sDefaultValue), flags, UString(""), callback);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, const char *sDefaultValue, int flags, const char *helpString, ConVarChangeCallback callback)
-{
-	init(name, UString(sDefaultValue), flags, UString(helpString), callback);
-	_addConVar(this);
-}
-
-ConVar::ConVar(UString name, const char *sDefaultValue, int flags, const char *helpString, ConVarChangeCallbackFloat callback)
-{
-	init(name, UString(sDefaultValue), flags, UString(helpString), callback);
-	_addConVar(this);
+	initBase(FCVAR_NONE);
+	m_sName = std::move(name);
+	m_bHasValue = false;
+	m_type = CONVAR_TYPE::CONVAR_TYPE_STRING;
+	m_iFlags = FCVAR_NONE;
+	ConVar::addConVar(this);
 }
 
 void ConVar::exec()
 {
-	if (isFlagSet(FCVAR_CHEAT) && !(ConVars::sv_cheats.getRaw() > 0)) return;
+	if (isFlagSet(FCVAR_CHEAT) && !(cv::ConVars::sv_cheats.getRaw() > 0))
+		return;
 
-	if (m_callbackfunc != NULL)
-		m_callbackfunc();
+	if (auto *cb = std::get_if<NativeConVarCallback>(&m_callback))
+		(*cb)();
 }
 
 void ConVar::execArgs(UString args)
 {
-	if (isFlagSet(FCVAR_CHEAT) && !(ConVars::sv_cheats.getRaw() > 0)) return;
+	if (isFlagSet(FCVAR_CHEAT) && !(cv::ConVars::sv_cheats.getRaw() > 0))
+		return;
 
-	if (m_callbackfuncargs != NULL)
-		m_callbackfuncargs(args);
+	if (auto *cb = std::get_if<NativeConVarCallbackArgs>(&m_callback))
+		(*cb)(std::move(args));
 }
 
 void ConVar::execInt(float args)
 {
-	if (isFlagSet(FCVAR_CHEAT) && !(ConVars::sv_cheats.getRaw() > 0)) return;
+	if (isFlagSet(FCVAR_CHEAT) && !(cv::ConVars::sv_cheats.getRaw() > 0))
+		return;
 
-	if (m_callbackfuncfloat != NULL)
-		m_callbackfuncfloat(args);
+	if (auto *cb = std::get_if<NativeConVarCallbackFloat>(&m_callback))
+		(*cb)(args);
 }
 
 void ConVar::setDefaultFloat(float defaultValue)
 {
-	if (isFlagSet(FCVAR_HARDCODED)) return;
+	if (isFlagSet(FCVAR_HARDCODED))
+		return;
 
 	setDefaultFloatInt(defaultValue);
 }
@@ -499,126 +164,41 @@ void ConVar::setDefaultFloatInt(float defaultValue)
 
 void ConVar::setDefaultString(UString defaultValue)
 {
-	if (isFlagSet(FCVAR_HARDCODED)) return;
+	if (isFlagSet(FCVAR_HARDCODED))
+		return;
 
-	setDefaultStringInt(defaultValue);
+	setDefaultStringInt(std::move(defaultValue));
 }
 
 void ConVar::setDefaultStringInt(UString defaultValue)
 {
-	m_sDefaultValue = defaultValue;
-}
-
-void ConVar::setValueInt(float value)
-{
-	// TODO: make this less unsafe in multithreaded environments (for float convars at least)
-
-	// backup previous value
-	const float oldValue = m_fValue.load();
-
-	// then set the new value
-	const UString newStringValue = UString::format("%g", value);
-	{
-		m_fValue = value;
-		m_sValue = newStringValue;
-	}
-
-	// handle callbacks
-	{
-		// possible void callback
-		exec();
-
-		// possible change callback
-		if (m_changecallback != NULL)
-			m_changecallback(UString::format("%g", oldValue), newStringValue);
-
-		// possible float change callback
-		if (m_changecallbackfloat != NULL)
-			m_changecallbackfloat(oldValue, m_fValue);
-
-		// possible arg callback
-		execArgs(newStringValue);
-		execInt(static_cast<float>(m_fValue));
-	}
-}
-
-void ConVar::setValue(UString sValue)
-{
-	if (isFlagSet(FCVAR_HARDCODED) || (isFlagSet(FCVAR_CHEAT) && !(ConVars::sv_cheats.getRaw() > 0))) return;
-
-	setValueInt(sValue);
-}
-
-void ConVar::setValueInt(UString sValue)
-{
-	// backup previous value
-	const UString oldValue = m_sValue;
-	const float oldFloat = m_fValue.load();
-
-	// then set the new value
-	{
-		m_sValue = sValue;
-
-		if (sValue.length() > 0)
-			m_fValue = sValue.toFloat();
-	}
-
-	// handle callbacks
-	{
-		// possible void callback
-		exec();
-
-		// possible change callback
-		if (m_changecallback != NULL)
-			m_changecallback(oldValue, sValue);
-
-		// possible float change callback
-		if (m_changecallbackfloat != NULL)
-			m_changecallbackfloat(oldFloat, m_fValue);
-
-		// possible arg callback
-		execArgs(sValue);
-		execInt(m_fValue);
-	}
-}
-
-void ConVar::setCallback(NativeConVarCallback callback)
-{
-	m_callbackfunc = callback;
-}
-
-void ConVar::setCallback(NativeConVarCallbackFloat callback)
-{
-	m_callbackfuncfloat = callback;
-}
-
-void ConVar::setCallback(NativeConVarCallbackArgs callback)
-{
-	m_callbackfuncargs = callback;
-}
-
-void ConVar::setCallback(NativeConVarChangeCallback callback)
-{
-	m_changecallback = callback;
-}
-
-void ConVar::setCallback(NativeConVarChangeCallbackFloat callback)
-{
-	m_changecallbackfloat = callback;
+	m_sDefaultValue = std::move(defaultValue);
 }
 
 void ConVar::setHelpString(UString helpString)
 {
-	m_sHelpString = helpString;
+	m_sHelpString = std::move(helpString);
 }
 
+bool ConVar::hasCallbackArgs() const
+{
+	return std::holds_alternative<NativeConVarCallbackArgs>(m_callback) || !std::holds_alternative<std::monostate>(m_changeCallback);
+}
 
+void ConVar::resetCallbacks()
+{
+	m_callback = std::monostate{};
+	m_changeCallback = std::monostate{};
+}
 
 //********************************//
 //  ConVarHandler Implementation  //
 //********************************//
 
-ConVar _emptyDummyConVar("emptyDummyConVar", 42.0f, FCVAR_NONE, "this placeholder convar is returned by convar->getConVarByName() if no matching convar is found");
+namespace cv
+{
+ConVar emptyDummyConVar("emptyDummyConVar", 42.0f, FCVAR_NONE, "this placeholder convar is returned by convar->getConVarByName() if no matching convar is found");
+}
 
 ConVarHandler *convar = new ConVarHandler();
 
@@ -632,7 +212,7 @@ ConVarHandler::~ConVarHandler()
 	convar = NULL;
 }
 
-const std::vector<ConVar*> &ConVarHandler::getConVarArray() const
+const std::vector<ConVar *> &ConVarHandler::getConVarArray() const
 {
 	return _getGlobalConVarArray();
 }
@@ -642,7 +222,7 @@ size_t ConVarHandler::getNumConVars() const
 	return _getGlobalConVarArray().size();
 }
 
-ConVar *ConVarHandler::getConVarByName(UString name, bool warnIfNotFound) const
+ConVar *ConVarHandler::getConVarByName(const UString &name, bool warnIfNotFound) const
 {
 	ConVar *found = _getConVar(name);
 	if (found != NULL)
@@ -650,56 +230,60 @@ ConVar *ConVarHandler::getConVarByName(UString name, bool warnIfNotFound) const
 
 	if (warnIfNotFound)
 	{
-		debugLog(R"(ENGINE: ConVar "{}" does not exist...)""\n", name.toUtf8());
-		engine->showMessageWarning("Engine Error", UString::format(R"(ENGINE: ConVar "%s" does not exist...)""\n", name.toUtf8()));
+		debugLog(R"(ENGINE: ConVar "{}" does not exist...)"
+		         "\n",
+		         name.toUtf8());
+		engine->showMessageWarning("Engine Error", UString::format(R"(ENGINE: ConVar "%s" does not exist...)"
+		                                                           "\n",
+		                                                           name.toUtf8()));
 	}
 
 	if (!warnIfNotFound)
 		return NULL;
 	else
-		return &_emptyDummyConVar;
+		return &cv::emptyDummyConVar;
 }
 
-std::vector<ConVar*> ConVarHandler::getConVarByLetter(UString letters) const
+std::vector<ConVar *> ConVarHandler::getConVarByLetter(const UString &letters) const
 {
 	std::unordered_set<std::string> matchingConVarNames;
-	std::vector<ConVar*> matchingConVars;
+	std::vector<ConVar *> matchingConVars;
 	{
 		if (letters.length() < 1)
 			return matchingConVars;
 
-		const std::vector<ConVar*> &convars = getConVarArray();
+		const std::vector<ConVar *> &convars = getConVarArray();
 
 		// first try matching exactly
-		for (size_t i=0; i<convars.size(); i++)
+		for (auto convar : convars)
 		{
-			if (convars[i]->isFlagSet(FCVAR_HIDDEN) || convars[i]->isFlagSet(FCVAR_DEVELOPMENTONLY))
+			if (convar->isFlagSet(FCVAR_HIDDEN) || convar->isFlagSet(FCVAR_DEVELOPMENTONLY))
 				continue;
 
-			if (convars[i]->getName().find(letters, 0, letters.length()) == 0)
+			if (convar->getName().find(letters, 0, letters.length()) == 0)
 			{
 				if (letters.length() > 1)
-					matchingConVarNames.insert(std::string(convars[i]->getName().toUtf8(), convars[i]->getName().lengthUtf8()));
+					matchingConVarNames.insert(std::string(convar->getName().toUtf8(), convar->getName().lengthUtf8()));
 
-				matchingConVars.push_back(convars[i]);
+				matchingConVars.push_back(convar);
 			}
 		}
 
 		// then try matching substrings
 		if (letters.length() > 1)
 		{
-			for (size_t i=0; i<convars.size(); i++)
+			for (auto convar : convars)
 			{
-				if (convars[i]->isFlagSet(FCVAR_HIDDEN) || convars[i]->isFlagSet(FCVAR_DEVELOPMENTONLY))
+				if (convar->isFlagSet(FCVAR_HIDDEN) || convar->isFlagSet(FCVAR_DEVELOPMENTONLY))
 					continue;
 
-				if (convars[i]->getName().find(letters) != -1)
+				if (convar->getName().find(letters) != -1)
 				{
-					std::string stdName(convars[i]->getName().toUtf8(), convars[i]->getName().lengthUtf8());
+					std::string stdName(convar->getName().toUtf8(), convar->getName().lengthUtf8());
 					if (matchingConVarNames.find(stdName) == matchingConVarNames.end())
 					{
 						matchingConVarNames.insert(stdName);
-						matchingConVars.push_back(convars[i]);
+						matchingConVars.push_back(convar);
 					}
 				}
 			}
@@ -735,10 +319,10 @@ UString ConVarHandler::flagsToString(int flags)
 
 void ConVarHandler::resetAllConVarCallbacks()
 {
-	const std::vector<ConVar*> &convars = getConVarArray();
-	for (size_t i = 0; i < convars.size(); i++)
+	const std::vector<ConVar *> &convars = getConVarArray();
+	for (auto convar : convars)
 	{
-		convars[i]->resetCallbacks();
+		convar->resetCallbacks();
 	}
 }
 
@@ -754,30 +338,21 @@ static void _find(UString args)
 		return;
 	}
 
-	const std::vector<ConVar*> &convars = convar->getConVarArray();
+	const std::vector<ConVar *> &convars = convar->getConVarArray();
 
-	std::vector<ConVar*> matchingConVars;
-	for (size_t i=0; i<convars.size(); i++)
+	std::vector<ConVar *> matchingConVars;
+	for (auto convar : convars)
 	{
-		if (convars[i]->isFlagSet(FCVAR_HIDDEN) || convars[i]->isFlagSet(FCVAR_DEVELOPMENTONLY))
+		if (convar->isFlagSet(FCVAR_HIDDEN) || convar->isFlagSet(FCVAR_DEVELOPMENTONLY))
 			continue;
 
-		const UString name = convars[i]->getName();
+		const UString name = convar->getName();
 		if (name.find(args, 0, name.length()) != -1)
-			matchingConVars.push_back(convars[i]);
+			matchingConVars.push_back(convar);
 	}
 
 	if (matchingConVars.size() > 0)
-	{
-		struct CONVAR_SORT_COMPARATOR
-		{
-			bool operator () (const ConVar *var1, const ConVar *var2)
-			{
-				return (var1->getName() < var2->getName());
-			}
-		};
-		std::ranges::sort(matchingConVars, CONVAR_SORT_COMPARATOR());
-	}
+		std::ranges::sort(matchingConVars, [](const ConVar *var1, const ConVar *var2) -> bool { return (var1->getName() < var2->getName()); });
 
 	if (matchingConVars.size() < 1)
 	{
@@ -795,9 +370,9 @@ static void _find(UString args)
 		thelog.append(" ]\n");
 		debugLog("{:s}", thelog.toUtf8());
 
-		for (size_t i=0; i<matchingConVars.size(); i++)
+		for (auto &matchingConVar : matchingConVars)
 		{
-			UString tstring = matchingConVars[i]->getName();
+			UString tstring = matchingConVar->getName();
 			tstring.append("\n");
 			debugLog("{:s}", tstring.toUtf8());
 		}
@@ -816,7 +391,7 @@ static void _help(UString args)
 		return;
 	}
 
-	const std::vector<ConVar*> matches = convar->getConVarByLetter(args);
+	const std::vector<ConVar *> matches = convar->getConVarByLetter(args);
 
 	if (matches.size() < 1)
 	{
@@ -829,7 +404,7 @@ static void _help(UString args)
 
 	// use closest match
 	size_t index = 0;
-	for (size_t i=0; i<matches.size(); i++)
+	for (size_t i = 0; i < matches.size(); i++)
 	{
 		if (matches[i]->getName() == args)
 		{
@@ -869,22 +444,15 @@ static void _listcommands(void)
 {
 	debugLog("----------------------------------------------\n");
 	{
-		std::vector<ConVar*> convars = convar->getConVarArray();
-		struct CONVAR_SORT_COMPARATOR
-		{
-			bool operator () (ConVar const *var1, ConVar const *var2)
-			{
-				return (var1->getName() < var2->getName());
-			}
-		};
-		std::ranges::sort(convars, CONVAR_SORT_COMPARATOR());
+		std::vector<ConVar *> convars = convar->getConVarArray();
+		std::ranges::sort(convars, [](const ConVar *var1, const ConVar *var2) -> bool { return (var1->getName() < var2->getName()); });
 
-		for (size_t i=0; i<convars.size(); i++)
+		for (auto &convar : convars)
 		{
-			if (convars[i]->isFlagSet(FCVAR_HIDDEN) || convars[i]->isFlagSet(FCVAR_DEVELOPMENTONLY))
+			if (convar->isFlagSet(FCVAR_HIDDEN) || convar->isFlagSet(FCVAR_DEVELOPMENTONLY))
 				continue;
 
-			const ConVar *var = convars[i];
+			const ConVar *var = convar;
 
 			UString tstring = var->getName();
 			{
@@ -911,6 +479,53 @@ static void _listcommands(void)
 	debugLog("----------------------------------------------\n");
 }
 
-ConVar _find_("find", FCVAR_NONE, _find);
-ConVar _help_("help", FCVAR_NONE, _help);
-ConVar _listcommands_("listcommands", FCVAR_NONE, _listcommands);
+UString ConVar::getFancyDefaultValue() const
+{
+	switch (getType())
+	{
+	case ConVar::CONVAR_TYPE::CONVAR_TYPE_BOOL:
+		return m_fDefaultValue == 0 ? "false" : "true";
+	case ConVar::CONVAR_TYPE::CONVAR_TYPE_INT:
+		return UString::fmt("{:d}", static_cast<int>(m_fDefaultValue.load()));
+	case ConVar::CONVAR_TYPE::CONVAR_TYPE_FLOAT:
+		return UString::fmt("{:.4f}", m_fDefaultValue.load());
+	case ConVar::CONVAR_TYPE::CONVAR_TYPE_STRING: {
+		return UString::fmt("\"{:s}\"", m_sDefaultValue);
+	}
+	}
+
+	return "unreachable";
+}
+
+static void _dumpcommands(void)
+{
+	std::vector<ConVar *> convars = convar->getConVarArray();
+	std::ranges::sort(convars, [](const ConVar *var1, const ConVar *var2) -> bool { return (var1->getName() < var2->getName()); });
+	{
+		McFile commands_htm("commands.htm", McFile::TYPE::WRITE);
+		if (!commands_htm.canWrite())
+		{
+			debugLog("Failed to open commands.htm for writing\n");
+			return;
+		}
+
+		for (auto var : convars)
+		{
+			if (!commands_htm.writeLine(UString::fmt("<h4>{:s}</h4>{:s}<pre>\n{{\n\t\"default\": {:s}\n\t\"runtime_allocated\": {:s}\n}}\n</pre>", var->getName(),
+			                                         var->getHelpstring(), var->getFancyDefaultValue(), var->isFlagSet(FCVAR_DYNAMIC) ? "true" : "false")))
+			{
+				debugLog("failed to write var: {:s}, not writing out any more commands\n", var->getName());
+				break;
+			}
+		}
+	}
+	debugLog("Commands dumped to commands.htm\n");
+}
+
+namespace cv
+{
+ConVar find("find", FCVAR_NONE, _find);
+ConVar help("help", FCVAR_NONE, _help);
+ConVar listcommands("listcommands", FCVAR_NONE, _listcommands);
+ConVar dumpcommands("dumpcommands", FCVAR_NONE, _dumpcommands);
+} // namespace cv

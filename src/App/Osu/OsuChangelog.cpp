@@ -39,6 +39,7 @@ OsuChangelog::OsuChangelog() : OsuScreenBackable()
 	alpha3400.title = UString::format(PACKAGE_VERSION " (Build Date: %s, %s)", __DATE__, __TIME__); // (10.05.2025 - ?)
 	alpha3400.changes.emplace_back("- First " PACKAGE_NAME " test version bump");
 	alpha3400.changes.emplace_back("- Added osu! folder browse button to options menu");
+	alpha3400.changes.emplace_back(R"(- Added "Open current skin folder" button to options menu)");
 	alpha3400.changes.emplace_back("- Added \"snd_buffer\" ConVar to set BASS buffer size");
 	alpha3400.changes.emplace_back("- Added the cross-platform SoLoud audio backend in preparation for a WASM release");
 	alpha3400.changes.emplace_back("  - (TODO: try to implement MP3_OLDGAPS support to better BASS offsets)");
@@ -184,7 +185,7 @@ OsuChangelog::OsuChangelog() : OsuScreenBackable()
 	alpha317.changes.emplace_back("- Added hint text for experimental mods in mod selection screen");
 	alpha317.changes.emplace_back("- Added ConVars (1): osu_mod_fposu_sound_panning, osu_mod_fps_sound_panning, osu_stacking_leniency_override");
 	alpha317.changes.emplace_back("- Added ConVars (2): fposu_mod_strafing_strength_x/y/z, fposu_mod_strafing_frequency_x/y/z");
-	alpha317.changes.emplace_back("- Added ConVars (3): snd_updateperiod, snd_dev_period, snd_dev_buffer, snd_wav_file_min_size");
+	alpha317.changes.emplace_back("- Added ConVars (3): snd_updateperiod, snd_dev_period, snd_dev_buffer, snd_file_min_size");
 	alpha317.changes.emplace_back("- Added ConVars (4): osu_ignore_beatmap_combo_numbers, osu_number_max");
 	alpha317.changes.emplace_back("- Added ConVars (5): osu_scores_export, osu_auto_and_relax_block_user_input");
 	alpha317.changes.emplace_back("- Updated songbrowser search to be async (avoids freezing the entire game when searching through 100k+ beatmaps)\n");
@@ -900,7 +901,7 @@ OsuChangelog::OsuChangelog() : OsuScreenBackable()
 			public:
 				CustomCBaseUILabel(UString text) : CBaseUIButton(0, 0, 0, 0, "", text) {;}
 
-				virtual void draw(Graphics *g)
+				virtual void draw()
 				{
 					if (m_bVisible && isMouseInside())
 					{
@@ -949,13 +950,13 @@ OsuChangelog::~OsuChangelog()
 	SAFE_DELETE(m_container);
 }
 
-void OsuChangelog::draw(Graphics *g)
+void OsuChangelog::draw()
 {
 	if (!m_bVisible) return;
 
-	m_container->draw(g);
+	m_container->draw();
 
-	OsuScreenBackable::draw(g);
+	OsuScreenBackable::draw();
 }
 
 void OsuChangelog::update()
@@ -990,8 +991,8 @@ void OsuChangelog::updateLayout()
 
 	const float dpiScale = Osu::getUIScale();
 
-	m_container->setSize(osu->getScreenSize() + Vector2(2, 2));
-	m_scrollView->setSize(osu->getScreenSize() + Vector2(2, 2));
+	m_container->setSize(osu->getVirtScreenSize() + Vector2(2, 2));
+	m_scrollView->setSize(osu->getVirtScreenSize() + Vector2(2, 2));
 
 	float yCounter = 0;
 	for (const CHANGELOG_UI &changelog : m_changelogs)

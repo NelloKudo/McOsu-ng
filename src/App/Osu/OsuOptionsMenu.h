@@ -41,7 +41,7 @@ public:
 	OsuOptionsMenu();
 	virtual ~OsuOptionsMenu();
 
-	virtual void draw(Graphics *g);
+	virtual void draw();
 	virtual void update();
 
 	virtual void onKeyDown(KeyboardEvent &e);
@@ -62,15 +62,13 @@ public:
 
 	void setUsername(UString username);
 
-	inline bool isFullscreen() const {return m_bFullscreen;}
+	[[nodiscard]] inline bool isFullscreen() const {return m_bFullscreen;}
 	bool isMouseInside();
 	bool isBusy();
-	[[maybe_unused]] inline bool isWorkshopLoading() const {return m_bWorkshopSkinSelectScheduled;}
-
-	bool shouldDrawVRDummyHUD();
+	[[maybe_unused]] [[nodiscard]] inline bool isWorkshopLoading() const {return m_bWorkshopSkinSelectScheduled;}
 
 private:
-	static const char *OSU_CONFIG_FILE_NAME;
+	static constexpr const char *OSU_CONFIG_FILE_NAME = "osu.cfg";
 
 	struct OPTIONS_ELEMENT
 	{
@@ -111,7 +109,6 @@ private:
 	void updateName();
 	void updateFposuDPI();
 	void updateFposuCMper360();
-	void updateVRRenderTargetResolutionLabel();
 	void updateSkinNameLabel();
 	void updateNotelockSelectLabel();
 	void updateHPDrainSelectLabel();
@@ -127,6 +124,7 @@ private:
 	[[maybe_unused]] void onSkinSelectWorkshop2();
 	[[maybe_unused]] void onSkinSelectWorkshop3();
 	[[maybe_unused]] void onSkinSelectWorkshop4(UString skinName, int id);
+	void openCurrentSkinFolder();
 	void onSkinReload();
 	void onSkinRandom();
 	void onResolutionSelect();
@@ -165,8 +163,6 @@ private:
 	void onKeyBindingsResetAllPressed(CBaseUIButton *button);
 	void onKeyBindingManiaPressedInt();
 	void onKeyBindingManiaPressed(CBaseUIButton *button);
-	void onSliderChangeVRSuperSampling(CBaseUISlider *slider);
-	void onSliderChangeVRAntiAliasing(CBaseUISlider *slider);
 	void onSliderChangeSliderQuality(CBaseUISlider *slider);
 	void onSliderChangeLetterboxingOffset(CBaseUISlider *slider);
 	void onSliderChangeUIScale(CBaseUISlider *slider);
@@ -255,12 +251,6 @@ private:
 	CBaseUISlider *m_wasapiPeriodSizeSlider;
 	OsuOptionsMenuResetButton *m_wasapiBufferSizeResetButton;
 	OsuOptionsMenuResetButton *m_wasapiPeriodSizeResetButton;
-	CBaseUILabel *m_vrRenderTargetResolutionLabel;
-	CBaseUISlider *m_vrApproachDistanceSlider;
-	CBaseUISlider *m_vrVibrationStrengthSlider;
-	CBaseUISlider *m_vrSliderVibrationStrengthSlider;
-	CBaseUISlider *m_vrHudDistanceSlider;
-	CBaseUISlider *m_vrHudScaleSlider;
 	CBaseUISlider *m_sliderQualitySlider;
 	CBaseUISlider *m_letterboxingOffsetXSlider;
 	CBaseUISlider *m_letterboxingOffsetYSlider;
@@ -279,24 +269,6 @@ private:
 	OsuOptionsMenuResetButton *m_hpDrainSelectResetButton;
 
 	ConVar *m_waitingKey;
-	ConVar *m_osu_slider_curve_points_separation_ref;
-	ConVar *m_osu_letterboxing_offset_x_ref;
-	ConVar *m_osu_letterboxing_offset_y_ref;
-	ConVar *m_osu_mod_fposu_ref;
-	ConVar *m_osu_skin_ref;
-	ConVar *m_osu_skin_is_from_workshop_ref;
-	ConVar *m_osu_skin_workshop_title_ref;
-	ConVar *m_osu_skin_workshop_id_ref;
-	ConVar *m_osu_skin_random_ref;
-	ConVar *m_osu_ui_scale_ref;
-	ConVar *m_win_snd_fallback_dsound_ref;
-	ConVar *m_win_snd_wasapi_buffer_size_ref;
-	ConVar *m_win_snd_wasapi_period_size_ref;
-	ConVar *m_osu_notelock_type_ref;
-	ConVar *m_osu_drain_type_ref;
-	ConVar *m_osu_background_color_r_ref;
-	ConVar *m_osu_background_color_g_ref;
-	ConVar *m_osu_background_color_b_ref;
 
 	float m_fOsuFolderTextboxInvalidAnim;
 	float m_fVibrationStrengthExampleTimer;

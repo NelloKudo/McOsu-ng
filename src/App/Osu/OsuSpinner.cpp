@@ -11,18 +11,16 @@
 #include "ResourceManager.h"
 #include "SoundEngine.h"
 #include "AnimationHandler.h"
-#include "OpenVRInterface.h"
-#include "OpenVRController.h"
 #include "Mouse.h"
 #include "ConVar.h"
 
 #include "Osu.h"
-#include "OsuVR.h"
 #include "OsuSkin.h"
 #include "OsuGameRules.h"
 #include "OsuBeatmapStandard.h"
-
-ConVar osu_spinner_use_ar_fadein("osu_spinner_use_ar_fadein", false, FCVAR_NONE, "whether spinners should fade in with AR (same as circles), or with hardcoded 400 ms fadein time (osu!default)");
+namespace cv::osu {
+ConVar spinner_use_ar_fadein("osu_spinner_use_ar_fadein", false, FCVAR_NONE, "whether spinners should fade in with AR (same as circles), or with hardcoded 400 ms fadein time (osu!default)");
+}
 
 OsuSpinner::OsuSpinner(int x, int y, long time, int sampleType, bool isEndOfCombo, long endTime, OsuBeatmapStandard *beatmap) : OsuHitObject(time, sampleType, -1, isEndOfCombo, -1, -1, beatmap)
 {
@@ -56,15 +54,13 @@ OsuSpinner::OsuSpinner(int x, int y, long time, int sampleType, bool isEndOfComb
 	m_fDeltaAngleOverflow = 0.0f;
 	m_fRPM = 0.0f;
 	m_fLastMouseAngle = 0.0f;
-	m_fLastVRCursorAngle1 = 0.0f;
-	m_fLastVRCursorAngle2 = 0.0f;
 	m_fRatio = 0.0f;
 
 	// spinners don't need misaims
 	m_bMisAim = true;
 
 	// spinners don't use AR-dependent fadein, instead they always fade in with hardcoded 400 ms (see OsuGameRules::getFadeInTime())
-	m_bUseFadeInTimeAsApproachTime = !osu_spinner_use_ar_fadein.getBool();
+	m_bUseFadeInTimeAsApproachTime = !cv::osu::spinner_use_ar_fadein.getBool();
 }
 
 OsuSpinner::~OsuSpinner()
@@ -75,10 +71,10 @@ OsuSpinner::~OsuSpinner()
 	m_storedDeltaAngles = NULL;
 }
 
-void OsuSpinner::draw(Graphics *g)
+void OsuSpinner::draw()
 {
-	OsuHitObject::draw(g);
-	const long fadeOutTimeMS = (long)(OsuGameRules::getFadeOutTime(m_beatmap) * 1000.0f * OsuGameRules::osu_spinner_fade_out_time_multiplier.getFloat());
+	OsuHitObject::draw();
+	const long fadeOutTimeMS = (long)(OsuGameRules::getFadeOutTime(m_beatmap) * 1000.0f * cv::osu::stdrules::spinner_fade_out_time_multiplier.getFloat());
 	const long deltaEnd = m_iDelta + m_iObjectDuration;
 	if ((m_bFinished || !m_bVisible) && (deltaEnd > 0 || (deltaEnd < -fadeOutTimeMS))) return;
 
@@ -257,30 +253,14 @@ void OsuSpinner::draw(Graphics *g)
 		g->setAlpha(m_fAlphaWithoutHidden * m_fAlphaWithoutHidden * m_fAlphaWithoutHidden * alphaMultiplier);
 		g->pushTransform();
 		{
-			g->translate((int)(osu->getScreenWidth()/2 - stringWidth/2), (int)(osu->getScreenHeight() - 5 + (5 + rpmFont->getHeight())*(1.0f - m_fAlphaWithoutHidden)));
+			g->translate((int)(osu->getVirtScreenWidth()/2 - stringWidth/2), (int)(osu->getVirtScreenHeight() - 5 + (5 + rpmFont->getHeight())*(1.0f - m_fAlphaWithoutHidden)));
 			g->drawString(rpmFont, UString::format("RPM: %i", (int)(m_fRPM + 0.4f)));
 		}
 		g->popTransform();
 	}
 }
 
-void OsuSpinner::drawVR(Graphics *g, Matrix4 &mvp, OsuVR *vr)
-{
-	///if (m_bVisible)
-	{
-		float clampedApproachScalePercent = m_fApproachScale - 1.0f; // goes from <m_osu_approach_scale_multiplier_ref> to 0
-		clampedApproachScalePercent = std::clamp<float>(clampedApproachScalePercent / m_osu_approach_scale_multiplier_ref->getFloat(), 0.0f, 1.0f); // goes from 1 to 0
-
-		Matrix4 translation;
-		translation.translate(0, 0, -clampedApproachScalePercent*vr->getApproachDistance());
-		Matrix4 finalMVP = mvp * translation;
-
-		vr->getShaderTexturedLegacyGeneric()->setUniformMatrix4fv("matrix", finalMVP);
-		draw(g);
-	}
-}
-
-void OsuSpinner::draw3D(Graphics *g)
+void OsuSpinner::draw3D()
 {
 	// TODO: implement
 }
@@ -309,7 +289,7 @@ void OsuSpinner::update(long curPos)
 
 		m_fRotationsNeeded = OsuGameRules::getSpinnerRotationsForSpeedMultiplier(m_beatmap, m_iObjectDuration);
 
-		const float fixedRate = /*(1.0f / convar->getConVarByName("fps_max")->getFloat())*/engine->getFrameTime();
+		const float fixedRate = /*(1.0f / cv::fps_max.getFloat())*/engine->getFrameTime();
 
 		const float DELTA_UPDATE_TIME = (fixedRate * 1000.0f);
 		const float AUTO_MULTIPLIER = (1.0f / 20.0f);
@@ -328,24 +308,6 @@ void OsuSpinner::update(long curPos)
 			Vector2 mouseDelta = mouse->getPos() - m_beatmap->osuCoords2Pixels(m_vRawPos);
 			const float currentMouseAngle = (float)glm::atan2(mouseDelta.y, mouseDelta.x);
 			angleDiff = (currentMouseAngle - m_fLastMouseAngle);
-
-			if (osu->isInVRMode())
-			{
-				Vector2 vrCursorDelta1 = osu->getVR()->getCursorPos1() - m_beatmap->osuCoords2VRPixels(m_vRawPos);
-				Vector2 vrCursorDelta2 = osu->getVR()->getCursorPos2() - m_beatmap->osuCoords2VRPixels(m_vRawPos);
-
-				const float currentVRCursorAngle1 = (float)glm::atan2(vrCursorDelta1.x, vrCursorDelta1.y);
-				const float currentVRCursorAngle2 = (float)glm::atan2(vrCursorDelta2.x, vrCursorDelta2.y);
-
-				angleDiff -= (currentVRCursorAngle1 - m_fLastVRCursorAngle1);
-				angleDiff -= (currentVRCursorAngle2 - m_fLastVRCursorAngle2);
-
-				if (std::abs(angleDiff) > 0.001f)
-				{
-					m_fLastVRCursorAngle1 = currentVRCursorAngle1;
-					m_fLastVRCursorAngle2 = currentVRCursorAngle2;
-				}
-			}
 
 			if (std::abs(angleDiff) > 0.001f)
 				m_fLastMouseAngle = currentMouseAngle;
@@ -466,9 +428,9 @@ void OsuSpinner::onHit()
 	OsuScore::HIT result = OsuScore::HIT::HIT_NULL;
 	if (m_fRatio >= 1.0f || osu->getModAuto())
 		result = OsuScore::HIT::HIT_300;
-	else if (m_fRatio >= 0.9f && !OsuGameRules::osu_mod_ming3012.getBool() && !OsuGameRules::osu_mod_no100s.getBool())
+	else if (m_fRatio >= 0.9f && !cv::osu::stdrules::mod_ming3012.getBool() && !cv::osu::stdrules::mod_no100s.getBool())
 		result = OsuScore::HIT::HIT_100;
-	else if (m_fRatio >= 0.75f && !OsuGameRules::osu_mod_no100s.getBool() && !OsuGameRules::osu_mod_no50s.getBool() )
+	else if (m_fRatio >= 0.75f && !cv::osu::stdrules::mod_no100s.getBool() && !cv::osu::stdrules::mod_no50s.getBool() )
 		result = OsuScore::HIT::HIT_50;
 	else
 		result = OsuScore::HIT::HIT_MISS;
@@ -476,7 +438,7 @@ void OsuSpinner::onHit()
 	// sound
 	if (result != OsuScore::HIT::HIT_MISS)
 	{
-		if (m_osu_timingpoints_force->getBool())
+		if (cv::osu::timingpoints_force.getBool())
 			m_beatmap->updateTimingPoints(m_iTime + m_iObjectDuration);
 
 		const Vector2 osuCoords = m_beatmap->pixels2OsuCoords(m_beatmap->osuCoords2Pixels(m_vRawPos));

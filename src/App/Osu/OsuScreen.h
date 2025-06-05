@@ -20,7 +20,7 @@ public:
 	OsuScreen();
 	virtual ~OsuScreen() {;}
 
-	virtual void draw(Graphics *g) {;}
+	virtual void draw() {;}
 	virtual void update() {;}
 
 	virtual void onKeyDown(KeyboardEvent &e);
@@ -31,7 +31,7 @@ public:
 
 	virtual void setVisible(bool visible) {m_bVisible = visible;}
 
-	inline bool isVisible() const {return m_bVisible;}
+	[[nodiscard]] inline bool isVisible() const {return m_bVisible;}
 
 protected:
 	bool m_bVisible;

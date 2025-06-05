@@ -35,7 +35,7 @@ public:
 	OsuModFPoSu();
 	~OsuModFPoSu();
 
-	void draw(Graphics *g);
+	void draw();
 	void update();
 
 	void onKeyDown(KeyboardEvent &key);
@@ -85,10 +85,6 @@ private:
 	static Vector3 normalFromTriangle(Vector3 p1, Vector3 p2, Vector3 p3);
 
 private:
-	ConVar *m_mouse_sensitivity_ref;
-	ConVar *m_osu_draw_beatmap_background_image_ref;
-	ConVar *m_osu_background_alpha_ref;
-
 	VertexArrayObject *m_vao;
 	VertexArrayObject *m_vaoCube;
 
@@ -126,7 +122,7 @@ public:
 	OsuModFPoSu3DModel(const UString &objFilePathOrContents, Image *texture, bool source);
 	~OsuModFPoSu3DModel();
 
-	void draw3D(Graphics *g);
+	void draw3D();
 
 private:
 	VertexArrayObject *m_vao;

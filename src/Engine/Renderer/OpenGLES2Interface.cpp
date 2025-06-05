@@ -39,22 +39,7 @@ OpenGLES2Interface::OpenGLES2Interface() : NullGraphicsInterface()
 
 	// persistent vars
 	m_color = 0xffffffff;
-}
 
-OpenGLES2Interface::~OpenGLES2Interface()
-{
-	SAFE_DELETE(m_shaderTexturedGeneric);
-
-	if (m_iVBOVertices != 0)
-		glDeleteBuffers(1, &m_iVBOVertices);
-	if (m_iVBOTexcoords != 0)
-		glDeleteBuffers(1, &m_iVBOTexcoords);
-	if (m_iVBOTexcolors != 0)
-		glDeleteBuffers(1, &m_iVBOTexcolors);
-}
-
-void OpenGLES2Interface::init()
-{
 	// enable
 	glEnable(GL_BLEND);
 
@@ -136,6 +121,18 @@ void OpenGLES2Interface::init()
 	OpenGLStateCache::getInstance().initialize();
 }
 
+OpenGLES2Interface::~OpenGLES2Interface()
+{
+	SAFE_DELETE(m_shaderTexturedGeneric);
+
+	if (m_iVBOVertices != 0)
+		glDeleteBuffers(1, &m_iVBOVertices);
+	if (m_iVBOTexcoords != 0)
+		glDeleteBuffers(1, &m_iVBOTexcoords);
+	if (m_iVBOTexcolors != 0)
+		glDeleteBuffers(1, &m_iVBOTexcolors);
+}
+
 void OpenGLES2Interface::beginScene()
 {
 	m_bInScene = true;
@@ -148,7 +145,7 @@ void OpenGLES2Interface::beginScene()
 	// push main transforms
 	pushTransform();
 	setProjectionMatrix(defaultProjectionMatrix);
-	translate(r_globaloffset_x->getFloat(), r_globaloffset_y->getFloat());
+	translate(cv::r_globaloffset_x.getFloat(), cv::r_globaloffset_y.getFloat());
 
 	// and apply them
 	updateTransform();
@@ -335,7 +332,7 @@ void OpenGLES2Interface::drawImage(Image *image)
 	drawVAO(&vao);
 	image->unbind();
 
-	if (r_debug_drawimage->getBool())
+	if (cv::r_debug_drawimage.getBool())
 	{
 		setColor(0xbbff00ff);
 		drawRect(x, y, width, height);
@@ -348,7 +345,7 @@ void OpenGLES2Interface::drawString(McFont *font, UString text)
 
 	updateTransform();
 
-	font->drawString(this, text);
+	font->drawString(text);
 }
 
 void OpenGLES2Interface::drawVAO(VertexArrayObject *vao)
@@ -518,7 +515,7 @@ void OpenGLES2Interface::drawVAO(VertexArrayObject *vao)
 
 void OpenGLES2Interface::setClipRect(McRect clipRect)
 {
-	if (r_debug_disable_cliprect->getBool()) return;
+	if (cv::r_debug_disable_cliprect.getBool()) return;
 	//if (m_bIs3DScene) return; // HACKHACK:TODO:
 
 	// HACKHACK: compensate for viewport changes caused by RenderTargets!

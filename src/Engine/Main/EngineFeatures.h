@@ -12,14 +12,9 @@
 #include "config.h"
 
 /*
- * std::thread/std::mutex support
+ * OpenGL graphics (Desktop, legacy + modern) (defined in config.h)
  */
-#define MCENGINE_FEATURE_MULTITHREADING
-
-/*
- * OpenGL graphics (Desktop, legacy + modern)
- */
-#define MCENGINE_FEATURE_OPENGL
+//#define MCENGINE_FEATURE_OPENGL
 
 
 /*
@@ -28,7 +23,7 @@
 //#define MCENGINE_FEATURE_GLES2
 
 /*
- * OpenGLES 3.2 graphics (Desktop, WebGL)
+ * OpenGLES 3.2 graphics (Desktop, WebGL) (defined in config.h)
  */
 //#define MCENGINE_FEATURE_GLES32
 
@@ -38,7 +33,7 @@
 //#define MCENGINE_FEATURE_GL3
 
 /*
- * DirectX 11 graphics
+ * DirectX 11 graphics (defined in config.h)
  */
 //#define MCENGINE_FEATURE_DIRECTX11
 
@@ -55,12 +50,9 @@
 /*
  * BASS WASAPI sound (Windows only)
  */
-//#define MCENGINE_FEATURE_BASS_WASAPI
-
-/*
- * OpenVR
- */
-//#define MCENGINE_FEATURE_OPENVR
+// #if (defined(_WIN32) || defined(_WIN64)) && defined(MCENGINE_FEATURE_BASS)
+//  #define MCENGINE_FEATURE_BASS_WASAPI
+// #endif
 
 /*
  * SDL3 mixer (audio) (defined in config.h)

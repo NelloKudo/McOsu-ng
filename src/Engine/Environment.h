@@ -22,7 +22,6 @@ class UString;
 class Engine;
 class Environment
 {
-	friend class SDLMain;
 public:
 	Environment(int argc, char *argv[]);
 	~Environment();
@@ -36,14 +35,14 @@ public:
 	void shutdown();
 	void restart();
 	[[nodiscard]] inline bool isRunning() const { return m_bRunning; }
-	[[nodiscard]] UString getExecutablePath() const;
-	void openURLInDefaultBrowser(UString url) const;
+	[[nodiscard]] static UString getExecutablePath();
+	static void openURLInDefaultBrowser(const UString& url);
 
 	[[nodiscard]] inline const std::unordered_map<UString, std::optional<UString>> &getLaunchArgs() const { return m_mArgMap; }
 	[[nodiscard]] inline const std::vector<UString> &getCommandLine() const { return m_vCmdLine; }
 
 	// returns at least 1
-	[[nodiscard]] inline int getLogicalCPUCount() const { return SDL_GetNumLogicalCPUCores(); }
+	[[nodiscard]] static inline int getLogicalCPUCount() { return SDL_GetNumLogicalCPUCores(); }
 
 	// user
 	[[nodiscard]] UString getUsername();
@@ -55,31 +54,33 @@ public:
 	[[nodiscard]] static bool directoryExists(UString &directoryName);
 	[[nodiscard]] static bool fileExists(const UString &filename);
 	[[nodiscard]] static bool directoryExists(const UString &directoryName);
-	[[nodiscard]] static bool isatty() { return s_bIsATTY; } // is stdout a terminal
+	[[nodiscard]] static inline bool isaTTY() { return s_bIsATTY; } // is stdout a terminal
 
-	[[nodiscard]] static bool createDirectory(UString directoryName);
-	static bool renameFile(UString oldFileName, UString newFileName);
-	static bool deleteFile(UString filePath);
-	[[nodiscard]] static std::vector<UString> getFilesInFolder(UString folder);
-	[[nodiscard]] static std::vector<UString> getFoldersInFolder(UString folder);
+	[[nodiscard]] static bool createDirectory(const UString& directoryName);
+	static bool renameFile(const UString& oldFileName, const UString& newFileName);
+	static bool deleteFile(const UString& filePath);
+	[[nodiscard]] static std::vector<UString> getFilesInFolder(const UString& folder);
+	[[nodiscard]] static std::vector<UString> getFoldersInFolder(const UString& folder);
 	[[nodiscard]] static std::vector<UString> getLogicalDrives();
-	[[nodiscard]] static UString getFolderFromFilePath(UString filepath);
-	[[nodiscard]] static UString getFileExtensionFromFilePath(UString filepath, bool includeDot = false);
-	[[nodiscard]] static UString getFileNameFromFilePath(UString filePath);
+	// returns an absolute (i.e. fully-qualified) filesystem path
+	[[nodiscard]] static UString getFolderFromFilePath(const UString &filepath) noexcept;
+	[[nodiscard]] static UString getFileExtensionFromFilePath(const UString& filepath, bool includeDot = false);
+	[[nodiscard]] static UString getFileNameFromFilePath(const UString &filePath) noexcept;
 
 	// clipboard
 	[[nodiscard]] UString getClipBoardText();
-	void setClipBoardText(UString text);
+	void setClipBoardText(const UString& text);
 
 	// dialogs & message boxes
-	void showMessageInfo(UString title, UString message) const;
-	void showMessageWarning(UString title, UString message) const;
-	void showMessageError(UString title, UString message) const;
-	void showMessageErrorFatal(UString title, UString message) const;
+	void showMessageInfo(const UString& title, const UString& message) const;
+	void showMessageWarning(const UString& title, const UString& message) const;
+	void showMessageError(const UString& title, const UString& message) const;
+	void showMessageErrorFatal(const UString& title, const UString& message) const;
 
 	using FileDialogCallback = std::function<void(const std::vector<UString> &paths)>;
-	void openFileWindow(FileDialogCallback callback, const char *filetypefilters, UString title, UString initialpath = "") const;
-	void openFolderWindow(FileDialogCallback callback, UString initialpath = "") const;
+	void openFileWindow(FileDialogCallback callback, const char *filetypefilters, const UString& title, const UString& initialpath = "") const;
+	void openFolderWindow(FileDialogCallback callback, const UString& initialpath = "") const;
+	void openFileBrowser(const UString& title, UString initialpath = "") const noexcept;
 
 	// window
 	void focus();
@@ -88,7 +89,7 @@ public:
 	void maximize();
 	void enableFullscreen();
 	void disableFullscreen();
-	void setWindowTitle(UString title);
+	void setWindowTitle(const UString& title);
 	void setWindowPos(int x, int y);
 	void setWindowSize(int width, int height);
 	void setWindowResizable(bool resizable);
@@ -139,8 +140,7 @@ public:
 
 	// debug
 	[[nodiscard]] inline bool envDebug() const { return m_bEnvDebug; }
-
-private:
+protected:
 	std::unordered_map<UString, std::optional<UString>> m_mArgMap;
 	std::vector<UString> m_vCmdLine;
 	Engine *initEngine();
@@ -176,6 +176,7 @@ private:
 	}
 	void onLogLevelChange(float newval);
 	bool m_bEnvDebug;
+
 	static bool s_bIsATTY;
 
 	// monitors
@@ -203,10 +204,6 @@ private:
 	UString m_sCurrClipboardText;
 
 	// misc
-	inline void onProcessPriorityChange(float newValue)
-	{
-		SDL_SetCurrentThreadPriority(!!static_cast<int>(newValue) ? SDL_THREAD_PRIORITY_HIGH : SDL_THREAD_PRIORITY_NORMAL);
-	}
 	void initCursors();
 
 private:
@@ -217,10 +214,8 @@ private:
 	};
 	static void sdlFileDialogCallback(void *userdata, const char *const *filelist, int filter);
 
-	static bool isatty_impl(std::FILE *file);
-
 	static std::vector<UString> enumerateDirectory(const char *pathToEnum, SDL_PathType type); // code sharing for getFilesInFolder/getFoldersInFolder
-	static UString getThingFromPathHelper(UString &path, bool folder); // code sharing for getFolderFromFilePath/getFileNameFromFilePath
+	static UString getThingFromPathHelper(UString path, bool folder) noexcept; // code sharing for getFolderFromFilePath/getFileNameFromFilePath
 
 	static void winSortInPlace(std::vector<UString> &toSort); // for sorting a list kinda in the order windows' explorer would
 };

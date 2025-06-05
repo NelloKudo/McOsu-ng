@@ -21,9 +21,10 @@
 #include "OpenGLStateCache.h"
 
 #include "OpenGLHeaders.h"
-
+namespace cv {
 ConVar r_gles_orphan_buffers("r_gles_orphan_buffers", Env::cfg(OS::WASM) ? false : true, FCVAR_NONE,
                              "reduce cpu/gpu synchronization by freeing buffer objects before modifying them");
+}
 
 OpenGLES32Interface::OpenGLES32Interface() : Graphics()
 {
@@ -45,27 +46,6 @@ OpenGLES32Interface::OpenGLES32Interface() : Graphics()
 	m_bAntiAliasing = true;
 
 	m_syncobj = new OpenGLSync();
-}
-
-OpenGLES32Interface::~OpenGLES32Interface()
-{
-	SAFE_DELETE(m_shaderTexturedGeneric);
-
-	if (m_iVBOVertices != 0)
-		glDeleteBuffers(1, &m_iVBOVertices);
-	if (m_iVBOTexcoords != 0)
-		glDeleteBuffers(1, &m_iVBOTexcoords);
-	if (m_iVBOTexcolors != 0)
-		glDeleteBuffers(1, &m_iVBOTexcolors);
-
-	SAFE_DELETE(m_syncobj);
-}
-
-void OpenGLES32Interface::init()
-{
-	// check GL version
-	const GLubyte *version = glGetString(GL_VERSION);
-	debugLog("OpenGLES: OpenGL Version {:s}\n", version);
 
 	// enable
 	glEnable(GL_BLEND);
@@ -183,6 +163,20 @@ void main() {
 	OpenGLStateCache::getInstance().initialize();
 }
 
+OpenGLES32Interface::~OpenGLES32Interface()
+{
+	SAFE_DELETE(m_shaderTexturedGeneric);
+
+	if (m_iVBOVertices != 0)
+		glDeleteBuffers(1, &m_iVBOVertices);
+	if (m_iVBOTexcoords != 0)
+		glDeleteBuffers(1, &m_iVBOTexcoords);
+	if (m_iVBOTexcolors != 0)
+		glDeleteBuffers(1, &m_iVBOTexcolors);
+
+	SAFE_DELETE(m_syncobj);
+}
+
 void OpenGLES32Interface::beginScene()
 {
 	m_bInScene = true;
@@ -197,7 +191,7 @@ void OpenGLES32Interface::beginScene()
 	// push main transforms
 	pushTransform();
 	setProjectionMatrix(defaultProjectionMatrix);
-	translate(r_globaloffset_x->getFloat(), r_globaloffset_y->getFloat());
+	translate(cv::r_globaloffset_x.getFloat(), cv::r_globaloffset_y.getFloat());
 
 	// and apply them
 	updateTransform();
@@ -382,7 +376,7 @@ void OpenGLES32Interface::drawImage(Image *image)
 	drawVAO(&vao);
 	image->unbind();
 
-	if (r_debug_drawimage->getBool())
+	if (cv::r_debug_drawimage.getBool())
 	{
 		setColor(0xbbff00ff);
 		drawRect(x, y, width, height);
@@ -396,7 +390,7 @@ void OpenGLES32Interface::drawString(McFont *font, UString text)
 
 	updateTransform();
 
-	font->drawString(this, text);
+	font->drawString(text);
 }
 
 void OpenGLES32Interface::drawVAO(VertexArrayObject *vao)
@@ -533,7 +527,7 @@ void OpenGLES32Interface::drawVAO(VertexArrayObject *vao)
 		}
 	}
 
-	const bool orphanBuffers = r_gles_orphan_buffers.getBool();
+	const bool orphanBuffers = cv::r_gles_orphan_buffers.getBool();
 
 	// upload vertices to gpu
 	if (finalVertices.size() > 0)
@@ -606,7 +600,7 @@ void OpenGLES32Interface::drawVAO(VertexArrayObject *vao)
 
 void OpenGLES32Interface::setClipRect(McRect clipRect)
 {
-	if (r_debug_disable_cliprect->getBool())
+	if (cv::r_debug_disable_cliprect.getBool())
 		return;
 	// if (m_bIs3DScene) return; // HACKHACK:TODO:
 

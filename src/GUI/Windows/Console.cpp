@@ -18,31 +18,28 @@
 #include "CBaseUIButton.h"
 #include "CBaseUILabel.h"
 
-#ifdef MCENGINE_FEATURE_MULTITHREADING
+#include "File.h"
+
 #include <mutex>
-#endif
 
 #include <utility>
 
 #define CFG_FOLDER "cfg/"
 
 #define CONSOLE_BORDER 6
-
-ConVar _console_logging("console_logging", true, FCVAR_NONE);
-ConVar _clear("clear");
+namespace cv {
+ConVar console_logging("console_logging", true, FCVAR_NONE);
+ConVar clear("clear");
+}
 
 std::vector<UString> Console::g_commandQueue;
 
-#ifdef MCENGINE_FEATURE_MULTITHREADING
-
 std::mutex g_consoleLogMutex;
-
-#endif
 
 Console::Console() : CBaseUIWindow(350, 100, 620, 550, "Console")
 {
 	// convar bindings
-	_clear.setCallback( fastdelegate::MakeDelegate(this, &Console::clear) );
+	cv::clear.setCallback( fastdelegate::MakeDelegate(this, &Console::clear) );
 
 	// resources
 	m_logFont = resourceManager->getFont("FONT_CONSOLE");
@@ -123,9 +120,9 @@ void Console::processCommand(UString command)
 	if (command.find(";") != -1 && command.find("echo") == -1)
 	{
 		const std::vector<UString> commands = command.split(";");
-		for (size_t i=0; i<commands.size(); i++)
+		for (const auto & command : commands)
 		{
-			processCommand(commands[i]);
+			processCommand(command);
 		}
 
 		return;
@@ -155,7 +152,7 @@ void Console::processCommand(UString command)
 		return;
 	}
 
-	if (var->isFlagSet(FCVAR_CHEAT) && !ConVars::sv_cheats.getBool())
+	if (var->isFlagSet(FCVAR_CHEAT) && !cv::ConVars::sv_cheats.getBool())
 		return;
 
 	// set new value (this handles all callbacks internally)
@@ -168,7 +165,7 @@ void Console::processCommand(UString command)
 	}
 
 	// log
-	if (_console_logging.getBool())
+	if (cv::console_logging.getBool())
 	{
 		UString logMessage;
 
@@ -215,41 +212,39 @@ void Console::execConfigFile(UString filename)
 	if (filename.find(".cfg", (filename.length() - 4), filename.length()) == -1)
 		filename.append(".cfg");
 
-	// open it
-	std::ifstream inFile(filename.toUtf8());
-	if (!inFile.good())
+	McFile configFile(filename, McFile::TYPE::READ);
+	if (!configFile.canRead())
 	{
 		debugLog("error, file \"{:s}\" not found!\n", filename.toUtf8());
 		return;
 	}
 
-	// go through every line
-	std::string line;
+	// collect commands first (preserving original behavior)
 	std::vector<UString> cmds;
-	while (std::getline(inFile, line))
+	while (true)
 	{
-		if (line.size() > 0)
+		UString line = configFile.readLine();
+
+		// if canRead() is false after readLine(), we hit EOF
+		if (!configFile.canRead())
+			break;
+
+		// only process non-empty lines (matching original: if (line.size() > 0))
+		if (!line.isEmpty())
 		{
-			// remove CR
-			if (!line.empty() && line.back() == '\r')
-				line.pop_back();
-
-			// handle comments
-			UString cmd = UString(line.c_str());
-			const int commentIndex = cmd.find("//", 0, cmd.length());
+			// handle comments - find "//" and remove everything after
+			const int commentIndex = line.find("//");
 			if (commentIndex != -1)
-				cmd.erase(commentIndex, cmd.length() - commentIndex);
+				line.erase(commentIndex, line.length() - commentIndex);
 
-			// add command
-			cmds.push_back(cmd);
+			// add command (original adds all processed lines, even if they become empty after comment removal)
+			cmds.push_back(line);
 		}
 	}
 
 	// process the collected commands
-	for (size_t i=0; i<cmds.size(); i++)
-	{
-		processCommand(cmds[i]);
-	}
+	for (const auto &cmd : cmds)
+		processCommand(cmd);
 }
 
 void Console::update()
@@ -267,11 +262,7 @@ void Console::update()
 
 void Console::log(UString text, Color textColor)
 {
-#ifdef MCENGINE_FEATURE_MULTITHREADING
-
 	std::lock_guard<std::mutex> lk(g_consoleLogMutex);
-
-#endif
 
 	if (text.length() < 1) return;
 
@@ -357,7 +348,8 @@ void _fizzbuzz(void)
 			debugLog("{}\n",i);
 	}
 }
-
-ConVar _exec_("exec", FCVAR_NONE, _exec);
-ConVar _echo_("echo", FCVAR_NONE, _echo);
-ConVar _fizzbuzz_("fizzbuzz", FCVAR_NONE, _fizzbuzz);
+namespace cv {
+ConVar exec("exec", FCVAR_NONE, _exec);
+ConVar echo("echo", FCVAR_NONE, _echo);
+ConVar fizzbuzz("fizzbuzz", FCVAR_NONE, _fizzbuzz);
+}

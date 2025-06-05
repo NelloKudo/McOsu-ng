@@ -14,9 +14,9 @@
 #include "Keyboard.h"
 
 #include "Osu.h"
-
-ConVar osu_notification_duration("osu_notification_duration", 1.25f, FCVAR_NONE);
-
+namespace cv::osu {
+ConVar notification_duration("osu_notification_duration", 1.25f, FCVAR_NONE);
+}
 OsuNotificationOverlay::OsuNotificationOverlay() : OsuScreen()
 {
 	m_bWaitForKey = false;
@@ -25,7 +25,7 @@ OsuNotificationOverlay::OsuNotificationOverlay() : OsuScreen()
 	m_keyListener = NULL;
 }
 
-void OsuNotificationOverlay::draw(Graphics *g)
+void OsuNotificationOverlay::draw()
 {
 	if (!isVisible()) return;
 
@@ -33,16 +33,16 @@ void OsuNotificationOverlay::draw(Graphics *g)
 	{
 		g->setColor(0x22ffffff);
 		g->setAlpha((m_notification1.backgroundAnim/0.5f)*0.13f);
-		g->fillRect(0, 0, osu->getScreenWidth(), osu->getScreenHeight());
+		g->fillRect(0, 0, osu->getVirtScreenWidth(), osu->getVirtScreenHeight());
 	}
 
-	drawNotificationBackground(g, m_notification2);
-	drawNotificationBackground(g, m_notification1);
-	drawNotificationText(g, m_notification2);
-	drawNotificationText(g, m_notification1);
+	drawNotificationBackground(m_notification2);
+	drawNotificationBackground(m_notification1);
+	drawNotificationText(m_notification2);
+	drawNotificationText(m_notification1);
 }
 
-void OsuNotificationOverlay::drawNotificationText(Graphics *g, OsuNotificationOverlay::NOTIFICATION &n)
+void OsuNotificationOverlay::drawNotificationText(OsuNotificationOverlay::NOTIFICATION &n)
 {
 	McFont *font = osu->getSubTitleFont();
 	int height = font->getHeight()*2;
@@ -52,7 +52,7 @@ void OsuNotificationOverlay::drawNotificationText(Graphics *g, OsuNotificationOv
 	{
 		g->setColor(0xff000000);
 		g->setAlpha(n.alpha);
-		g->translate((int)(osu->getScreenWidth()/2 - stringWidth/2 + 1), (int)(osu->getScreenHeight()/2 + font->getHeight()/2 + n.fallAnim*height*0.15f + 1));
+		g->translate((int)(osu->getVirtScreenWidth()/2 - stringWidth/2 + 1), (int)(osu->getVirtScreenHeight()/2 + font->getHeight()/2 + n.fallAnim*height*0.15f + 1));
 		g->drawString(font, n.text);
 
 		g->setColor(n.textColor);
@@ -63,14 +63,14 @@ void OsuNotificationOverlay::drawNotificationText(Graphics *g, OsuNotificationOv
 	g->popTransform();
 }
 
-void OsuNotificationOverlay::drawNotificationBackground(Graphics *g, OsuNotificationOverlay::NOTIFICATION &n)
+void OsuNotificationOverlay::drawNotificationBackground(OsuNotificationOverlay::NOTIFICATION &n)
 {
 	McFont *font = osu->getSubTitleFont();
 	int height = font->getHeight()*2*n.backgroundAnim;
 
 	g->setColor(0xff000000);
 	g->setAlpha(n.alpha*0.75f);
-	g->fillRect(0, osu->getScreenHeight()/2 - height/2, osu->getScreenWidth(), height);
+	g->fillRect(0, osu->getVirtScreenHeight()/2 - height/2, osu->getVirtScreenWidth(), height);
 }
 
 void OsuNotificationOverlay::onKeyDown(KeyboardEvent &e)
@@ -78,7 +78,7 @@ void OsuNotificationOverlay::onKeyDown(KeyboardEvent &e)
 	if (!isVisible()) return;
 
 	// escape always stops waiting for a key
-	if (e.getKeyCode() == KEY_ESCAPE || e.getKeyCode() == OsuKeyBindings::GAME_PAUSE.getVal<KEYCODE>())
+	if (e.getKeyCode() == KEY_ESCAPE || e.getKeyCode() == cv::osu::keybinds::GAME_PAUSE.getVal<KEYCODE>())
 	{
 		if (m_bWaitForKey)
 			e.consume();
@@ -90,10 +90,10 @@ void OsuNotificationOverlay::onKeyDown(KeyboardEvent &e)
 	if (m_bWaitForKey)
 	{
 		/*
-		float prevDuration = osu_notification_duration.getFloat();
-		osu_notification_duration.setValue(0.85f);
+		float prevDuration = cv::osu::notification_duration.getFloat();
+		cv::osu::notification_duration.setValue(0.85f);
 		addNotification(UString::format("The new key is (ASCII Keycode): %lu", e.getKeyCode()));
-		osu_notification_duration.setValue(prevDuration); // restore convar
+		cv::osu::notification_duration.setValue(prevDuration); // restore convar
 		*/
 
 		// HACKHACK: prevent left mouse click bindings if relevant
@@ -134,7 +134,7 @@ void OsuNotificationOverlay::onChar(KeyboardEvent &e)
 
 void OsuNotificationOverlay::addNotification(UString text, Color textColor, bool waitForKey, float duration)
 {
-	const float notificationDuration = (duration < 0.0f ? osu_notification_duration.getFloat() : duration);
+	const float notificationDuration = (duration < 0.0f ? cv::osu::notification_duration.getFloat() : duration);
 
 	// swap effect
 	if (isVisible())

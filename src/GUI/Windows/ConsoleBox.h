@@ -11,11 +11,8 @@
 
 #include "WindowUIElement.h"
 
-#ifdef MCENGINE_FEATURE_MULTITHREADING
-
+#include <atomic>
 #include <mutex>
-
-#endif
 
 class CBaseUITextbox;
 class CBaseUIButton;
@@ -30,8 +27,8 @@ public:
 	ConsoleBox();
 	virtual ~ConsoleBox();
 
-	void draw(Graphics *g) override;
-	void drawLogOverlay(Graphics *g);
+	void draw() override;
+	void drawLogOverlay();
 	void update() override;
 
 	void onKeyDown(KeyboardEvent &e) override;
@@ -45,14 +42,14 @@ public:
 	void log(UString text, Color textColor = 0xffffffff);
 
 	// set
-	void setRequireShiftToActivate(bool requireShiftToActivate) {m_bRequireShiftToActivate = requireShiftToActivate;}
+	void setRequireShiftToActivate(bool requireShiftToActivate) { m_bRequireShiftToActivate = requireShiftToActivate; }
 
 	// get
 	bool isBusy() override;
 	bool isActive() override;
 
 	// ILLEGAL:
-	[[nodiscard]] inline ConsoleBoxTextbox *getTextbox() const {return m_textbox;}
+	[[nodiscard]] inline ConsoleBoxTextbox *getTextbox() const { return m_textbox; }
 
 	// inspection
 	CBASE_UI_TYPE(ConsoleBox, CONSOLEBOX, WindowUIElement)
@@ -76,12 +73,15 @@ private:
 
 	float getDPIScale();
 
+	// handle pending animation operations from logging thread
+	void processPendingLogAnimations();
+
 	int m_iSuggestionCount;
 	int m_iSelectedSuggestion; // for up/down buttons
 
 	ConsoleBoxTextbox *m_textbox;
 	CBaseUIScrollView *m_suggestion;
-	std::vector<CBaseUIButton*> m_vSuggestionButtons;
+	std::vector<CBaseUIButton *> m_vSuggestionButtons;
 	float m_fSuggestionY;
 
 	bool m_bRequireShiftToActivate;
@@ -103,12 +103,12 @@ private:
 	std::vector<UString> m_commandHistory;
 	int m_iSelectedHistory;
 
-#ifdef MCENGINE_FEATURE_MULTITHREADING
-
 	std::mutex m_logMutex;
 
-#endif
-
+	// thread-safe log animation state
+	std::atomic<bool> m_bLogAnimationResetPending;
+	std::atomic<float> m_fPendingLogTime;
+	std::atomic<bool> m_bForceLogVisible; // needed as an "ohshit" when a ton of lines are added in a single frame after the log has been hidden already
 };
 
 #endif

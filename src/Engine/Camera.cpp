@@ -12,8 +12,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
+namespace cv {
 ConVar cl_pitchup("cl_pitchup", 89.0f, FCVAR_CHEAT);
 ConVar cl_pitchdown("cl_pitchdown", 89.0f, FCVAR_CHEAT);
+}
 
 Matrix4 Camera::buildMatrixOrtho2D(float left, float right, float bottom, float top, float zn, float zf)
 {
@@ -31,12 +33,7 @@ Matrix4 Camera::buildMatrixOrtho2DGLLH(float left, float right, float bottom, fl
 Matrix4 Camera::buildMatrixOrtho2DDXLH(float left, float right, float bottom, float top, float zn, float zf)
 {
 	Matrix4 result;
-	// TODO: check if this actually behaves correctly, the doc says:
-	// If GLM_FORCE_DEPTH_ZERO_TO_ONE is defined, the near and far clip planes correspond to z normalized device coordinates of 0 and +1 respectively.
-	// (Direct3D clip volume definition)
-	// Otherwise, the near and far clip planes correspond to z normalized device coordinates of -1 and +1 respectively.
-	// (OpenGL clip volume definition)
-	glm::mat4 glmMatrix = glm::orthoLH(left, right, bottom, top, zn, zf);
+	glm::mat4 glmMatrix = glm::orthoLH_ZO(left, right, bottom, top, zn, zf);
 	result = Matrix4(&glmMatrix[0][0]);
 	return result;
 }
@@ -238,10 +235,10 @@ void Camera::rotateX(float pitchDeg)
 {
 	m_fPitch += pitchDeg;
 
-	if (m_fPitch > cl_pitchup.getFloat())
-		m_fPitch = cl_pitchup.getFloat();
-	else if (m_fPitch < -cl_pitchdown.getFloat())
-		m_fPitch = -cl_pitchdown.getFloat();
+	if (m_fPitch > cv::cl_pitchup.getFloat())
+		m_fPitch = cv::cl_pitchup.getFloat();
+	else if (m_fPitch < -cv::cl_pitchdown.getFloat())
+		m_fPitch = -cv::cl_pitchdown.getFloat();
 
 	updateVectors();
 }

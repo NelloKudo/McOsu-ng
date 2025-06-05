@@ -28,8 +28,8 @@ public:
 	OsuSkinImage(OsuSkin *skin, UString skinElementName, Vector2 baseSizeForScaling2x, float osuSize, UString animationSeparator = "-", bool ignoreDefaultSkin = false);
 	virtual ~OsuSkinImage();
 
-	virtual void draw(Graphics *g, Vector2 pos, float scale = 1.0f); // for objects scaled automatically to the current resolution
-	virtual void drawRaw(Graphics *g, Vector2 pos, float scale); // for objects which scale depending on external factors (e.g. hitobjects, depending on the diameter defined by the CS)
+	virtual void draw(Vector2 pos, float scale = 1.0f); // for objects scaled automatically to the current resolution
+	virtual void drawRaw(Vector2 pos, float scale); // for objects which scale depending on external factors (e.g. hitobjects, depending on the diameter defined by the CS)
 	virtual void update(bool useEngineTimeForAnimations = true, long curMusicPos = 0);
 
 	void setAnimationFramerate(float fps) {m_fFrameDuration = 1.0f / std::clamp<float>(fps, 1.0f, 9999.0f);}
@@ -42,7 +42,7 @@ public:
 	Vector2 getSize(); // absolute size scaled to the current resolution (depending on the osuSize as defined when loaded in OsuSkin.cpp)
 	Vector2 getSizeBase(); // default assumed size scaled to the current resolution. this is the base resolution which is used for all scaling calculations (to allow skins to overscale or underscale objects)
 	Vector2 getSizeBaseRaw(); // default assumed size UNSCALED. that means that e.g. hitcircles will return either 128x128 or 256x256 depending on the @2x flag in the filename
-	inline Vector2 getSizeBaseRawForScaling2x() const {return m_vBaseSizeForScaling2x;}
+	[[nodiscard]] inline Vector2 getSizeBaseRawForScaling2x() const {return m_vBaseSizeForScaling2x;}
 
 	Vector2 getImageSizeForCurrentFrame(); // width/height of the actual image texture as loaded from disk
 	IMAGE getImageForCurrentFrame();
@@ -51,22 +51,25 @@ public:
 
 	bool isReady();
 
-	inline int getNumImages() const {return m_images.size();}
-	inline float getFrameDuration() const {return m_fFrameDuration;}
-	inline unsigned int getFrameNumber() const {return m_iFrameCounter;}
-	inline bool isMissingTexture() const {return m_bIsMissingTexture;}
-	inline bool isFromDefaultSkin() const {return m_bIsFromDefaultSkin;}
+	[[nodiscard]] inline int getNumImages() const {return m_images.size();}
+	[[nodiscard]] inline float getFrameDuration() const {return m_fFrameDuration;}
+	[[nodiscard]] inline unsigned int getFrameNumber() const {return m_iFrameCounter;}
+	[[nodiscard]] inline bool isMissingTexture() const {return m_bIsMissingTexture;}
+	[[nodiscard]] inline bool isFromDefaultSkin() const {return m_bIsFromDefaultSkin;}
 
-	inline std::vector<UString> getFilepathsForExport() const {return m_filepathsForExport;}
+	[[nodiscard]] inline std::vector<UString> getFilepathsForExport() const {return m_filepathsForExport;}
 
 private:
-	static ConVar *m_osu_skin_mipmaps_ref;
+	
 
 	bool load(UString skinElementName, UString animationSeparator, bool ignoreDefaultSkin);
-	bool loadImage(UString skinElementName, bool ignoreDefaultSkin);
+	bool loadSingleImage(const UString& elementName, bool ignoreDefaultSkin);
 
 	float getScale();
 	float getImageScale();
+
+    [[nodiscard]] UString buildImagePath(const UString& skinPath, const UString& elementName, bool hd = false) const;
+    [[nodiscard]] UString buildDefaultImagePath(const UString& elementName, bool hd = false) const;
 
 	OsuSkin *m_skin;
 	bool m_bReady;

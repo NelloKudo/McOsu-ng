@@ -45,55 +45,9 @@ class OsuSongBrowserBackgroundSearchMatcher;
 class OsuSongBrowser2 final: public OsuScreenBackable
 {
 public:
-	static void drawSelectedBeatmapBackgroundImage(Graphics *g, Osu *osu, float alpha = 1.0f);
-
-	struct SORTING_COMPARATOR
-	{
-		virtual ~SORTING_COMPARATOR() {;}
-		virtual bool operator () (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const = 0;
-	};
-
-	struct SortByArtist final : public SORTING_COMPARATOR
-	{
-		virtual ~SortByArtist() {;}
-		virtual bool operator () (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const;
-	};
-
-	struct SortByBPM final : public SORTING_COMPARATOR
-	{
-		virtual ~SortByBPM() {;}
-		virtual bool operator () (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const;
-	};
-
-	struct SortByCreator final : public SORTING_COMPARATOR
-	{
-		virtual ~SortByCreator() {;}
-		virtual bool operator () (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const;
-	};
-
-	struct SortByDateAdded final : public SORTING_COMPARATOR
-	{
-		virtual ~SortByDateAdded() {;}
-		virtual bool operator () (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const;
-	};
-
-	struct SortByDifficulty final : public SORTING_COMPARATOR
-	{
-		virtual ~SortByDifficulty() {;}
-		virtual bool operator () (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const;
-	};
-
-	struct SortByLength final : public SORTING_COMPARATOR
-	{
-		virtual ~SortByLength() {;}
-		bool operator () (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const;
-	};
-
-	struct SortByTitle final : public SORTING_COMPARATOR
-	{
-		virtual ~SortByTitle() {;}
-		bool operator () (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const;
-	};
+	static void drawSelectedBeatmapBackgroundImage(Osu *osu, float alpha = 1.0f);
+	// needed by OsuUISongBrowserSongButton
+	static bool sortByDifficulty(OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b);
 
 	enum class GROUP : uint8_t
 	{
@@ -114,7 +68,7 @@ public:
 	OsuSongBrowser2();
 	~OsuSongBrowser2() override;
 
-	void draw(Graphics *g) override;
+	void draw() override;
 	void update() override;
 
 	void onKeyDown(KeyboardEvent &e) override;
@@ -182,11 +136,12 @@ private:
 		SORT_TITLE
 	};
 
+	using SORT_COMPARATOR = std::function<bool(OsuUISongBrowserButton const*, OsuUISongBrowserButton const*)>;
 	struct SORTING_METHOD
 	{
 		SORT type;
 		UString name;
-		SORTING_COMPARATOR *comparator;
+		SORT_COMPARATOR comparator;
 	};
 
 	struct GROUPING
@@ -199,6 +154,7 @@ private:
 private:
 	static bool searchMatcher(const OsuDatabaseBeatmap *databaseBeatmap, const std::vector<UString> &searchStringTokens);
 	static bool findSubstringInDifficulty(const OsuDatabaseBeatmap *diff, const UString &searchString);
+
 
 	void updateLayout() override;
 	void onBack() override;
@@ -232,20 +188,13 @@ private:
 
 	void onSortClicked(CBaseUIButton *button);
 	void onSortChange(UString text, int id = -1);
-	void onSortChangeInt(UString text, bool autoScroll);
+	void onSortChangeInt(const UString &text, bool autoScroll);
+
+	[[nodiscard]] std::vector<OsuUISongBrowserCollectionButton*>* getCollectionButtonsForGroup(GROUP group);
 
 	void onGroupTabButtonClicked(CBaseUIButton *groupTabButton);
-	void onGroupNoGrouping();
-	void onGroupCollections(bool autoScroll = true);
-	void onGroupArtist();
-	void onGroupDifficulty();
-	void onGroupBPM();
-	void onGroupCreator();
-	void onGroupDateadded();
-	void onGroupLength();
-	void onGroupTitle();
+	void rebuildAfterGroupOrSortChange(GROUP group, bool autoScroll = true, SORT_COMPARATOR sortComp = nullptr);
 
-	void onAfterSortingOrGroupChange(bool autoScroll = true);
 	void onAfterSortingOrGroupChangeUpdateInt(bool autoScroll);
 
 	void onSelectionMode();
@@ -264,25 +213,6 @@ private:
 	void selectSongButton(OsuUISongBrowserButton *songButton);
 	void selectPreviousRandomBeatmap();
 	void playSelectedDifficulty();
-
-	ConVar *m_fps_max_ref;
-	ConVar *m_osu_scores_enabled;
-	ConVar *m_name_ref;
-
-	ConVar *m_osu_draw_scrubbing_timeline_strain_graph_ref;
-	ConVar *m_osu_hud_scrubbing_timeline_strains_height_ref;
-	ConVar *m_osu_hud_scrubbing_timeline_strains_alpha_ref;
-	ConVar *m_osu_hud_scrubbing_timeline_strains_aim_color_r_ref;
-	ConVar *m_osu_hud_scrubbing_timeline_strains_aim_color_g_ref;
-	ConVar *m_osu_hud_scrubbing_timeline_strains_aim_color_b_ref;
-	ConVar *m_osu_hud_scrubbing_timeline_strains_speed_color_r_ref;
-	ConVar *m_osu_hud_scrubbing_timeline_strains_speed_color_g_ref;
-	ConVar *m_osu_hud_scrubbing_timeline_strains_speed_color_b_ref;
-
-	ConVar *m_osu_draw_statistics_perfectpp_ref;
-	ConVar *m_osu_draw_statistics_totalstars_ref;
-
-	ConVar *m_osu_mod_fposu_ref;
 
 	std::mt19937 m_rngalg;
 	GROUP m_group;

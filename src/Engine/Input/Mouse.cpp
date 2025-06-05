@@ -11,7 +11,7 @@
 #include "Engine.h"
 #include "Environment.h"
 #include "ResourceManager.h"
-
+namespace cv {
 ConVar debug_mouse("debug_mouse", false, FCVAR_CHEAT);
 ConVar debug_mouse_clicks("debug_mouse_clicks", false, FCVAR_NONE);
 ConVar mouse_sensitivity("mouse_sensitivity", 1.0f, FCVAR_NONE);
@@ -19,6 +19,7 @@ ConVar mouse_raw_input("mouse_raw_input", false, FCVAR_NONE);
 ConVar mouse_raw_input_absolute_to_window("mouse_raw_input_absolute_to_window", false, FCVAR_NONE);
 ConVar mouse_fakelag("mouse_fakelag", 0.000f, FCVAR_NONE, "delay all mouse movement by this many seconds (e.g. 0.1 = 100 ms delay)");
 ConVar tablet_sensitivity_ignore("tablet_sensitivity_ignore", false, FCVAR_NONE);
+}
 
 Mouse::Mouse() : InputDevice()
 {
@@ -43,16 +44,16 @@ Mouse::Mouse() : InputDevice()
 	m_vFakeLagPos = m_vPos;
 
 	m_fSensitivity = 1.0f;
-	mouse_raw_input.setCallback(fastdelegate::MakeDelegate(this, &Mouse::onRawInputChanged));
-	mouse_sensitivity.setCallback(fastdelegate::MakeDelegate(this, &Mouse::onSensitivityChanged));
+	cv::mouse_raw_input.setCallback(fastdelegate::MakeDelegate(this, &Mouse::onRawInputChanged));
+	cv::mouse_sensitivity.setCallback(fastdelegate::MakeDelegate(this, &Mouse::onSensitivityChanged));
 }
 
-void Mouse::draw(Graphics *g)
+void Mouse::draw()
 {
-	if (!debug_mouse.getBool())
+	if (!cv::debug_mouse.getBool())
 		return;
 
-	drawDebug(g);
+	drawDebug();
 
 	// green rect = virtual cursor pos
 	g->setColor(0xff00ff00);
@@ -78,7 +79,7 @@ void Mouse::draw(Graphics *g)
 	g->drawRect(-scaledOffset.x, -scaledOffset.y, scaledEngineScreenSize.x, scaledEngineScreenSize.y);
 }
 
-void Mouse::drawDebug(Graphics *g)
+void Mouse::drawDebug()
 {
 	Vector2 pos = getPos();
 
@@ -152,14 +153,13 @@ void Mouse::update()
 
 	m_bLastFrameHadMotion = false;
 
-	if (unlikely(mouse_fakelag.getBool()))
+	if (unlikely(cv::mouse_fakelag.getBool()))
 		updateFakelagBuffer();
 }
 
 void Mouse::onMotion(float x, float y, float xRel, float yRel, bool preTransformed)
 {
 	Vector2 newRel{xRel, yRel}, newAbs{x, y};
-	auto sens = m_fSensitivity;
 
 	m_bAbsolute = true; // assume we don't have to lock the cursor
 
@@ -170,14 +170,14 @@ void Mouse::onMotion(float x, float y, float xRel, float yRel, bool preTransform
 	if (!preTransformed && !osCursorVisible)
 	{
 		// need to apply sensitivity
-		if (!almostEqual(sens, 1.0f))
+		if (!almostEqual(m_fSensitivity, 1.0f))
 		{
 			// need to lock the OS cursor to the center of the screen if rawinput is disabled, otherwise it can exit the screen rect before the virtual cursor does
 			// don't do it here because we don't want the event loop to make more external calls than necessary,
 			// just set a flag to do it on the engine update loop
-			if (sens < 0.995f)
+			if (m_fSensitivity < 0.995f)
 				m_bAbsolute = false;
-			newRel *= sens;
+			newRel *= m_fSensitivity;
 			if (newRel.length() > 50.0f) // don't allow obviously bogus values
 				newRel.zero();
 			newAbs = m_vPosWithoutOffset + newRel;
@@ -192,11 +192,26 @@ void Mouse::onMotion(float x, float y, float xRel, float yRel, bool preTransform
 		}
 	}
 
-	m_vRawDelta = newRel / sens; // rawdelta doesn't include sensitivity or clipping
-	m_vDelta = newAbs - m_vPosWithoutOffset;
+	// we have to accumulate all motion collected in this frame, then reset it at the start of the next frame
+	// use Mouse::update always setting m_bLastFrameHadMotion to false as a signal that the deltas need to be reset now
+	// this is because onMotion can be called multiple times in a frame, depending on how many mouse motion events were collected
+	// but Mouse::update only happens once per frame
+	if (!m_bLastFrameHadMotion)
+	{
+		m_vDelta.zero();
+		m_vRawDelta.zero();
+	}
+
+	// rawdelta doesn't include sensitivity or clipping
+	m_vRawDelta += (newRel / m_fSensitivity);
+	m_vDelta += newRel;
+	// for the absolute position, we can just update it directly
 	m_vPosWithoutOffset = newAbs;
 
 	m_bLastFrameHadMotion = true;
+
+	if (cv::debug_mouse.getBool())
+		debugLog("frame: {} rawInput: {} m_vRawDelta: {:.2f},{:.2f} m_vDelta: {:.2f},{:.2f} m_vPosWithoutOffset: {:.2f},{:.2f}\n", engine->getFrameCount() + 1, preTransformed, m_vRawDelta.x, m_vRawDelta.y, m_vDelta.x, m_vDelta.y, m_vPosWithoutOffset.x, m_vPosWithoutOffset.y);
 }
 
 void Mouse::resetWheelDelta()
@@ -219,10 +234,10 @@ void Mouse::onPosChange(Vector2 pos)
 
 void Mouse::setPosXY(float x, float y)
 {
-	if (mouse_fakelag.getFloat() > 0.0f)
+	if (cv::mouse_fakelag.getFloat() > 0.0f)
 	{
 		FAKELAG_PACKET p;
-		p.time = engine->getTime() + mouse_fakelag.getFloat();
+		p.time = engine->getTime() + cv::mouse_fakelag.getFloat();
 		p.pos = Vector2(x, y);
 		m_fakelagBuffer.push_back(p);
 
@@ -256,9 +271,9 @@ void Mouse::onWheelVertical(int delta)
 {
 	m_iWheelDeltaVerticalActual += delta;
 
-	for (auto & m_listener : m_listeners)
+	for (auto & listener : m_listeners)
 	{
-		m_listener->onWheelVertical(delta);
+		listener->onWheelVertical(delta);
 	}
 }
 
@@ -266,9 +281,9 @@ void Mouse::onWheelHorizontal(int delta)
 {
 	m_iWheelDeltaHorizontalActual += delta;
 
-	for (auto & m_listener : m_listeners)
+	for (auto & listener : m_listeners)
 	{
-		m_listener->onWheelHorizontal(delta);
+		listener->onWheelHorizontal(delta);
 	}
 }
 
@@ -277,15 +292,15 @@ void Mouse::onButtonChange(MouseButton::Index button, bool down)
 	if (button < 1 || button >= BUTTON_COUNT)
 		return;
 
-	if (debug_mouse_clicks.getBool())
+	if (cv::debug_mouse_clicks.getBool())
 		debugLog("Mouse::onButtonChange({}, {})\n", (int)button, (int)down);
 
 	m_bMouseButtonDown[button] = down;
 
 	// notify listeners
-	for (auto & m_listener : m_listeners)
+	for (auto & listener : m_listeners)
 	{
-		m_listener->onButtonChange(button, down);
+		listener->onButtonChange(button, down);
 	}
 }
 

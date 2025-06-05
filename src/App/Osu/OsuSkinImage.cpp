@@ -15,233 +15,137 @@
 #include "Osu.h"
 #include "OsuSkin.h"
 
-ConVar osu_skin_animation_fps_override("osu_skin_animation_fps_override", -1.0f, FCVAR_NONE);
-
-ConVar *OsuSkinImage::m_osu_skin_mipmaps_ref = NULL;
+namespace cv::osu {
+ConVar skin_animation_fps_override("osu_skin_animation_fps_override", -1.0f, FCVAR_NONE);
+}
 
 OsuSkinImage::OsuSkinImage(OsuSkin *skin, UString skinElementName, Vector2 baseSizeForScaling2x, float osuSize, UString animationSeparator, bool ignoreDefaultSkin)
+    : m_skin(skin), m_vBaseSizeForScaling2x(baseSizeForScaling2x), m_fOsuSize(osuSize), m_bReady(false), m_iCurMusicPos(0), m_iFrameCounter(0),
+      m_iFrameCounterUnclamped(0), m_fLastFrameTime(0.0f), m_iBeatmapAnimationTimeStartOffset(0), m_bIsMissingTexture(false), m_bIsFromDefaultSkin(false),
+      m_fDrawClipWidthPercent(1.0f)
 {
-	m_skin = skin;
-	m_vBaseSizeForScaling2x = baseSizeForScaling2x;
-	m_fOsuSize = osuSize;
 
-	m_bReady = false;
 
-	if (m_osu_skin_mipmaps_ref == NULL)
-		m_osu_skin_mipmaps_ref = convar->getConVarByName("osu_skin_mipmaps");
+	// attempt to load skin elements and fallback to default
+	if (!load(skinElementName, animationSeparator, true) && !ignoreDefaultSkin)
+		load(skinElementName, animationSeparator, false);
 
-	m_iCurMusicPos = 0;
-	m_iFrameCounter = 0;
-	m_iFrameCounterUnclamped = 0;
-	m_fLastFrameTime = 0.0f;
-	m_iBeatmapAnimationTimeStartOffset = 0;
-
-	m_bIsMissingTexture = false;
-	m_bIsFromDefaultSkin = false;
-
-	m_fDrawClipWidthPercent = 1.0f;
-
-	// logic: first load user skin (true), and if no image could be found then load the default skin (false)
-	// this is necessary so that all elements can be correctly overridden with a user skin (e.g. if the user skin only has sliderb.png, but the default skin has sliderb0.png!)
-	if (!load(skinElementName, animationSeparator, true))
-	{
-		if (!ignoreDefaultSkin)
-			load(skinElementName, animationSeparator, false);
-	}
-
-	// if we couldn't load ANYTHING at all, gracefully fallback to missing texture
-	if (m_images.size() < 1)
+	// fallback to missing texture if nothing loaded
+	if (m_images.empty())
 	{
 		m_bIsMissingTexture = true;
 
 		IMAGE missingTexture;
-
 		missingTexture.img = m_skin->getMissingTexture();
 		missingTexture.scale = 2;
-
 		m_images.push_back(missingTexture);
 	}
 
-	// if AnimationFramerate is defined in skin, use that. otherwise derive framerate from number of frames
+	// set animation framerate
 	if (m_skin->getAnimationFramerate() > 0.0f)
 		m_fFrameDuration = 1.0f / m_skin->getAnimationFramerate();
-	else if (m_images.size() > 0)
-		m_fFrameDuration = 1.0f / (float)m_images.size();
+	else if (!m_images.empty())
+		m_fFrameDuration = 1.0f / static_cast<float>(m_images.size());
+}
+
+bool OsuSkinImage::loadSingleImage(const UString &elementName, bool ignoreDefaultSkin)
+{
+	const UString skinPath = m_skin->getFilePath();
+
+	// build all possible paths
+	const UString userHd = buildImagePath(skinPath, elementName, true);
+	const UString userNormal = buildImagePath(skinPath, elementName, false);
+	const UString defaultHd = buildDefaultImagePath(elementName, true);
+	const UString defaultNormal = buildDefaultImagePath(elementName, false);
+
+	// check existence once
+	const bool existsUserHd = m_skin->skinFileExists(userHd);
+	const bool existsUserNormal = m_skin->skinFileExists(userNormal);
+	const bool existsDefaultHd = m_skin->skinFileExists(defaultHd);
+	const bool existsDefaultNormal = m_skin->skinFileExists(defaultNormal);
+
+	// loading candidates in priority order
+	struct LoadCandidate
+	{
+		const UString &path;
+		bool exists;
+		float scale;
+		bool isDefault;
+	};
+
+	const std::initializer_list<LoadCandidate> candidates = {
+	    {.path = userHd,        .exists = existsUserHd && cv::osu::skin_hd.getBool(),                          .scale = 2.0f, .isDefault = false},
+	    {.path = userNormal,    .exists = existsUserNormal,	                                                       .scale = 1.0f, .isDefault = false},
+	    {.path = defaultHd,     .exists = existsDefaultHd && cv::osu::skin_hd.getBool() && !ignoreDefaultSkin, .scale = 2.0f, .isDefault = true },
+	    {.path = defaultNormal, .exists = existsDefaultNormal && !ignoreDefaultSkin,                                  .scale = 1.0f, .isDefault = true }
+    };
+
+	for (const auto &candidate : candidates)
+	{
+		if (!candidate.exists)
+			continue;
+
+		IMAGE image;
+
+		if (cv::osu::skin_async.getBool())
+			resourceManager->requestNextLoadAsync();
+
+		image.img = resourceManager->loadImageAbsUnnamed(candidate.path, cv::osu::skin_mipmaps.getBool());
+		image.scale = candidate.scale;
+
+		m_images.push_back(image);
+
+		// handle export paths; add primary path first, then secondary if it exists
+		m_filepathsForExport.push_back(candidate.path);
+		if (!candidate.isDefault)
+		{
+			// add the other resolution if it exists
+			if (candidate.scale == 2.0f && existsUserNormal)
+				m_filepathsForExport.push_back(userNormal);
+			else if (candidate.scale == 1.0f && existsUserHd)
+				m_filepathsForExport.push_back(userHd);
+		}
+		else
+		{
+			// add the other default resolution if it exists
+			if (candidate.scale == 2.0f && existsDefaultNormal)
+				m_filepathsForExport.push_back(defaultNormal);
+			else if (candidate.scale == 1.0f && existsDefaultHd)
+				m_filepathsForExport.push_back(defaultHd);
+		}
+
+		// note if we loaded from default skin
+		if (candidate.isDefault)
+			m_bIsFromDefaultSkin = true;
+
+		return true;
+	}
+
+	return false;
 }
 
 bool OsuSkinImage::load(UString skinElementName, UString animationSeparator, bool ignoreDefaultSkin)
 {
-	UString animatedSkinElementStartName = skinElementName;
-	animatedSkinElementStartName.append(animationSeparator);
-	animatedSkinElementStartName.append("0");
-	if (loadImage(animatedSkinElementStartName, ignoreDefaultSkin)) // try loading the first animated element (if this exists then we continue loading until the first missing frame)
+	// try animated loading first (element + separator + "0")
+	UString animatedStartName = UString::fmt("{}{}{}", skinElementName, animationSeparator, "0");
+
+	if (loadSingleImage(animatedStartName, ignoreDefaultSkin))
 	{
-		int frame = 1;
-		while (true)
+		// continue loading animation frames until we hit a missing one
+		for (int frame = 1; frame < 512; ++frame) // sanity limit
 		{
-			UString currentAnimatedSkinElementFrameName = skinElementName;
-			currentAnimatedSkinElementFrameName.append(animationSeparator);
-			currentAnimatedSkinElementFrameName.append(UString::format("%i", frame));
-
-			if (!loadImage(currentAnimatedSkinElementFrameName, ignoreDefaultSkin))
-				break; // stop loading on the first missing frame
-
-			frame++;
-
-			// sanity check
-			if (frame > 511)
-			{
-				debugLog("OsuSkinImage WARNING: Force stopped loading after 512 frames!\n");
-				break;
-			}
+			UString frameName = UString::fmt("{}{}{}", skinElementName, animationSeparator, frame);
+			if (!loadSingleImage(frameName, ignoreDefaultSkin))
+				break; // stop on first missing frame
 		}
 	}
-	else // load non-animated skin element
-		loadImage(skinElementName, ignoreDefaultSkin);
-
-	return m_images.size() > 0; // if any image was found
-}
-
-bool OsuSkinImage::loadImage(UString skinElementName, bool ignoreDefaultSkin)
-{
-	UString filepath1 = m_skin->getFilePath();
-	filepath1.append(skinElementName);
-	filepath1.append("@2x.png");
-
-	UString filepath2 = m_skin->getFilePath();
-	filepath2.append(skinElementName);
-	filepath2.append(".png");
-
-	UString defaultFilePath1 = ResourceManager::PATH_DEFAULT_IMAGES;
-	defaultFilePath1.append(OsuSkin::OSUSKIN_DEFAULT_SKIN_PATH);
-	defaultFilePath1.append(skinElementName);
-	defaultFilePath1.append("@2x.png");
-
-	UString defaultFilePath2 = ResourceManager::PATH_DEFAULT_IMAGES;
-	defaultFilePath2.append(OsuSkin::OSUSKIN_DEFAULT_SKIN_PATH);
-	defaultFilePath2.append(skinElementName);
-	defaultFilePath2.append(".png");
-
-	const bool existsFilepath1 = env->fileExists(filepath1);
-	const bool existsFilepath2 = env->fileExists(filepath2);
-	const bool existsDefaultFilePath1 = env->fileExists(defaultFilePath1);
-	const bool existsDefaultFilePath2 = env->fileExists(defaultFilePath2);
-
-	// load user skin
-
-	// check if an @2x version of this image exists
-	if (OsuSkin::m_osu_skin_hd->getBool())
+	else
 	{
-		// load user skin
-
-		if (existsFilepath1)
-		{
-			IMAGE image;
-
-			if (OsuSkin::m_osu_skin_async->getBool())
-				resourceManager->requestNextLoadAsync();
-
-			image.img = resourceManager->loadImageAbsUnnamed(filepath1, m_osu_skin_mipmaps_ref->getBool());
-			image.scale = 2.0f;
-
-			m_images.push_back(image);
-
-			// export
-			{
-				m_filepathsForExport.push_back(filepath1);
-
-				if (existsFilepath2)
-					m_filepathsForExport.push_back(filepath2);
-			}
-
-			return true; // nothing more to do here
-		}
-	}
-	// else load the normal version
-
-	// load user skin
-
-	if (existsFilepath2)
-	{
-		IMAGE image;
-
-		if (OsuSkin::m_osu_skin_async->getBool())
-			resourceManager->requestNextLoadAsync();
-
-		image.img = resourceManager->loadImageAbsUnnamed(filepath2, m_osu_skin_mipmaps_ref->getBool());
-		image.scale = 1.0f;
-
-		m_images.push_back(image);
-
-		// export
-		{
-			m_filepathsForExport.push_back(filepath2);
-
-			if (existsFilepath1)
-				m_filepathsForExport.push_back(filepath1);
-		}
-
-		return true; // nothing more to do here
+		// try non-animated loading
+		loadSingleImage(skinElementName, ignoreDefaultSkin);
 	}
 
-	if (ignoreDefaultSkin) return false;
-
-	// load default skin
-
-	m_bIsFromDefaultSkin = true;
-
-	// check if an @2x version of this image exists
-	if (OsuSkin::m_osu_skin_hd->getBool())
-	{
-		if (existsDefaultFilePath1)
-		{
-			IMAGE image;
-
-			if (OsuSkin::m_osu_skin_async->getBool())
-				resourceManager->requestNextLoadAsync();
-
-			image.img = resourceManager->loadImageAbsUnnamed(defaultFilePath1, m_osu_skin_mipmaps_ref->getBool());
-			image.scale = 2.0f;
-
-			m_images.push_back(image);
-
-			// export
-			{
-				m_filepathsForExport.push_back(defaultFilePath1);
-
-				if (existsDefaultFilePath2)
-					m_filepathsForExport.push_back(defaultFilePath2);
-			}
-
-			return true; // nothing more to do here
-		}
-	}
-	// else load the normal version
-
-	if (existsDefaultFilePath2)
-	{
-		IMAGE image;
-
-		if (OsuSkin::m_osu_skin_async->getBool())
-			resourceManager->requestNextLoadAsync();
-
-		image.img = resourceManager->loadImageAbsUnnamed(defaultFilePath2, m_osu_skin_mipmaps_ref->getBool());
-		image.scale = 1.0f;
-
-		m_images.push_back(image);
-
-		// export
-		{
-			m_filepathsForExport.push_back(defaultFilePath2);
-
-			if (existsDefaultFilePath1)
-				m_filepathsForExport.push_back(defaultFilePath1);
-		}
-
-		return true; // nothing more to do here
-	}
-
-	return false;
+	return !m_images.empty();
 }
 
 OsuSkinImage::~OsuSkinImage()
@@ -256,7 +160,7 @@ OsuSkinImage::~OsuSkinImage()
 	m_filepathsForExport.clear();
 }
 
-void OsuSkinImage::draw(Graphics *g, Vector2 pos, float scale)
+void OsuSkinImage::draw(Vector2 pos, float scale)
 {
 	if (m_images.size() < 1) return;
 
@@ -306,7 +210,7 @@ void OsuSkinImage::draw(Graphics *g, Vector2 pos, float scale)
 	g->popTransform();
 }
 
-void OsuSkinImage::drawRaw(Graphics *g, Vector2 pos, float scale)
+void OsuSkinImage::drawRaw(Vector2 pos, float scale)
 {
 	if (m_images.size() < 1) return;
 
@@ -360,7 +264,7 @@ void OsuSkinImage::update(bool useEngineTimeForAnimations, long curMusicPos)
 
 	m_iCurMusicPos = curMusicPos;
 
-	const float frameDurationInSeconds = (osu_skin_animation_fps_override.getFloat() > 0.0f ? (1.0f / osu_skin_animation_fps_override.getFloat()) : m_fFrameDuration);
+	const float frameDurationInSeconds = (cv::osu::skin_animation_fps_override.getFloat() > 0.0f ? (1.0f / cv::osu::skin_animation_fps_override.getFloat()) : m_fFrameDuration);
 
 	if (useEngineTimeForAnimations)
 	{
@@ -472,4 +376,16 @@ OsuSkinImage::IMAGE OsuSkinImage::getImageForCurrentFrame()
 
 		return image;
 	}
+}
+
+// file path construction helpers
+UString OsuSkinImage::buildImagePath(const UString& skinPath, const UString& elementName, bool hd) const
+{
+	return UString::fmt("{}{}{}.png", skinPath, elementName, hd ? "@2x" : "");
+}
+
+// TODO: rework this nonsense, the default paths should only be created once
+UString OsuSkinImage::buildDefaultImagePath(const UString &elementName, bool hd) const
+{
+	return UString::fmt("{}{}{}.png", OsuSkin::DEFAULT_SKIN_PATH, elementName, hd ? "@2x" : "");
 }

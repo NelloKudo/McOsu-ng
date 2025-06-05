@@ -220,11 +220,17 @@ static constexpr auto OPTIMAL_UNROLL = 4;
 #define MC_UNROLL_VECTOR MC_VEC_UNR_cnt(OPTIMAL_UNROLL)
 #define MC_UNROLL MC_UNR_cnt(OPTIMAL_UNROLL)
 
+#ifdef _OPENMP
+#define ACCUMULATE(op, var) MC_DO_PRAGMA(omp simd reduction(op:var)) // use openmp if available, otherwise unroll
+#else
+#define ACCUMULATE(op, var) MC_UNR_cnt(OPTIMAL_UNROLL)
+#endif
+
 #else
 
 #define likely(x) (x)
 #define unlikely(x) (x)
-#define forceinline
+#define forceinline __forceinline
 #define MC_DO_PRAGMA(x)
 #define MC_VECTORIZE_LOOP
 #define MC_UNR_cnt(num)
@@ -233,12 +239,37 @@ static constexpr auto OPTIMAL_UNROLL = 4;
 #define MC_UNROLL
 #define NULL_PUSH
 #define NULL_POP
+#define ACCUMULATE(op, var)
 #endif // defined(__GNUC__) || defined(__clang__)
 
 #if !(defined(MCENGINE_PLATFORM_WINDOWS) || defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined(__CYGWIN__) || defined(__CYGWIN32__) || defined(__TOS_WIN__) || defined(__WINDOWS__))
 typedef void* HWND;
 #else
+
+#ifdef _WIN64
+#define _AMD64_
+#elif defined(_WIN32)
+#define _X86_
+#endif
+
+// umm what the fuck
+#if defined(_MSC_VER)
+#define NOMINMAX
+#endif
+#define VC_EXTRALEAN
+#define WIN32_LEAN_AND_MEAN
+
+#include <basetsd.h>
 #include <windef.h>
+#if defined(_MSC_VER)
+typedef SSIZE_T ssize_t;
+#endif
+#ifndef fileno
+#define fileno _fileno
+#endif
+#ifndef isatty
+#define isatty _isatty
+#endif
 #endif
 
 #endif

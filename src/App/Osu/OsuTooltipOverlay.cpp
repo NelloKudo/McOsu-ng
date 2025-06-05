@@ -14,8 +14,9 @@
 #include "Mouse.h"
 
 #include "Osu.h"
-
-ConVar osu_tooltip_anim_duration("osu_tooltip_anim_duration", 0.4f, FCVAR_NONE);
+namespace cv::osu {
+ConVar tooltip_anim_duration("osu_tooltip_anim_duration", 0.4f, FCVAR_NONE);
+}
 
 OsuTooltipOverlay::OsuTooltipOverlay() : OsuScreen()
 {
@@ -27,7 +28,7 @@ OsuTooltipOverlay::~OsuTooltipOverlay()
 {
 }
 
-void OsuTooltipOverlay::draw(Graphics *g)
+void OsuTooltipOverlay::draw()
 {
 	if (m_fAnim > 0.0f)
 	{
@@ -52,12 +53,12 @@ void OsuTooltipOverlay::draw(Graphics *g)
 		Vector2 cursorPos = mouse->getPos();
 
 		// clamp to right edge
-		if (cursorPos.x + width + offset.x + 2*margin > osu->getScreenWidth())
-			cursorPos.x -= (cursorPos.x + width + offset.x + 2*margin) - osu->getScreenWidth() + 1;
+		if (cursorPos.x + width + offset.x + 2*margin > osu->getVirtScreenWidth())
+			cursorPos.x -= (cursorPos.x + width + offset.x + 2*margin) - osu->getVirtScreenWidth() + 1;
 
 		// clamp to bottom edge
-		if (cursorPos.y + height + offset.y + 2*margin > osu->getScreenHeight())
-			cursorPos.y -= (cursorPos.y + height + offset.y + 2*margin) - osu->getScreenHeight() + 1;
+		if (cursorPos.y + height + offset.y + 2*margin > osu->getVirtScreenHeight())
+			cursorPos.y -= (cursorPos.y + height + offset.y + 2*margin) - osu->getVirtScreenHeight() + 1;
 
 		// clamp to left edge
 		if (cursorPos.x < 0)
@@ -96,7 +97,7 @@ void OsuTooltipOverlay::update()
 	if (m_bDelayFadeout)
 		m_bDelayFadeout = false;
 	else if (m_fAnim > 0.0f)
-		anim->moveLinear(&m_fAnim, 0.0f, (m_fAnim)*osu_tooltip_anim_duration.getFloat(), true);
+		anim->moveLinear(&m_fAnim, 0.0f, (m_fAnim)*cv::osu::tooltip_anim_duration.getFloat(), true);
 }
 
 void OsuTooltipOverlay::begin()
@@ -112,5 +113,5 @@ void OsuTooltipOverlay::addLine(UString text)
 
 void OsuTooltipOverlay::end()
 {
-	anim->moveLinear(&m_fAnim, 1.0f, (1.0f-m_fAnim)*osu_tooltip_anim_duration.getFloat(), true);
+	anim->moveLinear(&m_fAnim, 1.0f, (1.0f-m_fAnim)*cv::osu::tooltip_anim_duration.getFloat(), true);
 }

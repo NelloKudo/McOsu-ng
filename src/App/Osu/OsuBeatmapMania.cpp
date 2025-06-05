@@ -20,12 +20,12 @@
 #include "OsuDatabaseBeatmap.h"
 
 #include "OsuHitObject.h"
-
-ConVar osu_mania_playfield_width_percent("osu_mania_playfield_width_percent", 0.25f, FCVAR_NONE);
-ConVar osu_mania_playfield_height_percent("osu_mania_playfield_height_percent", 0.85f, FCVAR_NONE);
-ConVar osu_mania_playfield_offset_x_percent("osu_mania_playfield_offset_x_percent", 0.44f, FCVAR_NONE);
-ConVar osu_mania_k_override("osu_mania_k_override", -1, FCVAR_NONE);
-
+namespace cv::osu {
+ConVar mania_playfield_width_percent("osu_mania_playfield_width_percent", 0.25f, FCVAR_NONE);
+ConVar mania_playfield_height_percent("osu_mania_playfield_height_percent", 0.85f, FCVAR_NONE);
+ConVar mania_playfield_offset_x_percent("osu_mania_playfield_offset_x_percent", 0.44f, FCVAR_NONE);
+ConVar mania_k_override("osu_mania_k_override", -1, FCVAR_NONE);
+}
 OsuBeatmapMania::OsuBeatmapMania() : OsuBeatmap()
 {
 	for (int i=0; i<128; i++)
@@ -37,9 +37,9 @@ OsuBeatmapMania::OsuBeatmapMania() : OsuBeatmap()
 	
 }
 
-void OsuBeatmapMania::draw(Graphics *g)
+void OsuBeatmapMania::draw()
 {
-	OsuBeatmap::draw(g);
+	OsuBeatmap::draw();
 	if (!canDraw()) return;
 
 	if (isLoading()) return; // only start drawing the rest of the playfield if everything has loaded
@@ -58,18 +58,18 @@ void OsuBeatmapMania::draw(Graphics *g)
 			g->setColor(0xffffffff);
 
 			// left
-			g->drawLine(m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2, -1, m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2, osu->getScreenHeight() + 2);
+			g->drawLine(m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2, -1, m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2, osu->getVirtScreenHeight() + 2);
 
 			// HACKHACK: hardcoded 10k offset
 			const int tenkadd = getNumColumns() == 10 ? 1 : 0;
 
 			// right
-			g->drawLine((int)(m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2) + ((int)(columnWidth))*(getNumColumns()+tenkadd), -1, (int)(m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2) + ((int)(columnWidth))*(getNumColumns()+tenkadd), osu->getScreenHeight() + 2);
+			g->drawLine((int)(m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2) + ((int)(columnWidth))*(getNumColumns()+tenkadd), -1, (int)(m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2) + ((int)(columnWidth))*(getNumColumns()+tenkadd), osu->getVirtScreenHeight() + 2);
 
 			if (getNumColumns() == 10)
 			{
-				g->drawLine((int)(m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2) + ((int)(columnWidth))*(5), -1, (int)(m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2) + ((int)(columnWidth))*(5), osu->getScreenHeight() + 2);
-				g->drawLine((int)(m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2) + ((int)(columnWidth))*(6), -1, (int)(m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2) + ((int)(columnWidth))*(6), osu->getScreenHeight() + 2);
+				g->drawLine((int)(m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2) + ((int)(columnWidth))*(5), -1, (int)(m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2) + ((int)(columnWidth))*(5), osu->getVirtScreenHeight() + 2);
+				g->drawLine((int)(m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2) + ((int)(columnWidth))*(6), -1, (int)(m_vPlayfieldCenter.x - m_vPlayfieldSize.x/2) + ((int)(columnWidth))*(6), osu->getVirtScreenHeight() + 2);
 			}
 		}
 
@@ -97,7 +97,7 @@ void OsuBeatmapMania::draw(Graphics *g)
 		// draw all hitobjects in reverse
 		for (int i=m_hitobjects.size()-1; i>=0; i--)
 		{
-			m_hitobjects[i]->draw(g);
+			m_hitobjects[i]->draw();
 		}
 
 		// draw hidden stage overlay
@@ -130,9 +130,9 @@ void OsuBeatmapMania::update()
 	if (isLoading()) return; // only continue if we have loaded everything
 
 	// update playfield metrics
-	m_vPlayfieldSize.x = osu->getScreenSize().x * osu_mania_playfield_width_percent.getFloat();
-	m_vPlayfieldSize.y = osu->getScreenSize().y * osu_mania_playfield_height_percent.getFloat();
-	m_vPlayfieldCenter.x = osu->getScreenSize().x * osu_mania_playfield_offset_x_percent.getFloat();
+	m_vPlayfieldSize.x = osu->getVirtScreenSize().x * cv::osu::mania_playfield_width_percent.getFloat();
+	m_vPlayfieldSize.y = osu->getVirtScreenSize().y * cv::osu::mania_playfield_height_percent.getFloat();
+	m_vPlayfieldCenter.x = osu->getVirtScreenSize().x * cv::osu::mania_playfield_offset_x_percent.getFloat();
 	m_vPlayfieldCenter.y = m_vPlayfieldSize.y / 2.0f;
 
 	// handle mouse 3d rotation
@@ -211,7 +211,7 @@ void OsuBeatmapMania::onPlayStart()
 int OsuBeatmapMania::getNumColumns() const
 {
 	if (m_selectedDifficulty2 != NULL)
-		return (osu_mania_k_override.getInt() > 0 ? osu_mania_k_override.getInt() : (int)std::round(m_selectedDifficulty2->getCS()));
+		return (cv::osu::mania_k_override.getInt() > 0 ? cv::osu::mania_k_override.getInt() : (int)std::round(m_selectedDifficulty2->getCS()));
 	else
 		return 4;
 }

@@ -10,10 +10,10 @@
 #include "ConVar.h"
 
 #include "VertexArrayObject.h"
-
-ConVar _debug_rt("debug_rt", false, FCVAR_CHEAT, "draws all rendertargets with a translucent green background");
-
-ConVar *RenderTarget::debug_rt = &_debug_rt;
+#include "ResourceManager.h"
+namespace cv {
+ConVar debug_rt("debug_rt", false, FCVAR_CHEAT, "draws all rendertargets with a translucent green background");
+}
 
 RenderTarget::RenderTarget(int x, int y, int width, int height, Graphics::MULTISAMPLE_TYPE multiSampleType)
 {
@@ -28,11 +28,11 @@ RenderTarget::RenderTarget(int x, int y, int width, int height, Graphics::MULTIS
 	m_clearColor = 0x00000000;
 }
 
-void RenderTarget::draw(Graphics *g, int x, int y)
+void RenderTarget::draw(int x, int y)
 {
 	if (!m_bReady)
 	{
-		if (_debug_rt.getBool())
+		if (cv::debug_rt.getBool())
 			debugLog("WARNING: RenderTarget is not ready!\n");
 		return;
 	}
@@ -72,11 +72,11 @@ void RenderTarget::draw(Graphics *g, int x, int y)
 	unbind();
 }
 
-void RenderTarget::draw(Graphics *g, int x, int y, int width, int height)
+void RenderTarget::draw(int x, int y, int width, int height)
 {
 	if (!m_bReady)
 	{
-		if (_debug_rt.getBool())
+		if (cv::debug_rt.getBool())
 			debugLog("WARNING: RenderTarget is not ready!\n");
 		return;
 	}
@@ -110,11 +110,11 @@ void RenderTarget::draw(Graphics *g, int x, int y, int width, int height)
 	unbind();
 }
 
-void RenderTarget::drawRect(Graphics *g, int x, int y, int width, int height)
+void RenderTarget::drawRect(int x, int y, int width, int height)
 {
 	if (!m_bReady)
 	{
-		if (_debug_rt.getBool())
+		if (cv::debug_rt.getBool())
 			debugLog("WARNING: RenderTarget is not ready!\n");
 		return;
 	}

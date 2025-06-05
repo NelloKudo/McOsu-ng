@@ -29,7 +29,7 @@ public:
 	OsuUserStatsScreen();
 	virtual ~OsuUserStatsScreen();
 
-	virtual void draw(Graphics *g);
+	virtual void draw();
 	virtual void update();
 
 	virtual void setVisible(bool visible);
@@ -41,7 +41,7 @@ private:
 
 	virtual void onBack();
 
-	void rebuildScoreButtons(UString playerName);
+	void rebuildScoreButtons(const UString &playerName);
 
 	void onUserClicked(CBaseUIButton *button);
 	void onUserButtonChange(UString text, int id);
@@ -57,7 +57,7 @@ private:
 	void onDeleteAllScoresClicked();
 	void onDeleteAllScoresConfirmed(UString text, int id);
 
-	ConVar *m_name_ref;
+	;
 
 	CBaseUIContainer *m_container;
 

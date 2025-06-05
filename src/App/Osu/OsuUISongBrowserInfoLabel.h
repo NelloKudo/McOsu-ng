@@ -22,7 +22,7 @@ class OsuUISongBrowserInfoLabel : public CBaseUIButton
 public:
 	OsuUISongBrowserInfoLabel(float xPos, float yPos, float xSize, float ySize, UString name);
 
-	void draw(Graphics *g) override;
+	void draw() override;
 	void update() override;
 
 	void setFromBeatmap(OsuBeatmap *beatmap, OsuDatabaseBeatmap *diff2);
@@ -59,9 +59,6 @@ private:
 	UString buildSongInfoString();
 	UString buildDiffInfoString();
 	UString buildOffsetInfoString();
-
-	ConVar *m_osu_debug_ref;
-	ConVar *m_osu_songbrowser_dynamic_star_recalc_ref;
 
 	McFont *m_font;
 

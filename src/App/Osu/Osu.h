@@ -11,14 +11,18 @@
 #ifndef OSU_H
 #define OSU_H
 
-#include "App.h"
+#include "OsuConVarDefs.h"
+#include "KeyboardListener.h"
 #include "MouseListener.h"
 #include "OsuKeyBindings.h"
+#include "UString.h"
+#include "Vectors.h"
+
+#include <cstdint>
+#include <string>
 
 class CWindowManager;
 
-class Osu2;
-class OsuVR;
 class OsuMultiplayer;
 class OsuMainMenu;
 class OsuPauseMenu;
@@ -37,10 +41,11 @@ class OsuScreen;
 class OsuScore;
 class OsuSkin;
 class OsuHUD;
-class OsuVRTutorial;
 class OsuChangelog;
 class OsuEditor;
 class OsuModFPoSu;
+
+class Graphics;
 
 class ConVar;
 class Image;
@@ -48,12 +53,12 @@ class McFont;
 class RenderTarget;
 
 
-class Osu final : public App, public MouseListener
+class Osu final : public MouseListener, public KeyboardListener
 {
 public:
-	static ConVar *version;
-	static ConVar *debug;
-	static ConVar *ui_scale;
+	
+	
+	
 	static bool autoUpdater;
 
 	static Vector2 osuBaseResolution;
@@ -76,12 +81,12 @@ public:
 	};
 
 public:
-	Osu(int instanceID = 0);
+	Osu();
 	~Osu() override;
 
-	void draw(Graphics *g) override;
-	void drawVR(Graphics *g);
-	void update() override;
+	void draw();
+	void update();
+	inline bool isInCriticalInteractiveSession() { return !isNotInPlayModeOrPaused();} // i.e. is in play mode and not paused
 
 	void onKeyDown(KeyboardEvent &e) override;
 	void onKeyUp(KeyboardEvent &e) override;
@@ -92,13 +97,14 @@ public:
 	void onWheelVertical(int) override {;}
 	void onWheelHorizontal(int) override {;}
 
-	void onResolutionChanged(Vector2 newResolution) override;
-	void onDPIChanged() override;
+	void onResolutionChanged(Vector2 newResolution);
+	void onDPIChanged();
 
-	void onFocusGained() override;
-	void onFocusLost() override;
-	void onMinimized() override;
-	bool onShutdown() override;
+	void onFocusGained();
+	void onFocusLost();
+	void onMinimized();
+	void onRestored() {;}
+	bool onShutdown();
 
 	void onBeforePlayStart();			// called just before OsuBeatmap->play()
 	void onPlayStart();					// called when a beatmap has successfully started playing
@@ -109,7 +115,6 @@ public:
 	void toggleOptionsMenu();
 	void toggleRankingScreen();
 	void toggleUserStatsScreen();
-	void toggleVRTutorial();
 	void toggleChangelog();
 	void toggleEditor();
 
@@ -123,16 +128,14 @@ public:
 
 	void setGamemode(GAMEMODE gamemode) {m_gamemode = gamemode;}
 
-	[[nodiscard]] inline int getInstanceID() const {return m_iInstanceID;}
 	[[nodiscard]] inline GAMEMODE getGamemode() const {return m_gamemode;}
 
-	[[nodiscard]] constexpr const Vector2 &getScreenSize() const {return g_vInternalResolution;}
-	[[nodiscard]] inline int getScreenWidth() const {return (int)g_vInternalResolution.x;}
-	[[nodiscard]] inline int getScreenHeight() const {return (int)g_vInternalResolution.y;}
+	[[nodiscard]] constexpr const Vector2 &getVirtScreenSize() const {return g_vInternalResolution;}
+	[[nodiscard]] inline int getVirtScreenWidth() const {return (int)g_vInternalResolution.x;}
+	[[nodiscard]] inline int getVirtScreenHeight() const {return (int)g_vInternalResolution.y;}
 
 	OsuBeatmap *getSelectedBeatmap();
 
-	[[nodiscard]] inline OsuVR* getVR() const {return m_vr;}
 	[[nodiscard]] inline OsuMultiplayer* getMultiplayer() const {return m_multiplayer;}
 	[[nodiscard]] inline OsuOptionsMenu* getOptionsMenu() const {return m_optionsMenu;}
 	[[nodiscard]] inline OsuSongBrowser2* getSongBrowser() const {return m_songBrowser2;}
@@ -193,19 +196,13 @@ public:
 
 	bool isInPlayMode();
 	bool isNotInPlayModeOrPaused();
-#ifdef MCENGINE_FEATURE_OPENVR
-	static bool isInVRMode();
-	inline bool isInVRDraw() const {return m_bIsInVRDraw;}
-#else
-	static inline constexpr bool isInVRDraw() {return false;}
-	static inline constexpr bool isInVRMode() {return false;}
-#endif
-	bool isInMultiplayer();
-	inline bool isSkinLoading() const {return m_bSkinLoadScheduled;}
 
-	inline bool isSkipScheduled() const {return m_bSkipScheduled;}
-	inline bool isSeeking() const {return m_bSeeking;}
-	inline float getQuickSaveTime() const {return m_fQuickSaveTime;}
+	bool isInMultiplayer();
+	[[nodiscard]] inline bool isSkinLoading() const {return m_bSkinLoadScheduled;}
+
+	[[nodiscard]] inline bool isSkipScheduled() const {return m_bSkipScheduled;}
+	[[nodiscard]] inline bool isSeeking() const {return m_bSeeking;}
+	[[nodiscard]] inline float getQuickSaveTime() const {return m_fQuickSaveTime;}
 
 	bool shouldFallBackToLegacySliderRenderer(); // certain mods or actions require OsuSliders to render dynamically (e.g. wobble or the CS override slider)
 
@@ -259,34 +256,7 @@ private:
 
 	void onNotification(UString args);
 
-	// convar refs
-	ConVar *m_osu_folder_ref;
-	ConVar *m_osu_folder_sub_skins_ref;
-	ConVar *m_osu_draw_hud_ref;
-	ConVar *m_osu_draw_scoreboard;
-	ConVar *m_osu_draw_cursor_ripples_ref;
-	ConVar *m_osu_mod_fps_ref;
-	ConVar *m_osu_mod_wobble_ref;
-	ConVar *m_osu_mod_wobble2_ref;
-	ConVar *m_osu_mod_minimize_ref;
-	ConVar *m_osu_playfield_rotation;
-	ConVar *m_osu_playfield_stretch_x;
-	ConVar *m_osu_playfield_stretch_y;
-	ConVar *m_fposu_draw_cursor_trail_ref;
-	ConVar *m_osu_volume_effects_ref;
-	ConVar *m_osu_mod_mafham_ref;
-	ConVar *m_osu_mod_fposu_ref;
-	ConVar *m_fposu_3d_ref;
-	ConVar *m_fposu_3d_spheres_ref;
-	ConVar *m_fposu_3d_spheres_aa_ref;
-	ConVar *m_snd_change_check_interval_ref;
-	ConVar *m_ui_scrollview_scrollbarwidth_ref;
-	ConVar *m_mouse_raw_input_absolute_to_window_ref;
-	ConVar *m_disable_windows_key_ref;
-	ConVar *m_osu_vr_draw_desktop_playfield_ref;
-
 	// interfaces
-	OsuVR *m_vr;
 	OsuMultiplayer *m_multiplayer;
 	OsuMainMenu *m_mainMenu;
 	OsuOptionsMenu *m_optionsMenu;
@@ -301,7 +271,6 @@ private:
 	OsuTooltipOverlay *m_tooltipOverlay;
 	OsuNotificationOverlay *m_notificationOverlay;
 	OsuScore *m_score;
-	OsuVRTutorial *m_vrTutorial;
 	OsuChangelog *m_changelog;
 	OsuEditor *m_editor;
 	OsuUpdateHandler *m_updateHandler;
@@ -370,7 +339,6 @@ private:
 	bool m_bOptionsMenuFullscreen;
 	bool m_bToggleRankingScreenScheduled;
 	bool m_bToggleUserStatsScreenScheduled;
-	bool m_bToggleVRTutorialScheduled;
 	bool m_bToggleChangelogScheduled;
 	bool m_bToggleEditorScheduled;
 
@@ -392,8 +360,6 @@ private:
 	GAMEMODE m_gamemode;
 	bool m_bScheduleEndlessModNextBeatmap;
 	int m_iMultiplayerClientNumEscPresses;
-	bool m_bIsInVRDraw;
-	int m_iInstanceID;
 	bool m_bWasBossKeyPaused;
 	bool m_bSkinLoadScheduled;
 	bool m_bSkinLoadWasReload;

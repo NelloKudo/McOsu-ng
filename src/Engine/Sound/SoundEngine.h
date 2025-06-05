@@ -11,6 +11,8 @@
 
 #include "cbase.h"
 
+typedef uint32_t SOUNDHANDLE;
+
 class Sound;
 
 class SoundEngine
@@ -31,7 +33,8 @@ public:
 	virtual void pause(Sound *snd) = 0;
 	virtual void stop(Sound *snd) = 0;
 
-	virtual void setOnOutputDeviceChange(std::function<void()> callback);
+	typedef fastdelegate::FastDelegate0<> AudioOutputChangedCallback;
+	virtual void setOnOutputDeviceChange(AudioOutputChangedCallback callback);
 
 	virtual void setOutputDevice(UString outputDeviceName) = 0;
 	virtual void setOutputDeviceForce(UString outputDeviceName) = 0;
@@ -40,11 +43,12 @@ public:
 
 	virtual std::vector<UString> getOutputDevices() = 0;
 
-	inline const UString &getOutputDevice() const { return m_sCurrentOutputDevice; }
-	inline float getVolume() const { return m_fVolume; }
+	[[nodiscard]] inline const UString &getOutputDevice() const { return m_sCurrentOutputDevice; }
+	[[nodiscard]] inline float getVolume() const { return m_fVolume; }
 
 	virtual SoundEngineType* getSndEngine() = 0;
 	[[nodiscard]] virtual const SoundEngineType* getSndEngine() const = 0;
+	[[nodiscard]] virtual bool isReady() { return m_bReady; }
 
 protected:
 	struct OUTPUT_DEVICE
@@ -60,7 +64,7 @@ protected:
 
 	bool m_bReady;
 	float m_fPrevOutputDeviceChangeCheckTime;
-	std::function<void()> m_outputDeviceChangeCallback;
+	AudioOutputChangedCallback m_outputDeviceChangeCallback;
 	std::vector<OUTPUT_DEVICE> m_outputDevices;
 
 	int m_iCurrentOutputDevice;
@@ -68,5 +72,16 @@ protected:
 
 	float m_fVolume;
 };
+
+// convenience conversion macro to get the sound handle, extra args are any extra conditions to check for besides general state validity
+// just minor boilerplate reduction
+#define GETHANDLE(...) \
+	[&]() -> std::pair<SoundType *, SOUNDHANDLE> { \
+		SOUNDHANDLE retHandle = 0; \
+		SoundType *retSound = nullptr; \
+		if (m_bReady && snd && snd->isReady() __VA_OPT__(&&(__VA_ARGS__)) && (retSound = snd->getSound())) \
+			retHandle = retSound->getHandle(); \
+		return {retSound, retHandle}; \
+	}()
 
 #endif

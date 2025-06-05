@@ -24,26 +24,20 @@ class OsuManiaNote;
 class OsuHitObject
 {
 public:
-	static void drawHitResult(Graphics *g, const OsuBeatmapStandard *beatmap, Vector2 rawPos, OsuScore::HIT result, float animPercentInv, float hitDeltaRangePercent);
-	static void draw3DHitResult(Graphics *g, const OsuBeatmapStandard *beatmap, Vector2 rawPos, OsuScore::HIT result, float animPercentInv, float hitDeltaRangePercent);
-	static void drawHitResult(Graphics *g, const OsuSkin *skin, float hitcircleDiameter, float rawHitcircleDiameter, Vector2 rawPos, OsuScore::HIT result, float animPercentInv, float hitDeltaRangePercent);
-	static void draw3DHitResult(Graphics *g, const OsuModFPoSu *fposu, const OsuSkin *skin, float hitcircleDiameter, float rawHitcircleDiameter, Vector2 rawPos, OsuScore::HIT result, float animPercentInv, float hitDeltaRangePercent);
+	static void drawHitResult(const OsuBeatmapStandard *beatmap, Vector2 rawPos, OsuScore::HIT result, float animPercentInv, float hitDeltaRangePercent);
+	static void draw3DHitResult(const OsuBeatmapStandard *beatmap, Vector2 rawPos, OsuScore::HIT result, float animPercentInv, float hitDeltaRangePercent);
+	static void drawHitResult(const OsuSkin *skin, float hitcircleDiameter, float rawHitcircleDiameter, Vector2 rawPos, OsuScore::HIT result, float animPercentInv, float hitDeltaRangePercent);
+	static void draw3DHitResult(const OsuModFPoSu *fposu, const OsuSkin *skin, float hitcircleDiameter, float rawHitcircleDiameter, Vector2 rawPos, OsuScore::HIT result, float animPercentInv, float hitDeltaRangePercent);
 
-	static ConVar *m_osu_approach_scale_multiplier_ref;
-	static ConVar *m_osu_timingpoints_force;
-	static ConVar *m_osu_vr_approach_type;
-	static ConVar *m_osu_vr_draw_approach_circles;
-	static ConVar *m_osu_vr_approach_circles_on_playfield;
-	static ConVar *m_osu_vr_approach_circles_on_top;
-	static ConVar *m_osu_relax_offset_ref;
+	
+	
+	
 
-	static ConVar *m_osu_vr_draw_desktop_playfield;
+	
 
-	static ConVar *m_osu_mod_mafham_ref;
-
-	static ConVar *m_fposu_3d_spheres_ref;
-	static ConVar *m_fposu_3d_hitobjects_look_at_player_ref;
-	static ConVar *m_fposu_3d_approachcircles_look_at_player_ref;
+	
+	
+	
 
 public:
 	enum Type : uint8_t { CIRCLE, SLIDER, SPINNER, NOTE };
@@ -51,12 +45,10 @@ public:
 	OsuHitObject(long time, int sampleType, int comboNumber, bool isEndOfCombo, int colorCounter, int colorOffset, OsuBeatmap *beatmap);
 	virtual ~OsuHitObject() {;}
 
-	virtual void draw(Graphics *g) {;}
-	virtual void draw2(Graphics *g);
-	virtual void drawVR(Graphics *g, Matrix4 &mvp, OsuVR *vr) {;}
-	virtual void drawVR2(Graphics *g, Matrix4 &mvp, OsuVR *vr) {;}
-	virtual void draw3D(Graphics *g) {;}
-	virtual void draw3D2(Graphics *g);
+	virtual void draw() {;}
+	virtual void draw2();
+	virtual void draw3D() {;}
+	virtual void draw3D2();
 	virtual void update(long curPos);
 
 	virtual void updateStackPosition(float stackOffset) = 0;
@@ -159,8 +151,8 @@ private:
 		bool addObjectDurationToSkinAnimationTimeStartOffset;
 	};
 
-	void drawHitResultAnim(Graphics *g, const HITRESULTANIM &hitresultanim);
-	void draw3DHitResultAnim(Graphics *g, const HITRESULTANIM &hitresultanim);
+	void drawHitResultAnim(const HITRESULTANIM &hitresultanim);
+	void draw3DHitResultAnim(const HITRESULTANIM &hitresultanim);
 
 	HITRESULTANIM m_hitresultanim1;
 	HITRESULTANIM m_hitresultanim2;

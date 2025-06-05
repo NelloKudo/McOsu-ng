@@ -19,7 +19,7 @@ public:
 	OsuUISongBrowserSongDifficultyButton(OsuSongBrowser2 *songBrowser, CBaseUIScrollView *view, OsuUIContextMenu *contextMenu, float xPos, float yPos, float xSize, float ySize, UString name, OsuDatabaseBeatmap *diff2, OsuUISongBrowserSongButton *parentSongButton);
 	~OsuUISongBrowserSongDifficultyButton() override;
 
-	void draw(Graphics *g) override;
+	void draw() override;
 	void update() override;
 
 	void updateGrade() override;
@@ -32,8 +32,8 @@ public:
 
 	CBASE_UI_TYPE(OsuUISongBrowserSongDifficultyButton, OsuUIElement::UISONGBROWSERDIFFICULTYBUTTON, OsuUISongBrowserSongButton)
 private:
-	static ConVar *m_osu_scores_enabled;
-	static ConVar *m_osu_songbrowser_dynamic_star_recalc_ref;
+	
+	
 
 	void onSelected(bool wasSelected, bool autoSelectBottomMostChild, bool wasParentSelected) override;
 

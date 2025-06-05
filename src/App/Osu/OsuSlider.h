@@ -32,13 +32,11 @@ public:
 	OsuSlider(char type, int repeat, float pixelLength, std::vector<Vector2> points, std::vector<int> hitSounds, std::vector<float> ticks, float sliderTime, float sliderTimeWithoutRepeats, long time, int sampleType, int comboNumber, bool isEndOfCombo, int colorCounter, int colorOffset, OsuBeatmapStandard *beatmap);
 	~OsuSlider() override;
 
-	void draw(Graphics *g) override;
-	void draw2(Graphics *g) override;
-	void draw2(Graphics *g, bool drawApproachCircle, bool drawOnlyApproachCircle);
-	void drawVR(Graphics *g, Matrix4 &mvp, OsuVR *vr) override;
-	void drawVR2(Graphics *g, Matrix4 &mvp, OsuVR *vr) override;
-	void draw3D(Graphics *g) override;
-	void draw3D2(Graphics *g) override;
+	void draw() override;
+	void draw2() override;
+	void draw2(bool drawApproachCircle, bool drawOnlyApproachCircle);
+	void draw3D() override;
+	void draw3D2() override;
 	void update(long curPos) override;
 
 	[[nodiscard]] constexpr Type getType() const override { return SLIDER; }
@@ -71,22 +69,21 @@ public:
 	[[nodiscard]] inline OsuSliderCurve *getCurve() const {return m_curve;}
 
 private:
-	static ConVar *m_osu_playfield_mirror_horizontal_ref;
-	static ConVar *m_osu_playfield_mirror_vertical_ref;
-	static ConVar *m_osu_playfield_rotation_ref;
-	static ConVar *m_osu_mod_fps_ref;
-	static ConVar *m_osu_mod_strict_tracking_ref;
-	static ConVar *m_osu_slider_border_size_multiplier_ref;
-	static ConVar *m_epilepsy_ref;
-	static ConVar *m_osu_auto_cursordance_ref;
-	static ConVar *m_osu_drain_type_ref;
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
-	void drawStartCircle(Graphics *g, float alpha);
-	void draw3DStartCircle(Graphics *g, const Matrix4 &baseScale, float alpha);
-	void drawEndCircle(Graphics *g, float alpha, float sliderSnake = 1.0f);
-	void draw3DEndCircle(Graphics *g, const Matrix4 &baseScale, float alpha, float sliderSnake = 1.0f);
-	void drawBody(Graphics *g, float alpha, float from, float to);
-	void drawBodyVR(Graphics *g, OsuVR *vr, Matrix4 &mvp, float alpha, float from, float to);
+	void drawStartCircle(float alpha);
+	void draw3DStartCircle(const Matrix4 &baseScale, float alpha);
+	void drawEndCircle(float alpha, float sliderSnake = 1.0f);
+	void draw3DEndCircle(const Matrix4 &baseScale, float alpha, float sliderSnake = 1.0f);
+	void drawBody(float alpha, float from, float to);
 
 	void updateAnimations(long curPos);
 
@@ -157,10 +154,7 @@ private:
 
 	float m_fSliderBreakRapeTime;
 
-	bool m_bOnHitVRLeftControllerHapticFeedback;
-
 	VertexArrayObject *m_vao;
-	VertexArrayObject *m_vaoVR2;
 };
 
 #endif

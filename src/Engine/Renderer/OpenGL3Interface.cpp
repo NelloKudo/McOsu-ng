@@ -43,18 +43,7 @@ OpenGL3Interface::OpenGL3Interface() : Graphics()
 	m_color = 0xffffffff;
 
 	m_syncobj = new OpenGLSync();
-}
 
-OpenGL3Interface::~OpenGL3Interface()
-{
-	SAFE_DELETE(m_shaderTexturedGeneric);
-
-	glDeleteVertexArrays(1, &m_iVA);
-	SAFE_DELETE(m_syncobj);
-}
-
-void OpenGL3Interface::init()
-{
 	// enable
 	glEnable(GL_BLEND);
 
@@ -154,6 +143,14 @@ void main() {
 	OpenGLStateCache::getInstance().initialize();
 }
 
+OpenGL3Interface::~OpenGL3Interface()
+{
+	SAFE_DELETE(m_shaderTexturedGeneric);
+
+	glDeleteVertexArrays(1, &m_iVA);
+	SAFE_DELETE(m_syncobj);
+}
+
 void OpenGL3Interface::beginScene()
 {
 	m_bInScene = true;
@@ -164,7 +161,7 @@ void OpenGL3Interface::beginScene()
 	// push main transforms
 	pushTransform();
 	setProjectionMatrix(defaultProjectionMatrix);
-	translate(r_globaloffset_x->getFloat(), r_globaloffset_y->getFloat());
+	translate(cv::r_globaloffset_x.getFloat(), cv::r_globaloffset_y.getFloat());
 
 	// and apply them
 	updateTransform();
@@ -408,7 +405,7 @@ void OpenGL3Interface::drawImage(Image *image)
 	drawVAO(&vao);
 	image->unbind();
 
-	if (r_debug_drawimage->getBool())
+	if (cv::r_debug_drawimage.getBool())
 	{
 		setColor(0xbbff00ff);
 		drawRect(x, y, width, height);
@@ -422,7 +419,7 @@ void OpenGL3Interface::drawString(McFont *font, UString text)
 
 	updateTransform();
 
-	font->drawString(this, text);
+	font->drawString(text);
 }
 
 void OpenGL3Interface::drawVAO(VertexArrayObject *vao)
@@ -585,7 +582,7 @@ void OpenGL3Interface::drawVAO(VertexArrayObject *vao)
 
 void OpenGL3Interface::setClipRect(McRect clipRect)
 {
-	if (r_debug_disable_cliprect->getBool()) return;
+	if (cv::r_debug_disable_cliprect.getBool()) return;
 	//if (m_bIs3DScene) return; // HACKHACK:TODO:
 
 	// HACKHACK: compensate for viewport changes caused by RenderTargets!

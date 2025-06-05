@@ -58,38 +58,39 @@
 #include <algorithm>
 #include <utility>
 
-ConVar osu_gamemode("osu_gamemode", "std", FCVAR_NONE);
+namespace cv::osu {
+ConVar gamemode("osu_gamemode", "std", FCVAR_NONE);
 
-ConVar osu_songbrowser_sortingtype("osu_songbrowser_sortingtype", "By Date Added", FCVAR_NONE);
-ConVar osu_songbrowser_scores_sortingtype("osu_songbrowser_scores_sortingtype", "Sort By Score", FCVAR_NONE);
+ConVar songbrowser_sortingtype("osu_songbrowser_sortingtype", "By Date Added", FCVAR_NONE);
+ConVar songbrowser_scores_sortingtype("osu_songbrowser_scores_sortingtype", "Sort By Score", FCVAR_NONE);
 
-ConVar osu_songbrowser_topbar_left_percent("osu_songbrowser_topbar_left_percent", 0.93f, FCVAR_NONE);
-ConVar osu_songbrowser_topbar_left_width_percent("osu_songbrowser_topbar_left_width_percent", 0.265f, FCVAR_NONE);
-ConVar osu_songbrowser_topbar_middle_width_percent("osu_songbrowser_topbar_middle_width_percent", 0.15f, FCVAR_NONE);
-ConVar osu_songbrowser_topbar_right_height_percent("osu_songbrowser_topbar_right_height_percent", 0.5f, FCVAR_NONE);
-ConVar osu_songbrowser_topbar_right_percent("osu_songbrowser_topbar_right_percent", 0.378f, FCVAR_NONE);
-ConVar osu_songbrowser_bottombar_percent("osu_songbrowser_bottombar_percent", 0.116f, FCVAR_NONE);
+ConVar songbrowser_topbar_left_percent("osu_songbrowser_topbar_left_percent", 0.93f, FCVAR_NONE);
+ConVar songbrowser_topbar_left_width_percent("osu_songbrowser_topbar_left_width_percent", 0.265f, FCVAR_NONE);
+ConVar songbrowser_topbar_middle_width_percent("osu_songbrowser_topbar_middle_width_percent", 0.15f, FCVAR_NONE);
+ConVar songbrowser_topbar_right_height_percent("osu_songbrowser_topbar_right_height_percent", 0.5f, FCVAR_NONE);
+ConVar songbrowser_topbar_right_percent("osu_songbrowser_topbar_right_percent", 0.378f, FCVAR_NONE);
+ConVar songbrowser_bottombar_percent("osu_songbrowser_bottombar_percent", 0.116f, FCVAR_NONE);
 
-ConVar osu_draw_songbrowser_background_image("osu_draw_songbrowser_background_image", true, FCVAR_NONE);
-ConVar osu_draw_songbrowser_menu_background_image("osu_draw_songbrowser_menu_background_image", true, FCVAR_NONE);
-ConVar osu_draw_songbrowser_strain_graph("osu_draw_songbrowser_strain_graph", false, FCVAR_NONE);
-ConVar osu_songbrowser_scorebrowser_enabled("osu_songbrowser_scorebrowser_enabled", true, FCVAR_NONE);
-ConVar osu_songbrowser_background_fade_in_duration("osu_songbrowser_background_fade_in_duration", 0.1f, FCVAR_NONE);
+ConVar draw_songbrowser_background_image("osu_draw_songbrowser_background_image", true, FCVAR_NONE);
+ConVar draw_songbrowser_menu_background_image("osu_draw_songbrowser_menu_background_image", true, FCVAR_NONE);
+ConVar draw_songbrowser_strain_graph("osu_draw_songbrowser_strain_graph", false, FCVAR_NONE);
+ConVar songbrowser_scorebrowser_enabled("osu_songbrowser_scorebrowser_enabled", true, FCVAR_NONE);
+ConVar songbrowser_background_fade_in_duration("osu_songbrowser_background_fade_in_duration", 0.1f, FCVAR_NONE);
 
-ConVar osu_songbrowser_search_delay("osu_songbrowser_search_delay", 0.5f, FCVAR_NONE, "delay until search update when entering text");
-void _osu_songbrowser_search_hardcoded_filter(UString oldValue, UString newValue);
-ConVar osu_songbrowser_search_hardcoded_filter("osu_songbrowser_search_hardcoded_filter", "", FCVAR_NONE, "allows forcing the specified search filter to be active all the time", _osu_songbrowser_search_hardcoded_filter);
-ConVar osu_songbrowser_background_star_calculation("osu_songbrowser_background_star_calculation", true, FCVAR_NONE, "precalculate stars for all loaded beatmaps while in songbrowser");
-ConVar osu_songbrowser_dynamic_star_recalc("osu_songbrowser_dynamic_star_recalc", true, FCVAR_NONE, "dynamically recalculate displayed star value of currently selected beatmap in songbrowser");
+ConVar songbrowser_search_delay("osu_songbrowser_search_delay", 0.5f, FCVAR_NONE, "delay until search update when entering text");
 
-ConVar osu_debug_background_star_calc("osu_debug_background_star_calc", false, FCVAR_NONE, "prints the name of the beatmap about to get its stars calculated (cmd/terminal window only, no in-game log!)");
+ConVar songbrowser_search_hardcoded_filter("osu_songbrowser_search_hardcoded_filter", "", FCVAR_NONE, "allows forcing the specified search filter to be active all the time",
+	[](UString, UString newValue) -> void {
+		if (newValue.length() == 1 && newValue.isWhitespaceOnly())
+			songbrowser_search_hardcoded_filter.setValue("");
+	});
+ConVar songbrowser_background_star_calculation("osu_songbrowser_background_star_calculation", true, FCVAR_NONE, "precalculate stars for all loaded beatmaps while in songbrowser");
+ConVar songbrowser_dynamic_star_recalc("osu_songbrowser_dynamic_star_recalc", true, FCVAR_NONE, "dynamically recalculate displayed star value of currently selected beatmap in songbrowser");
 
-void _osu_songbrowser_search_hardcoded_filter(UString oldValue, UString newValue)
-{
-	if (newValue.length() == 1 && newValue.isWhitespaceOnly())
-		osu_songbrowser_search_hardcoded_filter.setValue("");
+ConVar songbrowser_debug("osu_songbrowser_debug", false, FCVAR_NONE);
+
+ConVar debug_background_star_calc("osu_debug_background_star_calc", false, FCVAR_NONE, "prints the name of the beatmap about to get its stars calculated (cmd/terminal window only, no in-game log!)");
 }
-
 
 
 class OsuSongBrowserBackgroundSearchMatcher final : public Resource
@@ -134,18 +135,18 @@ protected:
 
 		// flag matches across entire database
 		const std::vector<UString> searchStringTokens = m_sSearchString.split(" ");
-		for (size_t i=0; i<m_songButtons.size(); i++)
+		for (auto & songButton : m_songButtons)
 		{
-			const std::vector<OsuUISongBrowserButton*> &children = m_songButtons[i]->getChildren();
+			const std::vector<OsuUISongBrowserButton*> &children = songButton->getChildren();
 			if (children.size() > 0)
 			{
-				for (size_t c=0; c<children.size(); c++)
+				for (auto c : children)
 				{
-					children[c]->setIsSearchMatch(OsuSongBrowser2::searchMatcher(children[c]->getDatabaseBeatmap(), searchStringTokens));
+					c->setIsSearchMatch(OsuSongBrowser2::searchMatcher(c->getDatabaseBeatmap(), searchStringTokens));
 				}
 			}
 			else
-				m_songButtons[i]->setIsSearchMatch(OsuSongBrowser2::searchMatcher(m_songButtons[i]->getDatabaseBeatmap(), searchStringTokens));
+				songButton->setIsSearchMatch(OsuSongBrowser2::searchMatcher(songButton->getDatabaseBeatmap(), searchStringTokens));
 
 			// cancellation point
 			if (m_bDead.load())
@@ -176,7 +177,7 @@ public:
 		m_sIconString.insert(0, OsuIcons::TROPHY);
 	}
 
-	void drawText(Graphics *g) override
+	void drawText() override
 	{
 		// draw icon
 		const float iconScale = 0.6f;
@@ -217,39 +218,35 @@ private:
 	UString m_sIconString;
 };
 
+namespace {
 
-
-bool OsuSongBrowser2::SortByArtist::operator () (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const
+bool sortByArtist(OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b)
 {
 	if (a->getDatabaseBeatmap() == NULL || b->getDatabaseBeatmap() == NULL)
 		return a->getSortHack() < b->getSortHack();
 
-	// strict weak ordering!
-	if (a->getDatabaseBeatmap()->getArtist().equalsIgnoreCase(b->getDatabaseBeatmap()->getArtist()))
-		return a->getSortHack() < b->getSortHack();
-
-	return a->getDatabaseBeatmap()->getArtist().lessThanIgnoreCase(b->getDatabaseBeatmap()->getArtist());
+	return a->getDatabaseBeatmap()->getArtist().lessThanIgnoreCaseStrict(b->getDatabaseBeatmap()->getArtist());
 }
 
-bool OsuSongBrowser2::SortByBPM::operator () (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const
+bool sortByBPM(OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b)
 {
 	if (a->getDatabaseBeatmap() == NULL || b->getDatabaseBeatmap() == NULL)
 		return a->getSortHack() < b->getSortHack();
 
 	int bpm1 = a->getDatabaseBeatmap()->getMostCommonBPM();
-	const std::vector<OsuDatabaseBeatmap*> &aDiffs = a->getDatabaseBeatmap()->getDifficulties();
-	for (size_t i=0; i<aDiffs.size(); i++)
+	const std::vector<OsuDatabaseBeatmap *> &aDiffs = a->getDatabaseBeatmap()->getDifficulties();
+	for (auto aDiff : aDiffs)
 	{
-		if (aDiffs[i]->getMostCommonBPM() > bpm1)
-			bpm1 = aDiffs[i]->getMostCommonBPM();
+		if (aDiff->getMostCommonBPM() > bpm1)
+			bpm1 = aDiff->getMostCommonBPM();
 	}
 
 	int bpm2 = b->getDatabaseBeatmap()->getMostCommonBPM();
-	const std::vector<OsuDatabaseBeatmap*> &bDiffs = b->getDatabaseBeatmap()->getDifficulties();
-	for (size_t i=0; i<bDiffs.size(); i++)
+	const std::vector<OsuDatabaseBeatmap *> &bDiffs = b->getDatabaseBeatmap()->getDifficulties();
+	for (auto bDiff : bDiffs)
 	{
-		if (bDiffs[i]->getMostCommonBPM() > bpm2)
-			bpm2 = bDiffs[i]->getMostCommonBPM();
+		if (bDiff->getMostCommonBPM() > bpm2)
+			bpm2 = bDiff->getMostCommonBPM();
 	}
 
 	// strict weak ordering!
@@ -259,37 +256,33 @@ bool OsuSongBrowser2::SortByBPM::operator () (OsuUISongBrowserButton const *a, O
 	return bpm1 < bpm2;
 }
 
-bool OsuSongBrowser2::SortByCreator::operator () (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const
+bool sortByCreator(OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b)
 {
 	if (a->getDatabaseBeatmap() == NULL || b->getDatabaseBeatmap() == NULL)
 		return a->getSortHack() < b->getSortHack();
 
-	// strict weak ordering!
-	if (a->getDatabaseBeatmap()->getCreator().equalsIgnoreCase(b->getDatabaseBeatmap()->getCreator()))
-		return a->getSortHack() < b->getSortHack();
-
-	return a->getDatabaseBeatmap()->getCreator().lessThanIgnoreCase(b->getDatabaseBeatmap()->getCreator());
+	return a->getDatabaseBeatmap()->getCreator().lessThanIgnoreCaseStrict(b->getDatabaseBeatmap()->getCreator());
 }
 
-bool OsuSongBrowser2::SortByDateAdded::operator () (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const
+bool sortByDateAdded(OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b)
 {
 	if (a->getDatabaseBeatmap() == NULL || b->getDatabaseBeatmap() == NULL)
 		return a->getSortHack() < b->getSortHack();
 
 	long long time1 = a->getDatabaseBeatmap()->getLastModificationTime();
-	const std::vector<OsuDatabaseBeatmap*> &aDiffs = a->getDatabaseBeatmap()->getDifficulties();
-	for (size_t i=0; i<aDiffs.size(); i++)
+	const std::vector<OsuDatabaseBeatmap *> &aDiffs = a->getDatabaseBeatmap()->getDifficulties();
+	for (auto aDiff : aDiffs)
 	{
-		if (aDiffs[i]->getLastModificationTime() > time1)
-			time1 = aDiffs[i]->getLastModificationTime();
+		if (aDiff->getLastModificationTime() > time1)
+			time1 = aDiff->getLastModificationTime();
 	}
 
 	long long time2 = b->getDatabaseBeatmap()->getLastModificationTime();
-	const std::vector<OsuDatabaseBeatmap*> &bDiffs = b->getDatabaseBeatmap()->getDifficulties();
-	for (size_t i=0; i<bDiffs.size(); i++)
+	const std::vector<OsuDatabaseBeatmap *> &bDiffs = b->getDatabaseBeatmap()->getDifficulties();
+	for (auto bDiff : bDiffs)
 	{
-		if (bDiffs[i]->getLastModificationTime() > time2)
-			time2 = bDiffs[i]->getLastModificationTime();
+		if (bDiff->getLastModificationTime() > time2)
+			time2 = bDiff->getLastModificationTime();
 	}
 
 	// strict weak ordering!
@@ -299,76 +292,25 @@ bool OsuSongBrowser2::SortByDateAdded::operator () (OsuUISongBrowserButton const
 	return time1 > time2;
 }
 
-bool OsuSongBrowser2::SortByDifficulty::operator () (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const
-{
-	if (a->getDatabaseBeatmap() == NULL || b->getDatabaseBeatmap() == NULL)
-		return a->getSortHack() < b->getSortHack();
-
-	float diff1 = (a->getDatabaseBeatmap()->getAR()+1)*(a->getDatabaseBeatmap()->getCS()+1)*(a->getDatabaseBeatmap()->getHP()+1)*(a->getDatabaseBeatmap()->getOD()+1)*(std::max(a->getDatabaseBeatmap()->getMostCommonBPM(), 1));
-	float stars1 = a->getDatabaseBeatmap()->getStarsNomod();
-	const std::vector<OsuDatabaseBeatmap*> &aDiffs = a->getDatabaseBeatmap()->getDifficulties();
-	for (size_t i=0; i<aDiffs.size(); i++)
-	{
-		const OsuDatabaseBeatmap *d = aDiffs[i];
-		if (d->getStarsNomod() > stars1)
-			stars1 = d->getStarsNomod();
-
-		const float tempDiff1 = (d->getAR()+1)*(d->getCS()+1)*(d->getHP()+1)*(d->getOD()+1)*(std::max(d->getMostCommonBPM(), 1));
-		if (tempDiff1 > diff1)
-			diff1 = tempDiff1;
-	}
-
-	float diff2 = (b->getDatabaseBeatmap()->getAR()+1)*(b->getDatabaseBeatmap()->getCS()+1)*(b->getDatabaseBeatmap()->getHP()+1)*(b->getDatabaseBeatmap()->getOD()+1)*(std::max(b->getDatabaseBeatmap()->getMostCommonBPM(), 1));
-	float stars2 = b->getDatabaseBeatmap()->getStarsNomod();
-	const std::vector<OsuDatabaseBeatmap*> &bDiffs = b->getDatabaseBeatmap()->getDifficulties();
-	for (size_t i=0; i<bDiffs.size(); i++)
-	{
-		const OsuDatabaseBeatmap *d = bDiffs[i];
-		if (d->getStarsNomod() > stars2)
-			stars2 = d->getStarsNomod();
-
-		const float tempDiff2 = (d->getAR()+1)*(d->getCS()+1)*(d->getHP()+1)*(d->getOD()+1)*(std::max(d->getMostCommonBPM(), 1));
-		if (tempDiff2 > diff1)
-			diff2 = tempDiff2;
-	}
-
-	if (stars1 > 0 && stars2 > 0)
-	{
-		// strict weak ordering!
-		if (stars1 == stars2)
-			return a->getSortHack() < b->getSortHack();
-
-		return stars1 < stars2;
-	}
-	else
-	{
-		// strict weak ordering!
-		if (diff1 == diff2)
-			return a->getSortHack() < b->getSortHack();
-
-		return diff1 < diff2;
-	}
-}
-
-bool OsuSongBrowser2::SortByLength::operator () (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const
+bool sortByLength(OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b)
 {
 	if (a->getDatabaseBeatmap() == NULL || b->getDatabaseBeatmap() == NULL)
 		return a->getSortHack() < b->getSortHack();
 
 	unsigned long length1 = a->getDatabaseBeatmap()->getLengthMS();
-	const std::vector<OsuDatabaseBeatmap*> &aDiffs = a->getDatabaseBeatmap()->getDifficulties();
-	for (size_t i=0; i<aDiffs.size(); i++)
+	const std::vector<OsuDatabaseBeatmap *> &aDiffs = a->getDatabaseBeatmap()->getDifficulties();
+	for (auto aDiff : aDiffs)
 	{
-		if (aDiffs[i]->getLengthMS() > length1)
-			length1 = aDiffs[i]->getLengthMS();
+		if (aDiff->getLengthMS() > length1)
+			length1 = aDiff->getLengthMS();
 	}
 
 	unsigned long length2 = b->getDatabaseBeatmap()->getLengthMS();
-	const std::vector<OsuDatabaseBeatmap*> &bDiffs = b->getDatabaseBeatmap()->getDifficulties();
-	for (size_t i=0; i<bDiffs.size(); i++)
+	const std::vector<OsuDatabaseBeatmap *> &bDiffs = b->getDatabaseBeatmap()->getDifficulties();
+	for (auto bDiff : bDiffs)
 	{
-		if (bDiffs[i]->getLengthMS() > length2)
-			length2 = bDiffs[i]->getLengthMS();
+		if (bDiff->getLengthMS() > length2)
+			length2 = bDiff->getLengthMS();
 	}
 
 	// strict weak ordering!
@@ -378,26 +320,68 @@ bool OsuSongBrowser2::SortByLength::operator () (OsuUISongBrowserButton const *a
 	return length1 < length2;
 }
 
-bool OsuSongBrowser2::SortByTitle::operator () (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const
+bool sortByTitle(OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b)
 {
 	if (a->getDatabaseBeatmap() == NULL || b->getDatabaseBeatmap() == NULL)
 		return a->getSortHack() < b->getSortHack();
 
-	// strict weak ordering!
-	if (a->getDatabaseBeatmap()->getTitle().equalsIgnoreCase(b->getDatabaseBeatmap()->getTitle()))
-		return a->getSortHack() < b->getSortHack();
-
-	return a->getDatabaseBeatmap()->getTitle().lessThanIgnoreCase(b->getDatabaseBeatmap()->getTitle());
+	return a->getDatabaseBeatmap()->getTitle().lessThanIgnoreCaseStrict(b->getDatabaseBeatmap()->getTitle());
+}
 }
 
+// needed by OsuUISongBrowserSongButton
+bool OsuSongBrowser2::sortByDifficulty(OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b)
+{
+	if (a->getDatabaseBeatmap() == NULL || b->getDatabaseBeatmap() == NULL)
+		return a->getSortHack() < b->getSortHack();
 
+	auto getMaxDifficulty = [](const OsuDatabaseBeatmap *beatmap) -> float {
+		float maxDiff = 0.0f;
+		float stars = beatmap->getStarsNomod();
+
+		if (stars > 0)
+		{
+			maxDiff = stars;
+		}
+		else
+		{
+			// fallback calculation
+			maxDiff = (beatmap->getAR() + 1) * (beatmap->getCS() + 1) * (beatmap->getHP() + 1) * (beatmap->getOD() + 1) * (std::max(beatmap->getMostCommonBPM(), 1));
+		}
+
+		// check children for higher difficulty
+		const std::vector<OsuDatabaseBeatmap *> &diffs = beatmap->getDifficulties();
+		for (auto d : diffs)
+		{
+			float childStars = d->getStarsNomod();
+			if (childStars > 0)
+			{
+				maxDiff = std::max(maxDiff, childStars);
+			}
+			else
+			{
+				float childDiff = (d->getAR() + 1) * (d->getCS() + 1) * (d->getHP() + 1) * (d->getOD() + 1) * (std::max(d->getMostCommonBPM(), 1));
+				maxDiff = std::max(maxDiff, childDiff);
+			}
+		}
+
+		return maxDiff;
+	};
+
+	float diff1 = getMaxDifficulty(a->getDatabaseBeatmap());
+	float diff2 = getMaxDifficulty(b->getDatabaseBeatmap());
+
+	// strict weak ordering
+	if (diff1 == diff2)
+		return a->getSortHack() < b->getSortHack();
+
+	return diff1 < diff2;
+}
 
 OsuSongBrowser2::OsuSongBrowser2() : OsuScreenBackable()
-{
-	
-
+{	
 	// random selection algorithm init
-	m_rngalg = std::mt19937(time(0));
+	m_rngalg = std::mt19937(std::random_device{}());
 
 	// sorting/grouping + methods
 	m_group = GROUP::GROUP_NO_GROUPING;
@@ -414,39 +398,19 @@ OsuSongBrowser2::OsuSongBrowser2() : OsuScreenBackable()
 	}
 
 	m_sortingMethod = SORT::SORT_ARTIST;
-	{
-		m_sortingMethods.push_back({SORT::SORT_ARTIST, "By Artist", new SortByArtist()});
-		m_sortingMethods.push_back({SORT::SORT_BPM, "By BPM", new SortByBPM()});
-		m_sortingMethods.push_back({SORT::SORT_CREATOR, "By Creator", new SortByCreator()});
-		m_sortingMethods.push_back({SORT::SORT_DATEADDED, "By Date Added", new SortByDateAdded()});
-		m_sortingMethods.push_back({SORT::SORT_DIFFICULTY, "By Difficulty", new SortByDifficulty()});
-		m_sortingMethods.push_back({SORT::SORT_LENGTH, "By Length", new SortByLength()});
-		///m_sortingMethods.push_back({SORT::SORT_RANKACHIEVED, "By Rank Achieved", new SortByRankAchieved()}); // not yet possible
-		m_sortingMethods.push_back({SORT::SORT_TITLE, "By Title", new SortByTitle()});
-	}
-
-	// convar refs
-	m_fps_max_ref = convar->getConVarByName("fps_max");
-	m_osu_scores_enabled = convar->getConVarByName("osu_scores_enabled");
-	m_name_ref = convar->getConVarByName("name");
-
-	m_osu_draw_scrubbing_timeline_strain_graph_ref = convar->getConVarByName("osu_draw_scrubbing_timeline_strain_graph");
-	m_osu_hud_scrubbing_timeline_strains_height_ref = convar->getConVarByName("osu_hud_scrubbing_timeline_strains_height");
-	m_osu_hud_scrubbing_timeline_strains_alpha_ref = convar->getConVarByName("osu_hud_scrubbing_timeline_strains_alpha");
-	m_osu_hud_scrubbing_timeline_strains_aim_color_r_ref = convar->getConVarByName("osu_hud_scrubbing_timeline_strains_aim_color_r");
-	m_osu_hud_scrubbing_timeline_strains_aim_color_g_ref = convar->getConVarByName("osu_hud_scrubbing_timeline_strains_aim_color_g");
-	m_osu_hud_scrubbing_timeline_strains_aim_color_b_ref = convar->getConVarByName("osu_hud_scrubbing_timeline_strains_aim_color_b");
-	m_osu_hud_scrubbing_timeline_strains_speed_color_r_ref = convar->getConVarByName("osu_hud_scrubbing_timeline_strains_speed_color_r");
-	m_osu_hud_scrubbing_timeline_strains_speed_color_g_ref = convar->getConVarByName("osu_hud_scrubbing_timeline_strains_speed_color_g");
-	m_osu_hud_scrubbing_timeline_strains_speed_color_b_ref = convar->getConVarByName("osu_hud_scrubbing_timeline_strains_speed_color_b");
-
-	m_osu_draw_statistics_perfectpp_ref = convar->getConVarByName("osu_draw_statistics_perfectpp");
-	m_osu_draw_statistics_totalstars_ref = convar->getConVarByName("osu_draw_statistics_totalstars");
-
-	m_osu_mod_fposu_ref = convar->getConVarByName("osu_mod_fposu");
+    {
+        m_sortingMethods.push_back({SORT::SORT_ARTIST, "By Artist", sortByArtist});
+        m_sortingMethods.push_back({SORT::SORT_BPM, "By BPM", sortByBPM});
+        m_sortingMethods.push_back({SORT::SORT_CREATOR, "By Creator", sortByCreator});
+        m_sortingMethods.push_back({SORT::SORT_DATEADDED, "By Date Added", sortByDateAdded});
+        m_sortingMethods.push_back({SORT::SORT_DIFFICULTY, "By Difficulty", sortByDifficulty});
+        m_sortingMethods.push_back({SORT::SORT_LENGTH, "By Length", sortByLength});
+        ///m_sortingMethods.push_back({SORT::SORT_RANKACHIEVED, "By Rank Achieved", sortByRankAchieved}); // not yet possible
+        m_sortingMethods.push_back({SORT::SORT_TITLE, "By Title", sortByTitle});
+    }
 
 	// convar callbacks
-	osu_gamemode.setCallback( fastdelegate::MakeDelegate(this, &OsuSongBrowser2::onModeChange) );
+	cv::osu::gamemode.setCallback( fastdelegate::MakeDelegate(this, &OsuSongBrowser2::onModeChange) );
 
 	// vars
 	m_bSongBrowserRightClickScrollCheck = false;
@@ -541,7 +505,7 @@ OsuSongBrowser2::OsuSongBrowser2() : OsuScreenBackable()
 	m_userButton = new OsuUISongBrowserUserButton();
 	m_userButton->addTooltipLine("Click to change [User] or view/edit [Top Ranks]");
 	m_userButton->setClickCallback( fastdelegate::MakeDelegate(this, &OsuSongBrowser2::onUserButtonClicked) );
-	m_userButton->setText(m_name_ref->getString());
+	m_userButton->setText(cv::name.getString());
 	m_bottombar->addBaseUIElement(m_userButton);
 
 	// looks like shit there, don't like it
@@ -563,7 +527,7 @@ OsuSongBrowser2::OsuSongBrowser2() : OsuScreenBackable()
 	m_scoreBrowser->setClipping(false);
 	m_scoreBrowser->setHorizontalScrolling(false);
 	m_scoreBrowser->setScrollbarSizeMultiplier(0.25f);
-	m_scoreBrowser->setScrollResistance((osu->isInVRMode()) ? convar->getConVarByName("ui_scrollview_resistance")->getInt() : 15); // a bit shitty this check + convar, but works well enough
+	m_scoreBrowser->setScrollResistance(15);
 	m_scoreBrowserNoRecordsYetElement = new OsuUISongBrowserNoRecordsSetElement("No records set!");
 	m_scoreBrowser->getContainer()->addBaseUIElement(m_scoreBrowserNoRecordsYetElement);
 
@@ -572,7 +536,7 @@ OsuSongBrowser2::OsuSongBrowser2() : OsuScreenBackable()
 	m_songBrowser->setDrawBackground(false);
 	m_songBrowser->setDrawFrame(false);
 	m_songBrowser->setHorizontalScrolling(false);
-	m_songBrowser->setScrollResistance((osu->isInVRMode()) ? convar->getConVarByName("ui_scrollview_resistance")->getInt() : 15); // a bit shitty this check + convar, but works well enough
+	m_songBrowser->setScrollResistance(15);
 
 	// beatmap database
 	m_db = new OsuDatabase();
@@ -588,7 +552,7 @@ OsuSongBrowser2::OsuSongBrowser2() : OsuScreenBackable()
 	m_search = new OsuUISearchOverlay(0, 0, 0, 0, "");
 	m_search->setOffsetRight(10);
 	m_fSearchWaitTime = 0.0f;
-	m_bInSearch = (osu_songbrowser_search_hardcoded_filter.getString().length() > 0);
+	m_bInSearch = (cv::osu::songbrowser_search_hardcoded_filter.getString().length() > 0);
 	m_searchPrevGroup = GROUP::GROUP_NO_GROUPING;
 	m_backgroundSearchMatcher = new OsuSongBrowserBackgroundSearchMatcher();
 	m_bOnAfterSortingOrGroupChangeUpdateScheduled = false;
@@ -620,54 +584,49 @@ OsuSongBrowser2::~OsuSongBrowser2()
 
 	m_songBrowser->getContainer()->empty();
 
-	for (size_t i=0; i<m_songButtons.size(); i++)
+	for (auto & songButton : m_songButtons)
 	{
-		delete m_songButtons[i];
+		delete songButton;
 	}
-	for (size_t i=0; i<m_collectionButtons.size(); i++)
+	for (auto & collectionButton : m_collectionButtons)
 	{
-		delete m_collectionButtons[i];
+		delete collectionButton;
 	}
-	for (size_t i=0; i<m_artistCollectionButtons.size(); i++)
+	for (auto & artistCollectionButton : m_artistCollectionButtons)
 	{
-		delete m_artistCollectionButtons[i];
+		delete artistCollectionButton;
 	}
-	for (size_t i=0; i<m_difficultyCollectionButtons.size(); i++)
+	for (auto & difficultyCollectionButton : m_difficultyCollectionButtons)
 	{
-		delete m_difficultyCollectionButtons[i];
+		delete difficultyCollectionButton;
 	}
-	for (size_t i=0; i<m_bpmCollectionButtons.size(); i++)
+	for (auto & bpmCollectionButton : m_bpmCollectionButtons)
 	{
-		delete m_bpmCollectionButtons[i];
+		delete bpmCollectionButton;
 	}
-	for (size_t i=0; i<m_creatorCollectionButtons.size(); i++)
+	for (auto & creatorCollectionButton : m_creatorCollectionButtons)
 	{
-		delete m_creatorCollectionButtons[i];
+		delete creatorCollectionButton;
 	}
-	for (size_t i=0; i<m_dateaddedCollectionButtons.size(); i++)
+	for (auto & dateaddedCollectionButton : m_dateaddedCollectionButtons)
 	{
-		delete m_dateaddedCollectionButtons[i];
+		delete dateaddedCollectionButton;
 	}
-	for (size_t i=0; i<m_lengthCollectionButtons.size(); i++)
+	for (auto & lengthCollectionButton : m_lengthCollectionButtons)
 	{
-		delete m_lengthCollectionButtons[i];
+		delete lengthCollectionButton;
 	}
-	for (size_t i=0; i<m_titleCollectionButtons.size(); i++)
+	for (auto & titleCollectionButton : m_titleCollectionButtons)
 	{
-		delete m_titleCollectionButtons[i];
+		delete titleCollectionButton;
 	}
 
 	m_scoreBrowser->getContainer()->empty();
-	for (size_t i=0; i<m_scoreButtonCache.size(); i++)
+	for (auto & i : m_scoreButtonCache)
 	{
-		delete m_scoreButtonCache[i];
+		delete i;
 	}
 	SAFE_DELETE(m_scoreBrowserNoRecordsYetElement);
-
-	for (size_t i=0; i<m_sortingMethods.size(); i++)
-	{
-		delete m_sortingMethods[i].comparator;
-	}
 
 	SAFE_DELETE(m_selectedBeatmap);
 	SAFE_DELETE(m_contextMenu);
@@ -680,18 +639,18 @@ OsuSongBrowser2::~OsuSongBrowser2()
 	SAFE_DELETE(m_db);
 }
 
-void OsuSongBrowser2::draw(Graphics *g)
+void OsuSongBrowser2::draw()
 {
 	if (!m_bVisible) return;
 
 	// draw background
 	//g->setColor(0xffffffff);
 	g->setColor(0xff000000);
-	g->fillRect(0, 0, osu->getScreenWidth(), osu->getScreenHeight());
+	g->fillRect(0, 0, osu->getVirtScreenWidth(), osu->getVirtScreenHeight());
 	/*
 	g->setColor(0xffffffff);
 	g->setAlpha(std::clamp<float>(mouse->getPos().x / 400.0f, 0.0f, 1.0f));
-	g->fillRect(0, 0, osu->getScreenWidth(), osu->getScreenHeight());
+	g->fillRect(0, 0, osu->getVirtScreenWidth(), osu->getVirtScreenHeight());
 	*/
 
 	// refreshing (blocks every other call in draw() below it!)
@@ -702,20 +661,20 @@ void OsuSongBrowser2::draw(Graphics *g)
 		g->setColor(0xffffffff);
 		g->pushTransform();
 		{
-			g->translate((int)(osu->getScreenWidth()/2 - osu->getSubTitleFont()->getStringWidth(loadingMessage)/2), osu->getScreenHeight() - 15);
+			g->translate((int)(osu->getVirtScreenWidth()/2 - osu->getSubTitleFont()->getStringWidth(loadingMessage)/2), osu->getVirtScreenHeight() - 15);
 			g->drawString(osu->getSubTitleFont(), loadingMessage);
 		}
 		g->popTransform();
 
-		osu->getHUD()->drawBeatmapImportSpinner(g);
+		osu->getHUD()->drawBeatmapImportSpinner();
 		return;
 	}
 
 	// draw background image
-	if (osu_draw_songbrowser_background_image.getBool())
+	if (cv::osu::draw_songbrowser_background_image.getBool())
 	{
 		float alpha = 1.0f;
-		if (osu_songbrowser_background_fade_in_duration.getFloat() > 0.0f)
+		if (cv::osu::songbrowser_background_fade_in_duration.getFloat() > 0.0f)
 		{
 			// handle fadein trigger after handler is finished loading
 			const bool ready = osu->getSelectedBeatmap() != NULL
@@ -724,29 +683,29 @@ void OsuSongBrowser2::draw(Graphics *g)
 				&& osu->getBackgroundImageHandler()->getLoadBackgroundImage(osu->getSelectedBeatmap()->getSelectedDifficulty2())->isReady();
 
 			if (!ready)
-				m_fBackgroundFadeInTime = engine->getTime();
-			else if (m_fBackgroundFadeInTime > 0.0f && engine->getTime() > m_fBackgroundFadeInTime)
+				m_fBackgroundFadeInTime = engine->getTime<float>();
+			else if (m_fBackgroundFadeInTime > 0.0f && engine->getTime<float>() > m_fBackgroundFadeInTime)
 			{
-				alpha = std::clamp<float>((engine->getTime() - m_fBackgroundFadeInTime)/osu_songbrowser_background_fade_in_duration.getFloat(), 0.0f, 1.0f);
+				alpha = std::clamp<float>((engine->getTime<float>() - m_fBackgroundFadeInTime)/cv::osu::songbrowser_background_fade_in_duration.getFloat(), 0.0f, 1.0f);
 				alpha = 1.0f - (1.0f - alpha)*(1.0f - alpha);
 			}
 		}
 
-		drawSelectedBeatmapBackgroundImage(g, osu, alpha);
+		drawSelectedBeatmapBackgroundImage(osu, alpha);
 	}
-	else if (osu_draw_songbrowser_menu_background_image.getBool())
+	else if (cv::osu::draw_songbrowser_menu_background_image.getBool())
 	{
 		// menu-background
 		Image *backgroundImage = osu->getSkin()->getMenuBackground();
 		if (backgroundImage != NULL && backgroundImage != osu->getSkin()->getMissingTexture() && backgroundImage->isReady())
 		{
-			const float scale = Osu::getImageScaleToFillResolution(backgroundImage, osu->getScreenSize());
+			const float scale = Osu::getImageScaleToFillResolution(backgroundImage, osu->getVirtScreenSize());
 
 			g->setColor(0xffffffff);
 			g->pushTransform();
 			{
 				g->scale(scale, scale);
-				g->translate(osu->getScreenWidth()/2, osu->getScreenHeight()/2);
+				g->translate(osu->getVirtScreenWidth()/2, osu->getVirtScreenHeight()/2);
 				g->drawImage(backgroundImage);
 			}
 			g->popTransform();
@@ -754,10 +713,10 @@ void OsuSongBrowser2::draw(Graphics *g)
 	}
 
 	// draw score browser
-	m_scoreBrowser->draw(g);
+	m_scoreBrowser->draw();
 
 	// draw strain graph of currently selected beatmap
-	if (osu_draw_songbrowser_strain_graph.getBool() && getSelectedBeatmap() != NULL && getSelectedBeatmap()->getSelectedDifficulty2() != NULL && m_dynamicStarCalculator->isAsyncReady())
+	if (cv::osu::draw_songbrowser_strain_graph.getBool() && getSelectedBeatmap() != NULL && getSelectedBeatmap()->getSelectedDifficulty2() != NULL && m_dynamicStarCalculator->isAsyncReady())
 	{
 		// this is still WIP
 
@@ -814,14 +773,14 @@ void OsuSongBrowser2::draw(Graphics *g)
 
 				const float msPerPixel = (float)lengthMS / graphWidth;
 				const float strainWidth = strainStepMS / msPerPixel;
-				const float strainHeightMultiplier = m_osu_hud_scrubbing_timeline_strains_height_ref->getFloat() * dpiScale;
+				const float strainHeightMultiplier = cv::osu::hud_scrubbing_timeline_strains_height.getFloat() * dpiScale;
 
 				McRect graphRect(0, m_bottombar->getPos().y - strainHeightMultiplier, graphWidth, strainHeightMultiplier);
 
-				const float alpha = (graphRect.contains(mouse->getPos()) ? 1.0f : m_osu_hud_scrubbing_timeline_strains_alpha_ref->getFloat());
+				const float alpha = (graphRect.contains(mouse->getPos()) ? 1.0f : cv::osu::hud_scrubbing_timeline_strains_alpha.getFloat());
 
-				const Color aimStrainColor = argb(alpha, m_osu_hud_scrubbing_timeline_strains_aim_color_r_ref->getInt() / 255.0f, m_osu_hud_scrubbing_timeline_strains_aim_color_g_ref->getInt() / 255.0f, m_osu_hud_scrubbing_timeline_strains_aim_color_b_ref->getInt() / 255.0f);
-				const Color speedStrainColor = argb(alpha, m_osu_hud_scrubbing_timeline_strains_speed_color_r_ref->getInt() / 255.0f, m_osu_hud_scrubbing_timeline_strains_speed_color_g_ref->getInt() / 255.0f, m_osu_hud_scrubbing_timeline_strains_speed_color_b_ref->getInt() / 255.0f);
+				const Color aimStrainColor = argb(alpha, cv::osu::hud_scrubbing_timeline_strains_aim_color_r.getInt() / 255.0f, cv::osu::hud_scrubbing_timeline_strains_aim_color_g.getInt() / 255.0f, cv::osu::hud_scrubbing_timeline_strains_aim_color_b.getInt() / 255.0f);
+				const Color speedStrainColor = argb(alpha, cv::osu::hud_scrubbing_timeline_strains_speed_color_r.getInt() / 255.0f, cv::osu::hud_scrubbing_timeline_strains_speed_color_g.getInt() / 255.0f, cv::osu::hud_scrubbing_timeline_strains_speed_color_b.getInt() / 255.0f);
 
 				g->setDepthBuffer(true);
 				for (int i=0; i<aimStrains.size(); i++)
@@ -891,14 +850,14 @@ void OsuSongBrowser2::draw(Graphics *g)
 	}
 
 	// draw song browser
-	m_songBrowser->draw(g);
+	m_songBrowser->draw();
 
 	// draw search
-	m_search->setSearchString(m_sSearchString, osu_songbrowser_search_hardcoded_filter.getString());
+	m_search->setSearchString(m_sSearchString, cv::osu::songbrowser_search_hardcoded_filter.getString());
 	m_search->setDrawNumResults(m_bInSearch);
 	m_search->setNumFoundResults(m_visibleSongButtons.size());
 	m_search->setSearching(!m_backgroundSearchMatcher->isDead());
-	m_search->draw(g);
+	m_search->draw();
 
 	// draw top bar
 	g->setColor(0xffffffff);
@@ -910,19 +869,19 @@ void OsuSongBrowser2::draw(Graphics *g)
 	}
 	g->popTransform();
 
-	m_topbarLeft->draw(g);
-	if (Osu::debug->getBool())
-		m_topbarLeft->draw_debug(g);
-	m_topbarRight->draw(g);
-	if (Osu::debug->getBool())
-		m_topbarRight->draw_debug(g);
+	m_topbarLeft->draw();
+	if (cv::osu::debug.getBool())
+		m_topbarLeft->draw_debug();
+	m_topbarRight->draw();
+	if (cv::osu::debug.getBool())
+		m_topbarRight->draw_debug();
 
 	// draw bottom bar
 	float songSelectBottomScale = m_bottombar->getSize().y / osu->getSkin()->getSongSelectBottom()->getHeight();
 	songSelectBottomScale *= 0.8f;
 
 	g->setColor(0xff000000);
-	g->fillRect(0, m_bottombar->getPos().y + 10, osu->getScreenWidth(), m_bottombar->getSize().y);
+	g->fillRect(0, m_bottombar->getPos().y + 10, osu->getVirtScreenWidth(), m_bottombar->getSize().y);
 
 	g->setColor(0xffffffff);
 	g->pushTransform();
@@ -931,16 +890,16 @@ void OsuSongBrowser2::draw(Graphics *g)
 		g->translate(0, (int)(m_bottombar->getPos().y) + (int)((osu->getSkin()->getSongSelectBottom()->getHeight()*songSelectBottomScale)/2) - 1);
 		osu->getSkin()->getSongSelectBottom()->bind();
 		{
-			g->drawQuad(0, -(int)(m_bottombar->getSize().y*(1.0f/songSelectBottomScale)/2), (int)(osu->getScreenWidth()*(1.0f/songSelectBottomScale)), (int)(m_bottombar->getSize().y*(1.0f/songSelectBottomScale)));
+			g->drawQuad(0, -(int)(m_bottombar->getSize().y*(1.0f/songSelectBottomScale)/2), (int)(osu->getVirtScreenWidth()*(1.0f/songSelectBottomScale)), (int)(m_bottombar->getSize().y*(1.0f/songSelectBottomScale)));
 		}
 		osu->getSkin()->getSongSelectBottom()->unbind();
 	}
 	g->popTransform();
 
-	OsuScreenBackable::draw(g);
-	m_bottombar->draw(g);
-	if (Osu::debug->getBool())
-		m_bottombar->draw_debug(g);
+	OsuScreenBackable::draw();
+	m_bottombar->draw();
+	if (cv::osu::debug.getBool())
+		m_bottombar->draw_debug();
 
 	// background task busy notification
 	if (m_fBackgroundStarCalculationWorkNotificationTime > engine->getTime())
@@ -984,7 +943,7 @@ void OsuSongBrowser2::draw(Graphics *g)
 		g->setColor(0xffff0000);
 		g->pushTransform();
 		{
-			g->translate((int)(osu->getScreenWidth()/2 - osu->getSubTitleFont()->getStringWidth(errorMessage1)/2), (int)(osu->getScreenHeight()/2 + osu->getSubTitleFont()->getHeight()));
+			g->translate((int)(osu->getVirtScreenWidth()/2 - osu->getSubTitleFont()->getStringWidth(errorMessage1)/2), (int)(osu->getVirtScreenHeight()/2 + osu->getSubTitleFont()->getHeight()));
 			g->drawString(osu->getSubTitleFont(), errorMessage1);
 		}
 		g->popTransform();
@@ -992,14 +951,14 @@ void OsuSongBrowser2::draw(Graphics *g)
 		g->setColor(0xff00ff00);
 		g->pushTransform();
 		{
-			g->translate((int)(osu->getScreenWidth()/2 - osu->getSubTitleFont()->getStringWidth(errorMessage2)/2), (int)(osu->getScreenHeight()/2 + osu->getSubTitleFont()->getHeight()*2 + 15));
+			g->translate((int)(osu->getVirtScreenWidth()/2 - osu->getSubTitleFont()->getStringWidth(errorMessage2)/2), (int)(osu->getVirtScreenHeight()/2 + osu->getSubTitleFont()->getHeight()*2 + 15));
 			g->drawString(osu->getSubTitleFont(), errorMessage2);
 		}
 		g->popTransform();
 	}
 
 	// context menu
-	m_contextMenu->draw(g);
+	m_contextMenu->draw();
 
 	// click pulse animation overlay
 	if (m_fPulseAnimation > 0.0f)
@@ -1007,14 +966,14 @@ void OsuSongBrowser2::draw(Graphics *g)
 		Color topColor = 0x00ffffff;
 		Color bottomColor = argb((int)(25*m_fPulseAnimation), 255, 255, 255);
 
-		g->fillGradient(0, 0, osu->getScreenWidth(), osu->getScreenHeight(), topColor, topColor, bottomColor, bottomColor);
+		g->fillGradient(0, 0, osu->getVirtScreenWidth(), osu->getVirtScreenHeight(), topColor, topColor, bottomColor, bottomColor);
 	}
 
 	// debug previous random beatmap
 	/*
 	g->setColor(0xffffffff);
 	g->pushTransform();
-	g->translate(osu->getScreenWidth()/5, osu->getScreenHeight()/3);
+	g->translate(osu->getVirtScreenWidth()/5, osu->getVirtScreenHeight()/3);
 	for (int i=0; i<m_previousRandomBeatmaps.size(); i++)
 	{
 		UString message = UString::format("#%i = ", i);
@@ -1030,7 +989,7 @@ void OsuSongBrowser2::draw(Graphics *g)
 	/*
 	g->setColor(0xffffffff);
 	g->pushTransform();
-		g->translate(osu->getScreenWidth()/6, osu->getScreenHeight()/3);
+		g->translate(osu->getVirtScreenWidth()/6, osu->getVirtScreenHeight()/3);
 		g->drawString(osu->getSongBrowserFont(), UString::format("res %i", resourceManager->getNumResources()));
 		g->translate(0, osu->getSongBrowserFont()->getHeight()*2);
 		int numVisibleSongButtons = 0;
@@ -1045,21 +1004,21 @@ void OsuSongBrowser2::draw(Graphics *g)
 	*/
 }
 
-void OsuSongBrowser2::drawSelectedBeatmapBackgroundImage(Graphics *g, Osu *osu, float alpha)
+void OsuSongBrowser2::drawSelectedBeatmapBackgroundImage(Osu *osu, float alpha)
 {
 	if (osu->getSelectedBeatmap() != NULL && osu->getSelectedBeatmap()->getSelectedDifficulty2() != NULL)
 	{
 		Image *backgroundImage = osu->getBackgroundImageHandler()->getLoadBackgroundImage(osu->getSelectedBeatmap()->getSelectedDifficulty2());
 		if (backgroundImage != NULL && backgroundImage->isReady())
 		{
-			const float scale = Osu::getImageScaleToFillResolution(backgroundImage, osu->getScreenSize());
+			const float scale = Osu::getImageScaleToFillResolution(backgroundImage, osu->getVirtScreenSize());
 
 			g->setColor(0xff999999);
 			g->setAlpha(alpha);
 			g->pushTransform();
 			{
 				g->scale(scale, scale);
-				g->translate(osu->getScreenWidth()/2, osu->getScreenHeight()/2);
+				g->translate(osu->getVirtScreenWidth()/2, osu->getVirtScreenHeight()/2);
 				g->drawImage(backgroundImage);
 			}
 			g->popTransform();
@@ -1200,8 +1159,8 @@ void OsuSongBrowser2::update()
 
 	// if cursor is to the left edge of the screen, force center currently selected beatmap/diff
 	// but only if the context menu/options menu is currently not visible (since we don't want move things while e.g. managing collections etc.)
-	static uint8_t cooldown = 0; // this is so slow, it halves fps when the mouse is on the left side of the screen
-	if (!cooldown++ && !m_contextMenu->isVisible() && !osu->getOptionsMenu()->isVisible() && mouse->getPos().x < osu->getScreenWidth()*0.1f)
+	// NOTE: this is so slow, it halves fps when the mouse is on the left side of the screen (so throttle it to only happen once every 10 vsync frames)
+	if (engine->throttledShouldRun(10) && !m_contextMenu->isVisible() && !osu->getOptionsMenu()->isVisible() && mouse->getPos().x < osu->getVirtScreenWidth()*0.1f)
 		scrollToSelectedSongButton();
 
 	// handle searching
@@ -1231,9 +1190,10 @@ void OsuSongBrowser2::update()
 		}
 	}
 
+	// TODO: fix this shit, it shouldn't have to be destroyed and recreated constantly
 	// handle background star calculation (2)
 	// this goes through all loaded beatmaps and checks if stars + length have to be calculated and set (e.g. if without osu!.db database)
-	if (m_beatmaps.size() > 0 && osu_songbrowser_background_star_calculation.getBool())
+	if (m_beatmaps.size() > 0 && cv::osu::songbrowser_background_star_calculation.getBool())
 	{
 		for (int s=0; s<1; s++) // one beatmap per update (leave one update loop gap between beatmaps to avoid stalling background image loading)
 		{
@@ -1270,22 +1230,20 @@ void OsuSongBrowser2::update()
 				OsuDatabaseBeatmap *diffToCalc = NULL;
 				if (diffs.size() > 0)
 				{
-					for (size_t d=0; d<diffs.size(); d++)
+					for (auto diff : diffs)
 					{
-						if (diffs[d]->getStarsNomod() <= 0.0f)
+						if (diff->getStarsNomod() <= 0.0f)
 						{
-							diffToCalc = diffs[d];
+							diffToCalc = diff;
 							break;
 						}
 					}
 				}
-				else if (diffToCalc->getStarsNomod() <= 0.0f)
-					diffToCalc = beatmap;
 
 				if (diffToCalc != NULL)
 				{
 					// bump notification
-					m_fBackgroundStarCalculationWorkNotificationTime = engine->getTime() + 0.1f;
+					m_fBackgroundStarCalculationWorkNotificationTime = engine->getTime<float>() + 0.1f;
 
 					// only one diff per beatmap per update
 					canMoveToNextBeatmap = false;
@@ -1294,7 +1252,7 @@ void OsuSongBrowser2::update()
 					{
 						m_backgroundStarCalculator->revive();
 
-						if (osu_debug_background_star_calc.getBool())
+						if (cv::osu::debug_background_star_calc.getBool())
 							debugLog("diffToCalc = {:s}\n", diffToCalc->getFilePath().toUtf8());
 
 						// start new calc (nomod stars)
@@ -1332,7 +1290,7 @@ void OsuSongBrowser2::onKeyDown(KeyboardEvent &key)
 	OsuScreen::onKeyDown(key); // only used for options menu
 	if (!m_bVisible || key.isConsumed()) return;
 
-	if (m_bVisible && m_bBeatmapRefreshScheduled && (key == KEY_ESCAPE || key == OsuKeyBindings::GAME_PAUSE.getVal<KEYCODE>()))
+	if (m_bVisible && m_bBeatmapRefreshScheduled && (key == KEY_ESCAPE || key == cv::osu::keybinds::GAME_PAUSE.getVal<KEYCODE>()))
 	{
 		m_db->cancel();
 		key.consume();
@@ -1406,17 +1364,17 @@ void OsuSongBrowser2::onKeyDown(KeyboardEvent &key)
 		}
 	}
 
-	if (key == KEY_SHIFT)
+	if (key == KEY_LSHIFT || key == KEY_RSHIFT)
 		m_bShiftPressed = true;
 
 	// function hotkeys
-	if ((key == KEY_F1 || key == OsuKeyBindings::TOGGLE_MODSELECT.getVal<KEYCODE>()) && !m_bF1Pressed)
+	if ((key == KEY_F1 || key == cv::osu::keybinds::TOGGLE_MODSELECT.getVal<KEYCODE>()) && !m_bF1Pressed)
 	{
 		m_bF1Pressed = true;
 		m_bottombarNavButtons[m_bottombarNavButtons.size() > 2 ? 1 : 0]->keyboardPulse();
 		onSelectionMods();
 	}
-	if ((key == KEY_F2 || key == OsuKeyBindings::RANDOM_BEATMAP.getVal<KEYCODE>()) && !m_bF2Pressed)
+	if ((key == KEY_F2 || key == cv::osu::keybinds::RANDOM_BEATMAP.getVal<KEYCODE>()) && !m_bF2Pressed)
 	{
 		m_bF2Pressed = true;
 		m_bottombarNavButtons[m_bottombarNavButtons.size() > 2 ? 2 : 1]->keyboardPulse();
@@ -1601,11 +1559,11 @@ void OsuSongBrowser2::onKeyDown(KeyboardEvent &key)
 	{
 		const std::vector<CBaseUIElement*> &elements = m_songBrowser->getContainer()->getElements();
 
-		for (int i=0; i<elements.size(); i++)
+		for (auto element : elements)
 		{
-			const OsuUISongBrowserCollectionButton *collectionButtonPointer = elements[i]->as<OsuUISongBrowserCollectionButton>();
+			const OsuUISongBrowserCollectionButton *collectionButtonPointer = element->as<OsuUISongBrowserCollectionButton>();
 
-			auto *button = elements[i]->as<OsuUISongBrowserButton>();
+			auto *button = element->as<OsuUISongBrowserButton>();
 
 			if (collectionButtonPointer != NULL && button != NULL && button->isSelected())
 			{
@@ -1635,16 +1593,16 @@ void OsuSongBrowser2::onKeyUp(KeyboardEvent &key)
 	m_contextMenu->onKeyUp(key);
 	if (key.isConsumed()) return;
 
-	if (key == KEY_SHIFT)
+	if (key == KEY_LSHIFT || key == KEY_RSHIFT)
 		m_bShiftPressed = false;
 	if (key == KEY_LEFT)
 		m_bLeft = false;
 	if (key == KEY_RIGHT)
 		m_bRight = false;
 
-	if (key == KEY_F1 || key == OsuKeyBindings::TOGGLE_MODSELECT.getVal<KEYCODE>())
+	if (key == KEY_F1 || key == cv::osu::keybinds::TOGGLE_MODSELECT.getVal<KEYCODE>())
 		m_bF1Pressed = false;
-	if (key == KEY_F2 || key == OsuKeyBindings::RANDOM_BEATMAP.getVal<KEYCODE>())
+	if (key == KEY_F2 || key == cv::osu::keybinds::RANDOM_BEATMAP.getVal<KEYCODE>())
 		m_bF2Pressed = false;
 	if (key == KEY_F3)
 		m_bF3Pressed = false;
@@ -1695,7 +1653,7 @@ void OsuSongBrowser2::setVisible(bool visible)
 			refreshBeatmaps();
 
 		// update user name/stats
-		onUserButtonChange(m_name_ref->getString(), -1);
+		onUserButtonChange(cv::name.getString(), -1);
 
 		// HACKHACK: workaround for BaseUI framework deficiency (missing mouse events. if a mouse button is being held, and then suddenly a BaseUIElement gets put under it and set visible, and then the mouse button is released, that "incorrectly" fires onMouseUpInside/onClicked/etc.)
 		mouse->onButtonChange(BUTTON_LEFT, false);
@@ -1880,7 +1838,7 @@ void OsuSongBrowser2::selectBeatmapMP(OsuDatabaseBeatmap *diff2)
 	if (m_sSearchString.length() > 0)
 	{
 		m_sSearchString = "";
-		osu_songbrowser_search_hardcoded_filter.setValue(m_sSearchString); // safety
+		cv::osu::songbrowser_search_hardcoded_filter.setValue(m_sSearchString); // safety
 		onSearchUpdate();
 	}
 
@@ -1889,20 +1847,20 @@ void OsuSongBrowser2::selectBeatmapMP(OsuDatabaseBeatmap *diff2)
 		onGroupChange("", 0);
 
 	OsuUISongBrowserButton *matchingButton = NULL;
-	for (size_t i=0; i<m_songButtons.size(); i++)
+	for (auto & songButton : m_songButtons)
 	{
-		if (m_songButtons[i]->getDatabaseBeatmap() == diff2)
+		if (songButton->getDatabaseBeatmap() == diff2)
 		{
-			matchingButton = m_songButtons[i];
+			matchingButton = songButton;
 			break;
 		}
 
-		const std::vector<OsuUISongBrowserButton*> &children = m_songButtons[i]->getChildren();
-		for (size_t c=0; c<children.size(); c++)
+		const std::vector<OsuUISongBrowserButton*> &children = songButton->getChildren();
+		for (auto c : children)
 		{
-			if (children[c]->getDatabaseBeatmap() == diff2)
+			if (c->getDatabaseBeatmap() == diff2)
 			{
-				matchingButton = children[c];
+				matchingButton = c;
 				break;
 			}
 		}
@@ -1927,7 +1885,7 @@ void OsuSongBrowser2::refreshBeatmaps()
 	checkHandleKillDynamicStarCalculator(false);
 	checkHandleKillBackgroundSearchMatcher();
 
-	m_selectedBeatmap = NULL;
+	SAFE_DELETE(m_selectedBeatmap);
 
 	m_selectionPreviousSongButton = NULL;
 	m_selectionPreviousSongDiffButton = NULL;
@@ -1936,49 +1894,49 @@ void OsuSongBrowser2::refreshBeatmaps()
 	// delete local database and UI
 	m_songBrowser->getContainer()->empty();
 
-	for (size_t i=0; i<m_songButtons.size(); i++)
+	for (auto & songButton : m_songButtons)
 	{
-		delete m_songButtons[i];
+		delete songButton;
 	}
 	m_songButtons.clear();
-	for (size_t i=0; i<m_collectionButtons.size(); i++)
+	for (auto & collectionButton : m_collectionButtons)
 	{
-		delete m_collectionButtons[i];
+		delete collectionButton;
 	}
 	m_collectionButtons.clear();
-	for (size_t i=0; i<m_artistCollectionButtons.size(); i++)
+	for (auto & artistCollectionButton : m_artistCollectionButtons)
 	{
-		delete m_artistCollectionButtons[i];
+		delete artistCollectionButton;
 	}
 	m_artistCollectionButtons.clear();
-	for (size_t i=0; i<m_difficultyCollectionButtons.size(); i++)
+	for (auto & difficultyCollectionButton : m_difficultyCollectionButtons)
 	{
-		delete m_difficultyCollectionButtons[i];
+		delete difficultyCollectionButton;
 	}
 	m_difficultyCollectionButtons.clear();
-	for (size_t i=0; i<m_bpmCollectionButtons.size(); i++)
+	for (auto & bpmCollectionButton : m_bpmCollectionButtons)
 	{
-		delete m_bpmCollectionButtons[i];
+		delete bpmCollectionButton;
 	}
 	m_bpmCollectionButtons.clear();
-	for (size_t i=0; i<m_creatorCollectionButtons.size(); i++)
+	for (auto & creatorCollectionButton : m_creatorCollectionButtons)
 	{
-		delete m_creatorCollectionButtons[i];
+		delete creatorCollectionButton;
 	}
 	m_creatorCollectionButtons.clear();
-	for (size_t i=0; i<m_dateaddedCollectionButtons.size(); i++)
+	for (auto & dateaddedCollectionButton : m_dateaddedCollectionButtons)
 	{
-		delete m_dateaddedCollectionButtons[i];
+		delete dateaddedCollectionButton;
 	}
 	m_dateaddedCollectionButtons.clear();
-	for (size_t i=0; i<m_lengthCollectionButtons.size(); i++)
+	for (auto & lengthCollectionButton : m_lengthCollectionButtons)
 	{
-		delete m_lengthCollectionButtons[i];
+		delete lengthCollectionButton;
 	}
 	m_lengthCollectionButtons.clear();
-	for (size_t i=0; i<m_titleCollectionButtons.size(); i++)
+	for (auto & titleCollectionButton : m_titleCollectionButtons)
 	{
-		delete m_titleCollectionButtons[i];
+		delete titleCollectionButton;
 	}
 	m_titleCollectionButtons.clear();
 
@@ -2060,10 +2018,10 @@ void OsuSongBrowser2::addBeatmap(OsuDatabaseBeatmap *beatmap)
 		// difficulty
 		if (m_difficultyCollectionButtons.size() == 12)
 		{
-			for (size_t i=0; i<tempChildrenForGroups.size(); i++)
+			for (auto & tempChildrenForGroup : tempChildrenForGroups)
 			{
-				const int index = std::clamp<int>((int)tempChildrenForGroups[i]->getDatabaseBeatmap()->getStarsNomod(), 0, 11);
-				m_difficultyCollectionButtons[index]->getChildren().push_back(tempChildrenForGroups[i]);
+				const int index = std::clamp<int>((int)tempChildrenForGroup->getDatabaseBeatmap()->getStarsNomod(), 0, 11);
+				m_difficultyCollectionButtons[index]->getChildren().push_back(tempChildrenForGroup);
 			}
 		}
 
@@ -2107,23 +2065,23 @@ void OsuSongBrowser2::addBeatmap(OsuDatabaseBeatmap *beatmap)
 		// length
 		if (m_lengthCollectionButtons.size() == 7)
 		{
-			for (size_t i=0; i<tempChildrenForGroups.size(); i++)
+			for (auto & tempChildrenForGroup : tempChildrenForGroups)
 			{
-				const unsigned long lengthMS = tempChildrenForGroups[i]->getDatabaseBeatmap()->getLengthMS();
-				if (lengthMS <= 1000*60)
-					m_lengthCollectionButtons[0]->getChildren().push_back(tempChildrenForGroups[i]);
-				else if (lengthMS <= 1000*60*2)
-					m_lengthCollectionButtons[1]->getChildren().push_back(tempChildrenForGroups[i]);
-				else if (lengthMS <= 1000*60*3)
-					m_lengthCollectionButtons[2]->getChildren().push_back(tempChildrenForGroups[i]);
-				else if (lengthMS <= 1000*60*4)
-					m_lengthCollectionButtons[3]->getChildren().push_back(tempChildrenForGroups[i]);
-				else if (lengthMS <= 1000*60*5)
-					m_lengthCollectionButtons[4]->getChildren().push_back(tempChildrenForGroups[i]);
-				else if (lengthMS <= 1000*60*10)
-					m_lengthCollectionButtons[5]->getChildren().push_back(tempChildrenForGroups[i]);
+				const unsigned long lengthMS = tempChildrenForGroup->getDatabaseBeatmap()->getLengthMS();
+				if (lengthMS <= 1000UL*60)
+					m_lengthCollectionButtons[0]->getChildren().push_back(tempChildrenForGroup);
+				else if (lengthMS <= 1000UL*60*2)
+					m_lengthCollectionButtons[1]->getChildren().push_back(tempChildrenForGroup);
+				else if (lengthMS <= 1000UL*60*3)
+					m_lengthCollectionButtons[2]->getChildren().push_back(tempChildrenForGroup);
+				else if (lengthMS <= 1000UL*60*4)
+					m_lengthCollectionButtons[3]->getChildren().push_back(tempChildrenForGroup);
+				else if (lengthMS <= 1000UL*60*5)
+					m_lengthCollectionButtons[4]->getChildren().push_back(tempChildrenForGroup);
+				else if (lengthMS <= 1000UL*60*10)
+					m_lengthCollectionButtons[5]->getChildren().push_back(tempChildrenForGroup);
 				else
-					m_lengthCollectionButtons[6]->getChildren().push_back(tempChildrenForGroups[i]);
+					m_lengthCollectionButtons[6]->getChildren().push_back(tempChildrenForGroup);
 			}
 		}
 
@@ -2165,10 +2123,9 @@ void OsuSongBrowser2::readdBeatmap(OsuDatabaseBeatmap *diff2)
 	{
 		// remove from difficulty group
 		OsuUISongBrowserButton *difficultyGroupButton = NULL;
-		for (size_t i=0; i<m_difficultyCollectionButtons.size(); i++)
+		for (auto groupButton : m_difficultyCollectionButtons)
 		{
-			OsuUISongBrowserCollectionButton *groupButton = m_difficultyCollectionButtons[i];
-			std::vector<OsuUISongBrowserButton*> &children = groupButton->getChildren();
+				std::vector<OsuUISongBrowserButton*> &children = groupButton->getChildren();
 			for (size_t c=0; c<children.size(); c++)
 			{
 				if (children[c]->getDatabaseBeatmap() == diff2)
@@ -2184,7 +2141,7 @@ void OsuSongBrowser2::readdBeatmap(OsuDatabaseBeatmap *diff2)
 		}
 
 		// add to new difficulty group
-		if (difficultyGroupButton != NULL)
+		if (difficultyGroupButton != NULL && diff2 != NULL)
 		{
 			// HACKHACK: partial code duplication, see addBeatmap()
 			if (m_difficultyCollectionButtons.size() == 12)
@@ -2199,10 +2156,9 @@ void OsuSongBrowser2::readdBeatmap(OsuDatabaseBeatmap *diff2)
 	{
 		// remove from length group
 		OsuUISongBrowserButton *lengthGroupButton = NULL;
-		for (size_t i=0; i<m_lengthCollectionButtons.size(); i++)
+		for (auto groupButton : m_lengthCollectionButtons)
 		{
-			OsuUISongBrowserCollectionButton *groupButton = m_lengthCollectionButtons[i];
-			std::vector<OsuUISongBrowserButton*> &children = groupButton->getChildren();
+				std::vector<OsuUISongBrowserButton*> &children = groupButton->getChildren();
 			for (size_t c=0; c<children.size(); c++)
 			{
 				if (children[c]->getDatabaseBeatmap() == diff2)
@@ -2218,23 +2174,23 @@ void OsuSongBrowser2::readdBeatmap(OsuDatabaseBeatmap *diff2)
 		}
 
 		// add to new length group
-		if (lengthGroupButton != NULL)
+		if (lengthGroupButton != NULL && diff2 != NULL)
 		{
 			// HACKHACK: partial code duplication, see addBeatmap()
 			if (m_lengthCollectionButtons.size() == 7)
 			{
 				const unsigned long lengthMS = diff2->getLengthMS();
-				if (lengthMS <= 1000*60)
+				if (lengthMS <= 1000UL*60)
 					m_lengthCollectionButtons[0]->getChildren().push_back(lengthGroupButton);
-				else if (lengthMS <= 1000*60*2)
+				else if (lengthMS <= 1000UL*60*2)
 					m_lengthCollectionButtons[1]->getChildren().push_back(lengthGroupButton);
-				else if (lengthMS <= 1000*60*3)
+				else if (lengthMS <= 1000UL*60*3)
 					m_lengthCollectionButtons[2]->getChildren().push_back(lengthGroupButton);
-				else if (lengthMS <= 1000*60*4)
+				else if (lengthMS <= 1000UL*60*4)
 					m_lengthCollectionButtons[3]->getChildren().push_back(lengthGroupButton);
-				else if (lengthMS <= 1000*60*5)
+				else if (lengthMS <= 1000UL*60*5)
 					m_lengthCollectionButtons[4]->getChildren().push_back(lengthGroupButton);
-				else if (lengthMS <= 1000*60*10)
+				else if (lengthMS <= 1000UL*60*10)
 					m_lengthCollectionButtons[5]->getChildren().push_back(lengthGroupButton);
 				else
 					m_lengthCollectionButtons[6]->getChildren().push_back(lengthGroupButton);
@@ -2299,9 +2255,9 @@ void OsuSongBrowser2::rebuildSongButtons()
 	m_songBrowser->getContainer()->empty();
 
 	// NOTE: currently supports 3 depth layers (collection > beatmap > diffs)
-	for (size_t i=0; i<m_visibleSongButtons.size(); i++)
+	for (auto &visibleSongButton : m_visibleSongButtons)
 	{
-		OsuUISongBrowserButton *button = m_visibleSongButtons[i];
+		OsuUISongBrowserButton *button = visibleSongButton;
 		button->resetAnimations();
 
 		if (!(button->isSelected() && button->isHiddenIfSelected()))
@@ -2310,18 +2266,15 @@ void OsuSongBrowser2::rebuildSongButtons()
 		// children
 		if (button->isSelected())
 		{
-			const std::vector<OsuUISongBrowserButton*> &children = m_visibleSongButtons[i]->getChildren();
-			for (size_t c=0; c<children.size(); c++)
+			const std::vector<OsuUISongBrowserButton *> &children = visibleSongButton->getChildren();
+			for (auto button2 : children)
 			{
-				OsuUISongBrowserButton *button2 = children[c];
-
 				bool isButton2SearchMatch = false;
 				if (button2->getChildren().size() > 0)
 				{
-					const std::vector<OsuUISongBrowserButton*> &children2 = button2->getChildren();
-					for (size_t c2=0; c2<children2.size(); c2++)
+					const std::vector<OsuUISongBrowserButton *> &children2 = button2->getChildren();
+					for (auto button3 : children2)
 					{
-						const OsuUISongBrowserButton *button3 = children2[c2];
 						if (button3->isSearchMatch())
 						{
 							isButton2SearchMatch = true;
@@ -2343,11 +2296,9 @@ void OsuSongBrowser2::rebuildSongButtons()
 				// child children
 				if (button2->isSelected())
 				{
-					const std::vector<OsuUISongBrowserButton*> &children2 = button2->getChildren();
-					for (size_t c2=0; c2<children2.size(); c2++)
+					const std::vector<OsuUISongBrowserButton *> &children2 = button2->getChildren();
+					for (auto button3 : children2)
 					{
-						OsuUISongBrowserButton *button3 = children2[c2];
-
 						if (m_bInSearch && !button3->isSearchMatch())
 							continue;
 
@@ -2363,8 +2314,10 @@ void OsuSongBrowser2::rebuildSongButtons()
 
 	// TODO: regroup diffs which are next to each other into one song button (parent button)
 	// TODO: regrouping is non-deterministic, depending on the searching method used.
-	// TODO: meaning that any number of "clusters" of diffs belonging to the same beatmap could build, requiring multiple song "parent" buttons for the same beatmap (if touching group size >= 2)
-	// TODO: when regrouping, these "fake" parent buttons have to be deleted on every reload. this means that the selection state logic has to be kept cleared of any invalid pointers!
+	// TODO: meaning that any number of "clusters" of diffs belonging to the same beatmap could build, requiring multiple song "parent" buttons for the same beatmap
+	// (if touching group size >= 2)
+	// TODO: when regrouping, these "fake" parent buttons have to be deleted on every reload. this means that the selection state logic has to be kept cleared of any
+	// invalid pointers!
 	// TODO: (including everything else which would rely on having a permanent pointer to an OsuUISongBrowserSongButton)
 
 	updateSongButtonLayout();
@@ -2374,17 +2327,17 @@ void OsuSongBrowser2::updateSongButtonLayout()
 {
 	// this rebuilds the entire songButton layout (songButtons in relation to others)
 	// only the y axis is set, because the x axis is constantly animated and handled within the button classes themselves
-	const std::vector<CBaseUIElement*> &elements = m_songBrowser->getContainer()->getElements();
+	const std::vector<CBaseUIElement *> &elements = m_songBrowser->getContainer()->getElements();
 
-	int yCounter = m_songBrowser->getSize().y/4;
+	int yCounter = m_songBrowser->getSize().y / 4;
 	if (elements.size() <= 1)
-		yCounter = m_songBrowser->getSize().y/2;
+		yCounter = m_songBrowser->getSize().y / 2;
 
 	bool isSelected = false;
 	bool inOpenCollection = false;
-	for (size_t i=0; i<elements.size(); i++)
+	for (auto element : elements)
 	{
-		auto *songButton = elements[i]->as<OsuUISongBrowserButton>();
+		auto *songButton = element->as<OsuUISongBrowserButton>();
 
 		if (songButton != NULL)
 		{
@@ -2397,15 +2350,15 @@ void OsuSongBrowser2::updateSongButtonLayout()
 
 			// give selected items & diffs a bit more spacing, to make them stand out
 			if (((songButton->isSelected() && !isCollectionButton) || isSelected || (isDiffButton && !isIndependentDiffButton)))
-				yCounter += songButton->getSize().y*0.1f;
+				yCounter += songButton->getSize().y * 0.1f;
 
 			isSelected = songButton->isSelected() || (isDiffButton && !isIndependentDiffButton);
 
 			// give collections a bit more spacing at start & end
 			if ((songButton->isSelected() && isCollectionButton))
-				yCounter += songButton->getSize().y*0.2f;
+				yCounter += songButton->getSize().y * 0.2f;
 			if (inOpenCollection && isCollectionButton && !songButton->isSelected())
-				yCounter += songButton->getSize().y*0.2f;
+				yCounter += songButton->getSize().y * 0.2f;
 			if (isCollectionButton)
 			{
 				if (songButton->isSelected())
@@ -2420,12 +2373,12 @@ void OsuSongBrowser2::updateSongButtonLayout()
 			yCounter += songButton->getActualSize().y;
 		}
 	}
-	m_songBrowser->setScrollSizeToContent(m_songBrowser->getSize().y/2);
+	m_songBrowser->setScrollSizeToContent(m_songBrowser->getSize().y / 2);
 }
 
 void OsuSongBrowser2::updateSongButtonSorting()
 {
-	onSortChange(osu_songbrowser_scores_sortingtype.getString());
+	onSortChange(cv::osu::songbrowser_scores_sortingtype.getString());
 }
 
 bool OsuSongBrowser2::searchMatcher(const OsuDatabaseBeatmap *databaseBeatmap, const std::vector<UString> &searchStringTokens)
@@ -2513,18 +2466,18 @@ bool OsuSongBrowser2::searchMatcher(const OsuDatabaseBeatmap *databaseBeatmap, c
 
 		bool expressionsMatch = true; // if the current search string (meaning only the expressions in this case) matches the current difficulty
 
-		for (size_t i=0; i<searchStringTokens.size(); i++)
+		for (const auto & searchStringToken : searchStringTokens)
 		{
 			//debugLog("token[{}] = {:s}\n", i, tokens[i].toUtf8());
 			// determine token type, interpret expression
 			bool expression = false;
-			for (size_t o=0; o<operators.size(); o++)
+			for (const auto & o : operators)
 			{
-				if (searchStringTokens[i].find(operators[o].first) != -1)
+				if (searchStringToken.find(o.first) != -1)
 				{
 					// split expression into left and right parts (only accept singular expressions, things like "0<bpm<1" will not work with this)
 					//debugLog("splitting by string {:s}\n", operators[o].first.toUtf8());
-					std::vector<UString> values = searchStringTokens[i].split(operators[o].first);
+					std::vector<UString> values = searchStringToken.split(o.first);
 					if (values.size() == 2 && values[0].length() > 0 && values[1].length() > 0)
 					{
 						const UString lvalue = values[0];
@@ -2533,9 +2486,9 @@ bool OsuSongBrowser2::searchMatcher(const OsuDatabaseBeatmap *databaseBeatmap, c
 						const float rvalue = (rvaluePercentIndex == -1 ? values[1].toFloat() : values[1].substr(0, rvaluePercentIndex).toFloat()); // this must always be a number (at least, assume it is)
 
 						// find lvalue keyword in array (only continue if keyword exists)
-						for (size_t k=0; k<keywords.size(); k++)
+						for (const auto & keyword : keywords)
 						{
-							if (keywords[k].first == lvalue)
+							if (keyword.first == lvalue)
 							{
 								expression = true;
 
@@ -2543,7 +2496,7 @@ bool OsuSongBrowser2::searchMatcher(const OsuDatabaseBeatmap *databaseBeatmap, c
 
 								// solve keyword
 								float compareValue = 5.0f;
-								switch (keywords[k].second)
+								switch (keyword.second)
 								{
 								case AR:
 									compareValue = diff->getAR();
@@ -2591,7 +2544,7 @@ bool OsuSongBrowser2::searchMatcher(const OsuDatabaseBeatmap *databaseBeatmap, c
 
 								// solve operator
 								bool matches = false;
-								switch (operators[o].second)
+								switch (o.second)
 								{
 								case LE:
 									if (compareValue <= rvalue)
@@ -2639,9 +2592,9 @@ bool OsuSongBrowser2::searchMatcher(const OsuDatabaseBeatmap *databaseBeatmap, c
 				// only add it if it doesn't exist yet
 				// this check is only necessary due to multiple redundant parser executions (one per diff!)
 				bool exists = false;
-				for (size_t l=0; l<literalSearchStrings.size(); l++)
+				for (const auto & literalSearchString : literalSearchStrings)
 				{
-					if (literalSearchStrings[l] == searchStringTokens[i])
+					if (literalSearchString == searchStringToken)
 					{
 						exists = true;
 						break;
@@ -2650,7 +2603,7 @@ bool OsuSongBrowser2::searchMatcher(const OsuDatabaseBeatmap *databaseBeatmap, c
 
 				if (!exists)
 				{
-					const UString litAdd = searchStringTokens[i].trim();
+					const UString litAdd = searchStringToken.trim();
 					if (litAdd.length() > 0 && !litAdd.isWhitespaceOnly())
 						literalSearchStrings.push_back(litAdd);
 				}
@@ -2669,9 +2622,9 @@ bool OsuSongBrowser2::searchMatcher(const OsuDatabaseBeatmap *databaseBeatmap, c
 		return false;
 
 	bool hasAnyValidLiteralSearchString = false;
-	for (size_t i=0; i<literalSearchStrings.size(); i++)
+	for (const auto & literalSearchString : literalSearchStrings)
 	{
-		if (literalSearchStrings[i].length() > 0)
+		if (literalSearchString.length() > 0)
 		{
 			hasAnyValidLiteralSearchString = true;
 			break;
@@ -2687,9 +2640,9 @@ bool OsuSongBrowser2::searchMatcher(const OsuDatabaseBeatmap *databaseBeatmap, c
 
 			bool atLeastOneFullMatch = true;
 
-			for (size_t s=0; s<literalSearchStrings.size(); s++)
+			for (const auto & literalSearchString : literalSearchStrings)
 			{
-				if (!findSubstringInDifficulty(diff, literalSearchStrings[s]))
+				if (!findSubstringInDifficulty(diff, literalSearchString))
 					atLeastOneFullMatch = false;
 			}
 
@@ -2762,19 +2715,19 @@ void OsuSongBrowser2::updateLayout()
 {
 	OsuScreenBackable::updateLayout();
 
-	const float uiScale = Osu::ui_scale->getFloat();
+	const float uiScale = cv::osu::ui_scale.getFloat();
 	const float dpiScale = Osu::getUIScale();
 
 	const int margin = 5 * dpiScale;
 
 	// top bar
-	m_fSongSelectTopScale = Osu::getImageScaleToFitResolution(osu->getSkin()->getSongSelectTop(), osu->getScreenSize());
+	m_fSongSelectTopScale = Osu::getImageScaleToFitResolution(osu->getSkin()->getSongSelectTop(), osu->getVirtScreenSize());
 	const float songSelectTopHeightScaled = std::max(osu->getSkin()->getSongSelectTop()->getHeight()*m_fSongSelectTopScale, m_songInfo->getMinimumHeight()*1.5f + margin); // NOTE: the height is a heuristic here more or less
 	m_fSongSelectTopScale = std::max(m_fSongSelectTopScale, songSelectTopHeightScaled / osu->getSkin()->getSongSelectTop()->getHeight());
 	m_fSongSelectTopScale *= uiScale; // NOTE: any user osu_ui_scale below 1.0 will break things (because songSelectTop image)
 
 	// topbar left (NOTE: the right side of the std::max() width is commented to keep the scorebrowser width consistent, and because it's not really needed anyway)
-	m_topbarLeft->setSize(std::max(osu->getSkin()->getSongSelectTop()->getWidth()*m_fSongSelectTopScale*osu_songbrowser_topbar_left_width_percent.getFloat() + margin, /*m_songInfo->getMinimumWidth() + margin*/0.0f), std::max(osu->getSkin()->getSongSelectTop()->getHeight()*m_fSongSelectTopScale*osu_songbrowser_topbar_left_percent.getFloat(), m_songInfo->getMinimumHeight() + margin));
+	m_topbarLeft->setSize(std::max(osu->getSkin()->getSongSelectTop()->getWidth()*m_fSongSelectTopScale*cv::osu::songbrowser_topbar_left_width_percent.getFloat() + margin, /*m_songInfo->getMinimumWidth() + margin*/0.0f), std::max(osu->getSkin()->getSongSelectTop()->getHeight()*m_fSongSelectTopScale*cv::osu::songbrowser_topbar_left_percent.getFloat(), m_songInfo->getMinimumHeight() + margin));
 	m_songInfo->setRelPos(margin, margin);
 	m_songInfo->setSize(m_topbarLeft->getSize().x - margin, std::max(m_topbarLeft->getSize().y*0.75f, m_songInfo->getMinimumHeight() + margin));
 
@@ -2801,8 +2754,8 @@ void OsuSongBrowser2::updateLayout()
 	m_topbarLeft->update_pos();
 
 	// topbar right
-	m_topbarRight->setPosX(osu->getSkin()->getSongSelectTop()->getWidth()*m_fSongSelectTopScale*osu_songbrowser_topbar_right_percent.getFloat());
-	m_topbarRight->setSize(osu->getScreenWidth() - m_topbarRight->getPos().x, osu->getSkin()->getSongSelectTop()->getHeight()*m_fSongSelectTopScale*osu_songbrowser_topbar_right_height_percent.getFloat());
+	m_topbarRight->setPosX(osu->getSkin()->getSongSelectTop()->getWidth()*m_fSongSelectTopScale*cv::osu::songbrowser_topbar_right_percent.getFloat());
+	m_topbarRight->setSize(osu->getVirtScreenWidth() - m_topbarRight->getPos().x, osu->getSkin()->getSongSelectTop()->getHeight()*m_fSongSelectTopScale*cv::osu::songbrowser_topbar_right_height_percent.getFloat());
 
 	const int topbarRightTabButtonMargin = 10 * dpiScale;
 	const int topbarRightTabButtonHeight = 30 * dpiScale;
@@ -2852,19 +2805,19 @@ void OsuSongBrowser2::updateLayout()
 	m_topbarRight->update_pos();
 
 	// bottombar
-	const int bottomBarHeight = osu->getScreenHeight()*osu_songbrowser_bottombar_percent.getFloat() * uiScale;
+	const int bottomBarHeight = osu->getVirtScreenHeight()*cv::osu::songbrowser_bottombar_percent.getFloat() * uiScale;
 
-	m_bottombar->setPosY(osu->getScreenHeight() - bottomBarHeight);
-	m_bottombar->setSize(osu->getScreenWidth(), bottomBarHeight);
+	m_bottombar->setPosY(osu->getVirtScreenHeight() - bottomBarHeight);
+	m_bottombar->setSize(osu->getVirtScreenWidth(), bottomBarHeight);
 
 	// nav bar
-	const bool isWidescreen = ((int)(std::max(0, (int)((osu->getScreenWidth() - (osu->getScreenHeight() * 4.0f / 3.0f)) / 2.0f))) > 0);
+	const bool isWidescreen = ((int)(std::max(0, (int)((osu->getVirtScreenWidth() - (osu->getVirtScreenHeight() * 4.0f / 3.0f)) / 2.0f))) > 0);
 	const float navBarXCounter = Osu::getUIScale((isWidescreen ? 140.0f : 120.0f));
 
 	// bottombar cont
-	for (int i=0; i<m_bottombarNavButtons.size(); i++)
+	for (auto & bottombarNavButton : m_bottombarNavButtons)
 	{
-		m_bottombarNavButtons[i]->setSize(osu->getScreenWidth(), bottomBarHeight);
+		bottombarNavButton->setSize(osu->getVirtScreenWidth(), bottomBarHeight);
 	}
 	for (int i=0; i<m_bottombarNavButtons.size(); i++)
 	{
@@ -2896,7 +2849,7 @@ void OsuSongBrowser2::updateLayout()
 
 	// song browser
 	m_songBrowser->setPos(m_topbarLeft->getPos().x + m_topbarLeft->getSize().x + 1 + scoreBrowserExtraPaddingRight, m_topbarRight->getPos().y + m_topbarRight->getSize().y + 2);
-	m_songBrowser->setSize(osu->getScreenWidth() - (m_topbarLeft->getPos().x + m_topbarLeft->getSize().x + scoreBrowserExtraPaddingRight), osu->getScreenHeight() - m_songBrowser->getPos().y - m_bottombar->getSize().y + 2);
+	m_songBrowser->setSize(osu->getVirtScreenWidth() - (m_topbarLeft->getPos().x + m_topbarLeft->getSize().x + scoreBrowserExtraPaddingRight), osu->getVirtScreenHeight() - m_songBrowser->getPos().y - m_bottombar->getSize().y + 2);
 	updateSongButtonLayout();
 
 	m_search->setPos(m_songBrowser->getPos());
@@ -2913,7 +2866,7 @@ void OsuSongBrowser2::updateScoreBrowserLayout()
 {
 	const float dpiScale = Osu::getUIScale();
 
-	const bool shouldScoreBrowserBeVisible = (m_osu_scores_enabled->getBool() && osu_songbrowser_scorebrowser_enabled.getBool());
+	const bool shouldScoreBrowserBeVisible = (cv::osu::scores_enabled.getBool() && cv::osu::songbrowser_scorebrowser_enabled.getBool());
 	if (shouldScoreBrowserBeVisible != m_scoreBrowser->isVisible())
 		m_scoreBrowser->setVisible(shouldScoreBrowserBeVisible);
 
@@ -2965,7 +2918,7 @@ void OsuSongBrowser2::rebuildScoreButtons()
 		const int numNewButtons = numScores - m_scoreButtonCache.size();
 		for (size_t i=0; std::cmp_less(i,numNewButtons); i++)
 		{
-			OsuUISongBrowserScoreButton *scoreButton = new OsuUISongBrowserScoreButton(m_contextMenu, 0, 0, 0, 0, "");
+			auto *scoreButton = new OsuUISongBrowserScoreButton(m_contextMenu, 0, 0, 0, 0, "");
 			scoreButton->setClickCallback( fastdelegate::MakeDelegate(this, &OsuSongBrowser2::onScoreClicked) );
 			m_scoreButtonCache.push_back(scoreButton);
 		}
@@ -2997,9 +2950,9 @@ void OsuSongBrowser2::rebuildScoreButtons()
 		}
 
 		// reset
-		for (size_t i=0; i<scoreButtons.size(); i++)
+		for (auto & scoreButton : scoreButtons)
 		{
-			scoreButtons[i]->resetHighlight();
+			scoreButton->resetHighlight();
 		}
 	}
 
@@ -3009,7 +2962,7 @@ void OsuSongBrowser2::rebuildScoreButtons()
 
 void OsuSongBrowser2::scheduleSearchUpdate(bool immediately)
 {
-	m_fSearchWaitTime = engine->getTime() + (immediately ? 0.0f : osu_songbrowser_search_delay.getFloat());
+	m_fSearchWaitTime = engine->getTime<float>() + (immediately ? 0.0f : cv::osu::songbrowser_search_delay.getFloat());
 }
 
 void OsuSongBrowser2::checkHandleKillBackgroundStarCalculator()
@@ -3041,7 +2994,7 @@ bool OsuSongBrowser2::checkHandleKillDynamicStarCalculator(bool timeout)
 			const double startTime = Timing::getTimeReal();
 			while (!m_dynamicStarCalculator->isAsyncReady())
 			{
-				Timing::sleep(1);
+				Timing::sleep(1000);
 
 				if (Timing::getTimeReal() - startTime > 20.0)
 				{
@@ -3077,7 +3030,7 @@ void OsuSongBrowser2::checkHandleKillBackgroundSearchMatcher()
 
 OsuUISelectionButton *OsuSongBrowser2::addBottombarNavButton(std::function<OsuSkinImage*()> getImageFunc, std::function<OsuSkinImage*()> getImageOverFunc)
 {
-	OsuUISelectionButton *btn = new OsuUISelectionButton(getImageFunc, getImageOverFunc, 0, 0, 0, 0, "");
+	auto *btn = new OsuUISelectionButton(getImageFunc, getImageOverFunc, 0, 0, 0, 0, "");
 	m_bottombar->addBaseUIElement(btn);
 	m_bottombarNavButtons.push_back(btn);
 	return btn;
@@ -3088,9 +3041,9 @@ CBaseUIButton *OsuSongBrowser2::addTopBarRightTabButton(UString text)
 	// sanity check
 	{
 		bool isValid = false;
-		for (size_t i=0; i<m_groupings.size(); i++)
+		for (auto & grouping : m_groupings)
 		{
-			if (m_groupings[i].name == text)
+			if (grouping.name == text)
 			{
 				isValid = true;
 				break;
@@ -3101,7 +3054,7 @@ CBaseUIButton *OsuSongBrowser2::addTopBarRightTabButton(UString text)
 			engine->showMessageError("Error", UString::format("Invalid grouping name for tab button \"%s\"!", text.toUtf8()));
 	}
 
-	CBaseUIButton *btn = new CBaseUIButton(0, 0, 0, 0, "", text);
+	auto *btn = new CBaseUIButton(0, 0, 0, 0, "", text);
 	btn->setDrawBackground(false);
 	m_topbarRight->addBaseUIElement(btn);
 	m_topbarRightTabButtons.push_back(btn);
@@ -3110,7 +3063,7 @@ CBaseUIButton *OsuSongBrowser2::addTopBarRightTabButton(UString text)
 
 CBaseUIButton *OsuSongBrowser2::addTopBarRightGroupButton(UString text)
 {
-	CBaseUIButton *btn = new CBaseUIButton(0, 0, 0, 0, "", text);
+	auto *btn = new CBaseUIButton(0, 0, 0, 0, "", text);
 	btn->setDrawBackground(false);
 	m_topbarRight->addBaseUIElement(btn);
 	m_topbarRightGroupButtons.push_back(btn);
@@ -3119,7 +3072,7 @@ CBaseUIButton *OsuSongBrowser2::addTopBarRightGroupButton(UString text)
 
 CBaseUIButton *OsuSongBrowser2::addTopBarRightSortButton(UString text)
 {
-	CBaseUIButton *btn = new CBaseUIButton(0, 0, 0, 0, "", text);
+	auto *btn = new CBaseUIButton(0, 0, 0, 0, "", text);
 	btn->setDrawBackground(false);
 	m_topbarRight->addBaseUIElement(btn);
 	m_topbarRightSortButtons.push_back(btn);
@@ -3128,7 +3081,7 @@ CBaseUIButton *OsuSongBrowser2::addTopBarRightSortButton(UString text)
 
 CBaseUIButton *OsuSongBrowser2::addTopBarLeftTabButton(UString text)
 {
-	CBaseUIButton *btn = new CBaseUIButton(0, 0, 0, 0, "", text);
+	auto *btn = new CBaseUIButton(0, 0, 0, 0, "", text);
 	btn->setDrawBackground(false);
 	m_topbarLeft->addBaseUIElement(btn);
 	m_topbarLeftTabButtons.push_back(btn);
@@ -3137,7 +3090,7 @@ CBaseUIButton *OsuSongBrowser2::addTopBarLeftTabButton(UString text)
 
 CBaseUIButton *OsuSongBrowser2::addTopBarLeftButton(UString text)
 {
-	CBaseUIButton *btn = new CBaseUIButton(0, 0, 0, 0, "", text);
+	auto *btn = new CBaseUIButton(0, 0, 0, 0, "", text);
 	btn->setDrawBackground(false);
 	m_topbarLeft->addBaseUIElement(btn);
 	m_topbarLeftButtons.push_back(btn);
@@ -3146,9 +3099,23 @@ CBaseUIButton *OsuSongBrowser2::addTopBarLeftButton(UString text)
 
 void OsuSongBrowser2::onDatabaseLoadingFinished()
 {
-	m_beatmaps = std::vector<OsuDatabaseBeatmap*>(m_db->getDatabaseBeatmaps()); // having a copy of the vector in here is actually completely unnecessary
+	m_beatmaps = m_db->getDatabaseBeatmaps();
 
 	debugLog("{} beatmaps.\n", m_beatmaps.size());
+
+	Timer t{};
+	double totalTime = 0.0;
+
+	const bool timePrint = cv::osu::songbrowser_debug.getBool();
+	auto debugTime = [&](const UString &message) -> void {
+		if (timePrint)
+		{
+			t.update();
+			const auto delta = t.getDelta();
+			totalTime += delta;
+			Engine::logRaw("[onDatabaseLoadingFinished] {:s} took {:f} seconds.\n", message, delta);
+		}
+	};
 
 	// initialize all collection (grouped) buttons
 	{
@@ -3156,7 +3123,7 @@ void OsuSongBrowser2::onDatabaseLoadingFinished()
 		{
 			// 0-9
 			{
-				OsuUISongBrowserCollectionButton *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "0-9", std::vector<OsuUISongBrowserButton*>());
+				auto *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "0-9", std::vector<OsuUISongBrowserButton*>());
 				m_artistCollectionButtons.push_back(b);
 			}
 
@@ -3165,13 +3132,13 @@ void OsuSongBrowser2::onDatabaseLoadingFinished()
 			{
 				UString artistCollectionName = UString::format("%c", 'A' + i);
 
-				OsuUISongBrowserCollectionButton *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", artistCollectionName, std::vector<OsuUISongBrowserButton*>());
+				auto *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", artistCollectionName, std::vector<OsuUISongBrowserButton*>());
 				m_artistCollectionButtons.push_back(b);
 			}
 
 			// Other
 			{
-				OsuUISongBrowserCollectionButton *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "Other", std::vector<OsuUISongBrowserButton*>());
+				auto *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "Other", std::vector<OsuUISongBrowserButton*>());
 				m_artistCollectionButtons.push_back(b);
 			}
 		}
@@ -3187,13 +3154,13 @@ void OsuSongBrowser2::onDatabaseLoadingFinished()
 
 			std::vector<OsuUISongBrowserButton*> children;
 
-			OsuUISongBrowserCollectionButton *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", difficultyCollectionName, children);
+			auto *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", difficultyCollectionName, children);
 			m_difficultyCollectionButtons.push_back(b);
 		}
 
 		// bpm
 		{
-			OsuUISongBrowserCollectionButton *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "Under 60 BPM", std::vector<OsuUISongBrowserButton*>());
+			auto *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "Under 60 BPM", std::vector<OsuUISongBrowserButton*>());
 			m_bpmCollectionButtons.push_back(b);
 			b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "Under 120 BPM", std::vector<OsuUISongBrowserButton*>());
 			m_bpmCollectionButtons.push_back(b);
@@ -3211,7 +3178,7 @@ void OsuSongBrowser2::onDatabaseLoadingFinished()
 		{
 			// 0-9
 			{
-				OsuUISongBrowserCollectionButton *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "0-9", std::vector<OsuUISongBrowserButton*>());
+				auto *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "0-9", std::vector<OsuUISongBrowserButton*>());
 				m_creatorCollectionButtons.push_back(b);
 			}
 
@@ -3220,13 +3187,13 @@ void OsuSongBrowser2::onDatabaseLoadingFinished()
 			{
 				UString artistCollectionName = UString::format("%c", 'A' + i);
 
-				OsuUISongBrowserCollectionButton *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", artistCollectionName, std::vector<OsuUISongBrowserButton*>());
+				auto *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", artistCollectionName, std::vector<OsuUISongBrowserButton*>());
 				m_creatorCollectionButtons.push_back(b);
 			}
 
 			// Other
 			{
-				OsuUISongBrowserCollectionButton *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "Other", std::vector<OsuUISongBrowserButton*>());
+				auto *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "Other", std::vector<OsuUISongBrowserButton*>());
 				m_creatorCollectionButtons.push_back(b);
 			}
 		}
@@ -3238,7 +3205,7 @@ void OsuSongBrowser2::onDatabaseLoadingFinished()
 
 		// length
 		{
-			OsuUISongBrowserCollectionButton *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "1 minute or less", std::vector<OsuUISongBrowserButton*>());
+			auto *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "1 minute or less", std::vector<OsuUISongBrowserButton*>());
 			m_lengthCollectionButtons.push_back(b);
 			b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "2 minutes or less", std::vector<OsuUISongBrowserButton*>());
 			m_lengthCollectionButtons.push_back(b);
@@ -3258,7 +3225,7 @@ void OsuSongBrowser2::onDatabaseLoadingFinished()
 		{
 			// 0-9
 			{
-				OsuUISongBrowserCollectionButton *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "0-9", std::vector<OsuUISongBrowserButton*>());
+				auto *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "0-9", std::vector<OsuUISongBrowserButton*>());
 				m_titleCollectionButtons.push_back(b);
 			}
 
@@ -3267,47 +3234,61 @@ void OsuSongBrowser2::onDatabaseLoadingFinished()
 			{
 				UString artistCollectionName = UString::format("%c", 'A' + i);
 
-				OsuUISongBrowserCollectionButton *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", artistCollectionName, std::vector<OsuUISongBrowserButton*>());
+				auto *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", artistCollectionName, std::vector<OsuUISongBrowserButton*>());
 				m_titleCollectionButtons.push_back(b);
 			}
 
 			// Other
 			{
-				OsuUISongBrowserCollectionButton *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "Other", std::vector<OsuUISongBrowserButton*>());
+				auto *b = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250, 200, 50, "", "Other", std::vector<OsuUISongBrowserButton*>());
 				m_titleCollectionButtons.push_back(b);
 			}
 		}
 	}
 
+	debugTime("Creating collection groupings");
+
 	// add all beatmaps (build buttons)
-	for (size_t i=0; i<m_beatmaps.size(); i++)
+	for (auto & beatmap : m_beatmaps)
 	{
-		addBeatmap(m_beatmaps[i]);
+		addBeatmap(beatmap);
 	}
+	debugTime("Creating all beatmap buttons");
 
 	// build collections
 	recreateCollectionsButtons();
+	debugTime("recreateCollectionButtons()");
 
-	onSortChange(osu_songbrowser_sortingtype.getString());
-	onSortScoresChange(osu_songbrowser_scores_sortingtype.getString());
+	onSortChange(cv::osu::songbrowser_sortingtype.getString());
+	debugTime(UString::fmt("onSortChange({:s})", cv::osu::songbrowser_sortingtype.getString()));
+
+	onSortScoresChange(cv::osu::songbrowser_scores_sortingtype.getString());
+	debugTime(UString::fmt("onSortScoresChange({:s})", cv::osu::songbrowser_scores_sortingtype.getString()));
 
 	// update rich presence (discord total pp)
 	OsuRichPresence::onSongBrowser();
 
 	// update user name/stats
-	onUserButtonChange(m_name_ref->getString(), -1);
+	onUserButtonChange(cv::name.getString(), -1);
 
-	if (osu_songbrowser_search_hardcoded_filter.getString().length() > 0)
+	if (cv::osu::songbrowser_search_hardcoded_filter.getString().length() > 0)
+	{
+		t.update();
 		onSearchUpdate();
+		debugTime("onSearchUpdate()");
+	}
+
+	if (timePrint)
+		debugLog("Total: {:f} seconds.\n", totalTime);
 }
 
 void OsuSongBrowser2::onSearchUpdate()
 {
-	const bool hasHardcodedSearchStringChanged = (m_sPrevHardcodedSearchString != osu_songbrowser_search_hardcoded_filter.getString());
+	const bool hasHardcodedSearchStringChanged = (m_sPrevHardcodedSearchString != cv::osu::songbrowser_search_hardcoded_filter.getString());
 	const bool hasSearchStringChanged = (m_sPrevSearchString != m_sSearchString);
 
 	const bool prevInSearch = m_bInSearch;
-	m_bInSearch = (m_sSearchString.length() > 0 || osu_songbrowser_search_hardcoded_filter.getString().length() > 0);
+	m_bInSearch = (m_sSearchString.length() > 0 || cv::osu::songbrowser_search_hardcoded_filter.getString().length() > 0);
 	const bool hasInSearchChanged = (prevInSearch != m_bInSearch);
 
 	if (m_bInSearch)
@@ -3322,7 +3303,7 @@ void OsuSongBrowser2::onSearchUpdate()
 
 			m_backgroundSearchMatcher->revive();
 			m_backgroundSearchMatcher->release();
-			m_backgroundSearchMatcher->setSongButtonsAndSearchString(m_songButtons, m_sSearchString, osu_songbrowser_search_hardcoded_filter.getString());
+			m_backgroundSearchMatcher->setSongButtonsAndSearchString(m_songButtons, m_sSearchString, cv::osu::songbrowser_search_hardcoded_filter.getString());
 
 			resourceManager->requestNextLoadAsync();
 			resourceManager->loadResource(m_backgroundSearchMatcher);
@@ -3344,31 +3325,31 @@ void OsuSongBrowser2::onSearchUpdate()
 		m_visibleSongButtons.clear();
 
 		// reset all search flags
-		for (size_t i=0; i<m_songButtons.size(); i++)
+		for (auto & songButton : m_songButtons)
 		{
-			const std::vector<OsuUISongBrowserButton*> &children = m_songButtons[i]->getChildren();
+			const std::vector<OsuUISongBrowserButton*> &children = songButton->getChildren();
 			if (children.size() > 0)
 			{
-				for (size_t c=0; c<children.size(); c++)
+				for (auto c : children)
 				{
-					children[c]->setIsSearchMatch(true);
+					c->setIsSearchMatch(true);
 				}
 			}
 			else
-				m_songButtons[i]->setIsSearchMatch(true);
+				songButton->setIsSearchMatch(true);
 		}
 
 		// remember which tab was selected, instead of defaulting back to no grouping
 		// this also rebuilds the visible buttons list
-		for (size_t i=0; i<m_groupings.size(); i++)
+		for (auto & grouping : m_groupings)
 		{
-			if (m_groupings[i].type == m_searchPrevGroup)
-				onGroupChange("", m_groupings[i].id);
+			if (grouping.type == m_searchPrevGroup)
+				onGroupChange("", grouping.id);
 		}
 	}
 
 	m_sPrevSearchString = m_sSearchString;
-	m_sPrevHardcodedSearchString = osu_songbrowser_search_hardcoded_filter.getString();
+	m_sPrevHardcodedSearchString = cv::osu::songbrowser_search_hardcoded_filter.getString();
 }
 
 void OsuSongBrowser2::rebuildSongButtonsAndVisibleSongButtonsWithSearchMatchSupport(bool scrollToTop, bool doRebuildSongButtons)
@@ -3381,81 +3362,53 @@ void OsuSongBrowser2::rebuildSongButtonsAndVisibleSongButtonsWithSearchMatchSupp
 	{
 		if (m_group == GROUP::GROUP_NO_GROUPING)
 		{
-			for (size_t i=0; i<m_songButtons.size(); i++)
+			for (auto & songButton : m_songButtons)
 			{
-				const std::vector<OsuUISongBrowserButton*> &children = m_songButtons[i]->getChildren();
+				const std::vector<OsuUISongBrowserButton*> &children = songButton->getChildren();
 				if (children.size() > 0)
 				{
 					// if all children match, then we still want to display the parent wrapper button (without expanding all diffs)
 					bool allChildrenMatch = true;
-					for (size_t c=0; c<children.size(); c++)
+					for (auto c : children)
 					{
-						if (!children[c]->isSearchMatch())
+						if (!c->isSearchMatch())
 							allChildrenMatch = false;
 					}
 
 					if (allChildrenMatch)
-						m_visibleSongButtons.push_back(m_songButtons[i]);
+						m_visibleSongButtons.push_back(songButton);
 					else
 					{
 						// rip matching children from parent
-						for (size_t c=0; c<children.size(); c++)
+						for (auto c : children)
 						{
-							if (children[c]->isSearchMatch())
-								m_visibleSongButtons.push_back(children[c]);
+							if (c->isSearchMatch())
+								m_visibleSongButtons.push_back(c);
 						}
 					}
 				}
-				else if (m_songButtons[i]->isSearchMatch())
-					m_visibleSongButtons.push_back(m_songButtons[i]);
+				else if (songButton->isSearchMatch())
+					m_visibleSongButtons.push_back(songButton);
 			}
 		}
 		else
 		{
-			std::vector<OsuUISongBrowserCollectionButton*> *groupButtons = NULL;
-			{
-				switch (m_group)
-				{
-				case GROUP::GROUP_NO_GROUPING:
-					break;
-				case GROUP::GROUP_ARTIST:
-					groupButtons = &m_artistCollectionButtons;
-					break;
-				case GROUP::GROUP_CREATOR:
-					groupButtons = &m_creatorCollectionButtons;
-					break;
-				case GROUP::GROUP_DIFFICULTY:
-					groupButtons = &m_difficultyCollectionButtons;
-					break;
-				case GROUP::GROUP_LENGTH:
-					groupButtons = &m_lengthCollectionButtons;
-					break;
-				case GROUP::GROUP_TITLE:
-					groupButtons = &m_titleCollectionButtons;
-					break;
-				case GROUP::GROUP_COLLECTIONS:
-					groupButtons = &m_collectionButtons;
-					break;
-				default:
-					break;
-				}
-			}
-
+			std::vector<OsuUISongBrowserCollectionButton*> *groupButtons = getCollectionButtonsForGroup(m_group);
 			if (groupButtons != NULL)
 			{
-				for (size_t i=0; i<groupButtons->size(); i++)
+				for (auto & groupButton : *groupButtons)
 				{
 					bool isAnyMatchInGroup = false;
 
-					const std::vector<OsuUISongBrowserButton*> &children = (*groupButtons)[i]->getChildren();
-					for (size_t c=0; c<children.size(); c++)
+					const std::vector<OsuUISongBrowserButton*> &children = groupButton->getChildren();
+					for (auto c : children)
 					{
-						const std::vector<OsuUISongBrowserButton*> &childrenChildren = children[c]->getChildren();
+						const std::vector<OsuUISongBrowserButton*> &childrenChildren = c->getChildren();
 						if (childrenChildren.size() > 0)
 						{
-							for (size_t cc=0; cc<childrenChildren.size(); cc++)
+							for (auto cc : childrenChildren)
 							{
-								if (childrenChildren[cc]->isSearchMatch())
+								if (cc->isSearchMatch())
 								{
 									isAnyMatchInGroup = true;
 									break;
@@ -3465,7 +3418,7 @@ void OsuSongBrowser2::rebuildSongButtonsAndVisibleSongButtonsWithSearchMatchSupp
 							if (isAnyMatchInGroup)
 								break;
 						}
-						else if (children[c]->isSearchMatch())
+						else if (c->isSearchMatch())
 						{
 							isAnyMatchInGroup = true;
 							break;
@@ -3473,7 +3426,7 @@ void OsuSongBrowser2::rebuildSongButtonsAndVisibleSongButtonsWithSearchMatchSupp
 					}
 
 					if (isAnyMatchInGroup || !m_bInSearch)
-						m_visibleSongButtons.push_back((*groupButtons)[i]);
+						m_visibleSongButtons.push_back(groupButton);
 				}
 			}
 		}
@@ -3502,10 +3455,10 @@ void OsuSongBrowser2::onSortScoresClicked(CBaseUIButton *button)
 	m_contextMenu->begin(button->getSize().x);
 	{
 		const std::vector<OsuDatabase::SCORE_SORTING_METHOD> &scoreSortingMethods = m_db->getScoreSortingMethods();
-		for (size_t i=0; i<scoreSortingMethods.size(); i++)
+		for (const auto & scoreSortingMethod : scoreSortingMethods)
 		{
-			CBaseUIButton *button = m_contextMenu->addButton(scoreSortingMethods[i].name);
-			if (scoreSortingMethods[i].name == osu_songbrowser_scores_sortingtype.getString())
+			CBaseUIButton *button = m_contextMenu->addButton(scoreSortingMethod.name);
+			if (scoreSortingMethod.name == cv::osu::songbrowser_scores_sortingtype.getString())
 				button->setTextBrightColor(0xff00ff00);
 		}
 	}
@@ -3515,7 +3468,7 @@ void OsuSongBrowser2::onSortScoresClicked(CBaseUIButton *button)
 
 void OsuSongBrowser2::onSortScoresChange(UString text, int id)
 {
-	osu_songbrowser_scores_sortingtype.setValue(text); // NOTE: remember
+	cv::osu::songbrowser_scores_sortingtype.setValue(text); // NOTE: remember
 	m_scoreSortButton->setText(text);
 	rebuildScoreButtons();
 	m_scoreBrowser->scrollToTop();
@@ -3523,11 +3476,11 @@ void OsuSongBrowser2::onSortScoresChange(UString text, int id)
 	// update grades of all visible songdiffbuttons
 	if (m_selectedBeatmap != NULL)
 	{
-		for (size_t i=0; i<m_visibleSongButtons.size(); i++)
+		for (auto & visibleSongButton : m_visibleSongButtons)
 		{
-			if (m_visibleSongButtons[i]->getDatabaseBeatmap() == m_selectedBeatmap->getSelectedDifficulty2())
+			if (visibleSongButton->getDatabaseBeatmap() == m_selectedBeatmap->getSelectedDifficulty2())
 			{
-				auto *songButtonPointer = m_visibleSongButtons[i]->as<OsuUISongBrowserSongButton>();
+				auto *songButtonPointer = visibleSongButton->as<OsuUISongBrowserSongButton>();
 				if (songButtonPointer != NULL)
 				{
 					for (OsuUISongBrowserButton *diffButton : songButtonPointer->getChildren())
@@ -3557,10 +3510,10 @@ void OsuSongBrowser2::onGroupClicked(CBaseUIButton *button)
 	m_contextMenu->setRelPos(button->getRelPos());
 	m_contextMenu->begin(button->getSize().x);
 	{
-		for (size_t i=0; i<m_groupings.size(); i++)
+		for (auto & grouping : m_groupings)
 		{
-			CBaseUIButton *button = m_contextMenu->addButton(m_groupings[i].name, m_groupings[i].id);
-			if (m_groupings[i].type == m_group)
+			CBaseUIButton *button = m_contextMenu->addButton(grouping.name, grouping.id);
+			if (grouping.type == m_group)
 				button->setTextBrightColor(0xff00ff00);
 		}
 	}
@@ -3571,11 +3524,11 @@ void OsuSongBrowser2::onGroupClicked(CBaseUIButton *button)
 void OsuSongBrowser2::onGroupChange(UString text, int id)
 {
 	GROUPING *grouping = (m_groupings.size() > 0 ? &m_groupings[0] : NULL);
-	for (size_t i=0; i<m_groupings.size(); i++)
+	for (auto & groupingI : m_groupings)
 	{
-		if (m_groupings[i].id == id || (text.length() > 1 && m_groupings[i].name == text))
+		if (groupingI.id == id || (text.length() > 1 && groupingI.name == text))
 		{
-			grouping = &m_groupings[i];
+			grouping = &groupingI;
 			break;
 		}
 	}
@@ -3589,51 +3542,120 @@ void OsuSongBrowser2::onGroupChange(UString text, int id)
 
 	// highlight current tab (if any tab button exists for group)
 	bool hasTabButton = false;
-	for (size_t i=0; i<m_topbarRightTabButtons.size(); i++)
+	for (auto & topbarRightTabButton : m_topbarRightTabButtons)
 	{
-		if (m_topbarRightTabButtons[i]->getText() == grouping->name)
+		if (topbarRightTabButton->getText() == grouping->name)
 		{
 			hasTabButton = true;
-			m_topbarRightTabButtons[i]->setTextBrightColor(highlightColor);
+			topbarRightTabButton->setTextBrightColor(highlightColor);
 		}
 		else
-			m_topbarRightTabButtons[i]->setTextBrightColor(defaultColor);
+			topbarRightTabButton->setTextBrightColor(defaultColor);
 	}
 
 	// if there is no tab button for this group, then highlight combobox button instead
 	m_groupButton->setTextBrightColor(hasTabButton ? defaultColor : highlightColor);
 
 	// and update the actual songbrowser contents
-	switch (grouping->type)
+	rebuildAfterGroupOrSortChange(grouping->type);
+}
+
+std::vector<OsuUISongBrowserCollectionButton *> *OsuSongBrowser2::getCollectionButtonsForGroup(GROUP group)
+{
+	switch (group)
 	{
 	case GROUP::GROUP_NO_GROUPING:
-		onGroupNoGrouping();
-		break;
+		return nullptr;
 	case GROUP::GROUP_ARTIST:
-		onGroupArtist();
-		break;
-	case GROUP::GROUP_BPM:
-		onGroupBPM();
-		break;
+		return &m_artistCollectionButtons;
 	case GROUP::GROUP_CREATOR:
-		onGroupCreator();
-		break;
-	case GROUP::GROUP_DATEADDED:
-		onGroupDateadded();
-		break;
+		return &m_creatorCollectionButtons;
 	case GROUP::GROUP_DIFFICULTY:
-		onGroupDifficulty();
-		break;
+		return &m_difficultyCollectionButtons;
 	case GROUP::GROUP_LENGTH:
-		onGroupLength();
-		break;
+		return &m_lengthCollectionButtons;
 	case GROUP::GROUP_TITLE:
-		onGroupTitle();
-		break;
+		return &m_titleCollectionButtons;
+	case GROUP::GROUP_BPM:
+		return &m_bpmCollectionButtons;
+	case GROUP::GROUP_DATEADDED:
+		return &m_dateaddedCollectionButtons;
 	case GROUP::GROUP_COLLECTIONS:
-		onGroupCollections();
-		break;
+		return &m_collectionButtons;
 	}
+	return nullptr;
+}
+
+void OsuSongBrowser2::rebuildAfterGroupOrSortChange(GROUP group, bool autoScroll, SORT_COMPARATOR sortComp)
+{
+	GROUP previousGroup = m_group;
+	m_group = group;
+
+	m_visibleSongButtons.clear();
+
+	if (group == GROUP::GROUP_NO_GROUPING)
+	{
+		m_visibleSongButtons.reserve(m_songButtons.size());
+		m_visibleSongButtons.insert(m_visibleSongButtons.end(), m_songButtons.begin(), m_songButtons.end());
+	}
+	else
+	{
+		auto *groupButtons = getCollectionButtonsForGroup(group);
+		if (groupButtons != nullptr)
+		{
+			m_visibleSongButtons.reserve(groupButtons->size());
+			m_visibleSongButtons.insert(m_visibleSongButtons.end(), groupButtons->begin(), groupButtons->end());
+
+			// only sort if switching TO this group/sorting method (not from it)
+			if (previousGroup != group || sortComp != nullptr)
+			{
+				// collections are always sorted alphabetically
+				if (group == GROUP::GROUP_COLLECTIONS)
+				{
+					std::ranges::sort(*groupButtons, UString::ncasecomp{}, [](const OsuUISongBrowserCollectionButton *btn) { return btn->getCollectionName(); });
+				}
+
+				// sort children only if needed (defer until group is active)
+				if (!sortComp)
+				{
+					// need to get the current sorting method if we're called from onGroupChange...
+					SORTING_METHOD *currentSortMethod = nullptr;
+					for (auto &sortingMethodI : m_sortingMethods)
+					{
+						if (sortingMethodI.type == m_sortingMethod)
+						{
+							currentSortMethod = &sortingMethodI;
+							break;
+						}
+					}
+					if (currentSortMethod != nullptr)
+						sortComp = currentSortMethod->comparator;
+				}
+				if (sortComp)
+				{
+					for (auto &groupButton : *groupButtons)
+					{
+						std::vector<OsuUISongBrowserButton *> &children = groupButton->getChildren();
+						if (!children.empty())
+						{
+							std::ranges::sort(children, sortComp);
+							groupButton->setChildren(children);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	rebuildSongButtons();
+
+	// keep search state consistent between tab changes
+	if (m_bInSearch)
+		onSearchUpdate();
+
+	// (can't call it right here because we maybe have async)
+	m_bOnAfterSortingOrGroupChangeUpdateScheduledAutoScroll = autoScroll;
+	m_bOnAfterSortingOrGroupChangeUpdateScheduled = true;
 }
 
 void OsuSongBrowser2::onSortClicked(CBaseUIButton *button)
@@ -3642,10 +3664,10 @@ void OsuSongBrowser2::onSortClicked(CBaseUIButton *button)
 	m_contextMenu->setRelPos(button->getRelPos());
 	m_contextMenu->begin(button->getSize().x);
 	{
-		for (size_t i=0; i<m_sortingMethods.size(); i++)
+		for (auto & sortingMethod : m_sortingMethods)
 		{
-			CBaseUIButton *button = m_contextMenu->addButton(m_sortingMethods[i].name);
-			if (m_sortingMethods[i].type == m_sortingMethod)
+			CBaseUIButton *button = m_contextMenu->addButton(sortingMethod.name);
+			if (sortingMethod.type == m_sortingMethod)
 				button->setTextBrightColor(0xff00ff00);
 		}
 	}
@@ -3663,147 +3685,36 @@ void OsuSongBrowser2::onSortClicked(CBaseUIButton *button)
 	}
 }
 
-void OsuSongBrowser2::onSortChange(UString text, int id)
+void OsuSongBrowser2::onSortChange(UString text, int /*id*/)
 {
 	onSortChangeInt(text, true);
 }
 
-void OsuSongBrowser2::onSortChangeInt(UString text, bool autoScroll)
+void OsuSongBrowser2::onSortChangeInt(const UString &text, bool autoScroll)
 {
-	SORTING_METHOD *sortingMethod = (m_sortingMethods.size() > 3 ? &m_sortingMethods[3] : NULL);
-	for (size_t i=0; i<m_sortingMethods.size(); i++)
+	SORTING_METHOD *sortingMethod = nullptr;
+	for (auto &sortingMethodI : m_sortingMethods)
 	{
-		if (m_sortingMethods[i].name == text)
+		if (sortingMethodI.name == text)
 		{
-			sortingMethod = &m_sortingMethods[i];
+			sortingMethod = &sortingMethodI;
 			break;
 		}
 	}
-	if (sortingMethod == NULL) return;
+	if (sortingMethod == nullptr)
+		return;
+
+	SORT previousSort = m_sortingMethod;
 
 	m_sortingMethod = sortingMethod->type;
 	m_sortButton->setText(sortingMethod->name);
+	cv::osu::songbrowser_sortingtype.setValue(sortingMethod->name);
 
-	osu_songbrowser_sortingtype.setValue(sortingMethod->name); // NOTE: remember persistently
+	// always sort the master list (needed for all views)
+	std::ranges::sort(m_songButtons, sortingMethod->comparator);
 
-	struct COMPARATOR_WRAPPER
-	{
-		SORTING_COMPARATOR *comp;
-		bool operator() (OsuUISongBrowserButton const *a, OsuUISongBrowserButton const *b) const
-		{
-			return comp->operator()(a, b);
-		}
-	};
-	COMPARATOR_WRAPPER comparatorWrapper;
-	comparatorWrapper.comp = sortingMethod->comparator;
-
-	// resort primitive master button array (all songbuttons, No Grouping)
-	std::ranges::sort(m_songButtons, comparatorWrapper);
-
-	// resort Collection buttons (one button for each collection)
-	// these are always sorted alphabetically by name
-	{
-		struct COLLECTION_NAME_SORTING_COMPARATOR
-		{
-			bool operator () (OsuUISongBrowserCollectionButton const *a, OsuUISongBrowserCollectionButton const *b)
-			{
-				// strict weak ordering!
-				if (a->getCollectionName() == b->getCollectionName())
-					return a->getSortHack() < b->getSortHack();
-
-				return a->getCollectionName().lessThanIgnoreCase(b->getCollectionName());
-			}
-		};
-
-		std::ranges::sort(m_collectionButtons, COLLECTION_NAME_SORTING_COMPARATOR());
-	}
-
-	// resort Collection button array (each group of songbuttons inside each Collection)
-	for (size_t i=0; i<m_collectionButtons.size(); i++)
-	{
-		std::vector<OsuUISongBrowserButton*> &children = m_collectionButtons[i]->getChildren();
-		std::ranges::sort(children, comparatorWrapper);
-		m_collectionButtons[i]->setChildren(children);
-	}
-
-	// etc.
-	for (size_t i=0; i<m_artistCollectionButtons.size(); i++)
-	{
-		std::vector<OsuUISongBrowserButton*> &children = m_artistCollectionButtons[i]->getChildren();
-		std::ranges::sort(children, comparatorWrapper);
-		m_artistCollectionButtons[i]->setChildren(children);
-	}
-	for (size_t i=0; i<m_difficultyCollectionButtons.size(); i++)
-	{
-		std::vector<OsuUISongBrowserButton*> &children = m_difficultyCollectionButtons[i]->getChildren();
-		std::ranges::sort(children, comparatorWrapper);
-		m_difficultyCollectionButtons[i]->setChildren(children);
-	}
-	for (size_t i=0; i<m_bpmCollectionButtons.size(); i++)
-	{
-		std::vector<OsuUISongBrowserButton*> &children = m_bpmCollectionButtons[i]->getChildren();
-		std::ranges::sort(children, comparatorWrapper);
-		m_bpmCollectionButtons[i]->setChildren(children);
-	}
-	for (size_t i=0; i<m_creatorCollectionButtons.size(); i++)
-	{
-		std::vector<OsuUISongBrowserButton*> &children = m_creatorCollectionButtons[i]->getChildren();
-		std::ranges::sort(children, comparatorWrapper);
-		m_creatorCollectionButtons[i]->setChildren(children);
-	}
-	for (size_t i=0; i<m_dateaddedCollectionButtons.size(); i++)
-	{
-		std::vector<OsuUISongBrowserButton*> &children = m_dateaddedCollectionButtons[i]->getChildren();
-		std::ranges::sort(children, comparatorWrapper);
-		m_dateaddedCollectionButtons[i]->setChildren(children);
-	}
-	for (size_t i=0; i<m_lengthCollectionButtons.size(); i++)
-	{
-		std::vector<OsuUISongBrowserButton*> &children = m_lengthCollectionButtons[i]->getChildren();
-		std::ranges::sort(children, comparatorWrapper);
-		m_lengthCollectionButtons[i]->setChildren(children);
-	}
-	for (size_t i=0; i<m_titleCollectionButtons.size(); i++)
-	{
-		std::vector<OsuUISongBrowserButton*> &children = m_titleCollectionButtons[i]->getChildren();
-		std::ranges::sort(children, comparatorWrapper);
-		m_titleCollectionButtons[i]->setChildren(children);
-	}
-
-	// we only need to update the visible buttons array if we are in No Grouping (because Collections always get sorted by the collection name on the first level)
-	if (m_group == GROUP::GROUP_NO_GROUPING)
-	{
-		// HACKHACK: TODO: this needs to happen to support correct sorting, but using this requires proper regrouping logic (with memory allocations every time)
-		/*
-		std::vector<OsuUISongBrowserSongButton*> allDiffButtons;
-		for (size_t i=0; i<m_songButtons.size(); i++)
-		{
-			OsuUISongBrowserSongButton *button = m_songButtons[i];
-			const std::vector<OsuUISongBrowserButton*> &children = button->getChildren();
-			if (children.size() < 1)
-				allDiffButtons.push_back(button);
-			else
-			{
-				for (size_t c=0; c<children.size(); c++)
-				{
-					allDiffButtons.push_back((OsuUISongBrowserSongButton*)children[c]);
-				}
-			}
-		}
-		std::sort(allDiffButtons.begin(), allDiffButtons.end(), comparatorWrapper);
-
-		m_visibleSongButtons.clear();
-		m_visibleSongButtons.insert(m_visibleSongButtons.end(), allDiffButtons.begin(), allDiffButtons.end());
-		*/
-
-
-
-		m_visibleSongButtons.clear();
-		m_visibleSongButtons.insert(m_visibleSongButtons.end(), m_songButtons.begin(), m_songButtons.end());
-	}
-
-	rebuildSongButtons();
-	onAfterSortingOrGroupChange(autoScroll);
+	// reuse the group update logic instead of duplicating it
+	rebuildAfterGroupOrSortChange(m_group, autoScroll, previousSort == m_sortingMethod ? nullptr : sortingMethod->comparator);
 }
 
 void OsuSongBrowser2::onGroupTabButtonClicked(CBaseUIButton *groupTabButton)
@@ -3811,124 +3722,14 @@ void OsuSongBrowser2::onGroupTabButtonClicked(CBaseUIButton *groupTabButton)
 	onGroupChange(groupTabButton->getText());
 }
 
-void OsuSongBrowser2::onGroupNoGrouping()
-{
-	m_group = GROUP::GROUP_NO_GROUPING;
-
-	m_visibleSongButtons.clear();
-	m_visibleSongButtons.insert(m_visibleSongButtons.end(), m_songButtons.begin(), m_songButtons.end());
-
-	rebuildSongButtons();
-	onAfterSortingOrGroupChange();
-}
-
-void OsuSongBrowser2::onGroupCollections(bool autoScroll)
-{
-	m_group = GROUP::GROUP_COLLECTIONS;
-
-	m_visibleSongButtons.clear();
-	m_visibleSongButtons.insert(m_visibleSongButtons.end(), m_collectionButtons.begin(), m_collectionButtons.end());
-
-	rebuildSongButtons();
-	onAfterSortingOrGroupChange(autoScroll);
-}
-
-void OsuSongBrowser2::onGroupArtist()
-{
-	m_group = GROUP::GROUP_ARTIST;
-
-	m_visibleSongButtons.clear();
-	m_visibleSongButtons.insert(m_visibleSongButtons.end(), m_artistCollectionButtons.begin(), m_artistCollectionButtons.end());
-
-	rebuildSongButtons();
-	onAfterSortingOrGroupChange();
-}
-
-void OsuSongBrowser2::onGroupDifficulty()
-{
-	m_group = GROUP::GROUP_DIFFICULTY;
-
-	m_visibleSongButtons.clear();
-	m_visibleSongButtons.insert(m_visibleSongButtons.end(), m_difficultyCollectionButtons.begin(), m_difficultyCollectionButtons.end());
-
-	rebuildSongButtons();
-	onAfterSortingOrGroupChange();
-}
-
-void OsuSongBrowser2::onGroupBPM()
-{
-	m_group = GROUP::GROUP_BPM;
-
-	m_visibleSongButtons.clear();
-	m_visibleSongButtons.insert(m_visibleSongButtons.end(), m_bpmCollectionButtons.begin(), m_bpmCollectionButtons.end());
-
-	rebuildSongButtons();
-	onAfterSortingOrGroupChange();
-}
-
-void OsuSongBrowser2::onGroupCreator()
-{
-	m_group = GROUP::GROUP_CREATOR;
-
-	m_visibleSongButtons.clear();
-	m_visibleSongButtons.insert(m_visibleSongButtons.end(), m_creatorCollectionButtons.begin(), m_creatorCollectionButtons.end());
-
-	rebuildSongButtons();
-	onAfterSortingOrGroupChange();
-}
-
-void OsuSongBrowser2::onGroupDateadded()
-{
-	m_group = GROUP::GROUP_DATEADDED;
-
-	m_visibleSongButtons.clear();
-	m_visibleSongButtons.insert(m_visibleSongButtons.end(), m_dateaddedCollectionButtons.begin(), m_dateaddedCollectionButtons.end());
-
-	rebuildSongButtons();
-	onAfterSortingOrGroupChange();
-}
-
-void OsuSongBrowser2::onGroupLength()
-{
-	m_group = GROUP::GROUP_LENGTH;
-
-	m_visibleSongButtons.clear();
-	m_visibleSongButtons.insert(m_visibleSongButtons.end(), m_lengthCollectionButtons.begin(), m_lengthCollectionButtons.end());
-
-	rebuildSongButtons();
-	onAfterSortingOrGroupChange();
-}
-
-void OsuSongBrowser2::onGroupTitle()
-{
-	m_group = GROUP::GROUP_TITLE;
-
-	m_visibleSongButtons.clear();
-	m_visibleSongButtons.insert(m_visibleSongButtons.end(), m_titleCollectionButtons.begin(), m_titleCollectionButtons.end());
-
-	rebuildSongButtons();
-	onAfterSortingOrGroupChange();
-}
-
-void OsuSongBrowser2::onAfterSortingOrGroupChange(bool autoScroll)
-{
-	// keep search state consistent between tab changes
-	if (m_bInSearch)
-		onSearchUpdate();
-
-	// (can't call it right here because we maybe have async)
-	m_bOnAfterSortingOrGroupChangeUpdateScheduledAutoScroll = autoScroll;
-	m_bOnAfterSortingOrGroupChangeUpdateScheduled = true;
-}
-
 void OsuSongBrowser2::onAfterSortingOrGroupChangeUpdateInt(bool autoScroll)
 {
 	// if anything was selected, scroll to that. otherwise scroll to top
 	const std::vector<CBaseUIElement*> &elements = m_songBrowser->getContainer()->getElements();
 	bool isAnythingSelected = false;
-	for (size_t i=0; i<elements.size(); i++)
+	for (auto element : elements)
 	{
-		const OsuUISongBrowserButton *button = elements[i]->as<OsuUISongBrowserButton>();
+		const OsuUISongBrowserButton *button = element->as<OsuUISongBrowserButton>();
 		if (button != NULL && button->isSelected())
 		{
 			isAnythingSelected = true;
@@ -3964,7 +3765,7 @@ void OsuSongBrowser2::onSelectionMode()
 
 		CBaseUIButton *activeButton = NULL;
 		{
-			if (m_osu_mod_fposu_ref->getBool())
+			if (cv::osu::fposu::mod_fposu.getBool())
 				activeButton = fposuButton;
 			else if (osu->getGamemode() == Osu::GAMEMODE::STD)
 				activeButton = standardButton;
@@ -4024,7 +3825,7 @@ void OsuSongBrowser2::onModeChange(UString text)
 void OsuSongBrowser2::onModeChange2(UString text, int id)
 {
 	if (id != 2 && text != "fposu")
-		m_osu_mod_fposu_ref->setValue(0.0f);
+		cv::osu::fposu::mod_fposu.setValue(0.0f);
 
 	if (id == 0 || text == "std")
 	{
@@ -4044,7 +3845,7 @@ void OsuSongBrowser2::onModeChange2(UString text, int id)
 	}
 	else if (id == 2 || text == "fposu")
 	{
-		m_osu_mod_fposu_ref->setValue(1.0f);
+		cv::osu::fposu::mod_fposu.setValue(1.0f);
 
 		if (osu->getGamemode() != Osu::GAMEMODE::STD)
 		{
@@ -4066,10 +3867,10 @@ void OsuSongBrowser2::onUserButtonClicked()
 		m_contextMenu->begin(m_userButton->getSize().x);
 		m_contextMenu->addButton("Switch User:", 0)->setTextColor(0xff888888)->setTextDarkColor(0xff000000)->setTextLeft(false)->setEnabled(false);
 		//m_contextMenu->addButton("", 0)->setEnabled(false);
-		for (size_t i=0; i<names.size(); i++)
+		for (const auto & name : names)
 		{
-			CBaseUIButton *button = m_contextMenu->addButton(names[i]);
-			if (names[i] == m_name_ref->getString())
+			CBaseUIButton *button = m_contextMenu->addButton(name);
+			if (name == cv::name.getString())
 				button->setTextBrightColor(0xff00ff00);
 		}
 		m_contextMenu->addButton("", 0)->setEnabled(false);
@@ -4093,7 +3894,7 @@ void OsuSongBrowser2::onUserButtonChange(UString text, int id)
 		return;
 	}
 
-	m_name_ref->setValue(text);
+	cv::name.setValue(text);
 	osu->getOptionsMenu()->setUsername(text); // NOTE: force update options textbox to avoid shutdown inconsistency
 	m_userButton->setText(text);
 
@@ -4102,7 +3903,7 @@ void OsuSongBrowser2::onUserButtonChange(UString text, int id)
 
 void OsuSongBrowser2::onScoreClicked(CBaseUIButton *button)
 {
-	OsuUISongBrowserScoreButton *scoreButton = (OsuUISongBrowserScoreButton*)button;
+	auto *scoreButton = (OsuUISongBrowserScoreButton*)button;
 
 	// NOTE: the order of these two calls matters (score data overwrites relevant fields, but base values are coming from the beatmap)
 	osu->getRankingScreen()->setBeatmapInfo(m_selectedBeatmap, m_selectedBeatmap->getSelectedDifficulty2());
@@ -4138,9 +3939,9 @@ void OsuSongBrowser2::onSongButtonContextMenu(OsuUISongBrowserSongButton *songBu
 				const std::vector<OsuUISongBrowserButton*> &songButtonChildren = songButton->getChildren();
 				if (songButtonChildren.size() > 0)
 				{
-					for (size_t i=0; i<songButtonChildren.size(); i++)
+					for (auto i : songButtonChildren)
 					{
-						beatmapSetHashes.push_back(songButtonChildren[i]->getDatabaseBeatmap()->getMD5Hash());
+						beatmapSetHashes.push_back(i->getDatabaseBeatmap()->getMD5Hash());
 					}
 				}
 				else
@@ -4149,9 +3950,9 @@ void OsuSongBrowser2::onSongButtonContextMenu(OsuUISongBrowserSongButton *songBu
 					if (beatmap != NULL)
 					{
 						const std::vector<OsuDatabaseBeatmap*> &diffs = beatmap->getDifficulties();
-						for (size_t i=0; i<diffs.size(); i++)
+						for (auto diff : diffs)
 						{
-							beatmapSetHashes.push_back(diffs[i]->getMD5Hash());
+							beatmapSetHashes.push_back(diff->getMD5Hash());
 						}
 					}
 				}
@@ -4175,9 +3976,9 @@ void OsuSongBrowser2::onSongButtonContextMenu(OsuUISongBrowserSongButton *songBu
 			// add set to collection
 
 			const std::vector<std::string> beatmapSetHashes = CollectionManagementHelper::getBeatmapSetHashesForSongButton(songButton, m_db);
-			for (size_t i=0; i<beatmapSetHashes.size(); i++)
+			for (const auto & beatmapSetHashe : beatmapSetHashes)
 			{
-				m_db->addBeatmapToCollection(text, beatmapSetHashes[i], false); // (don't save here every time) (this will ignore already added parts of the set, so nothing to worry about)
+				m_db->addBeatmapToCollection(text, beatmapSetHashe, false); // (don't save here every time) (this will ignore already added parts of the set, so nothing to worry about)
 			}
 			m_db->triggerSaveCollections(); // (but do save here once at the end)
 
@@ -4190,11 +3991,11 @@ void OsuSongBrowser2::onSongButtonContextMenu(OsuUISongBrowserSongButton *songBu
 			// get collection name by selection
 			UString collectionName;
 			{
-				for (size_t i=0; i<m_collectionButtons.size(); i++)
+				for (auto & collectionButton : m_collectionButtons)
 				{
-					if (m_collectionButtons[i]->isSelected())
+					if (collectionButton->isSelected())
 					{
-						collectionName = m_collectionButtons[i]->getCollectionName();
+						collectionName = collectionButton->getCollectionName();
 						break;
 					}
 				}
@@ -4211,20 +4012,20 @@ void OsuSongBrowser2::onSongButtonContextMenu(OsuUISongBrowserSongButton *songBu
 			// get collection name by selection
 			UString collectionName;
 			{
-				for (size_t i=0; i<m_collectionButtons.size(); i++)
+				for (auto & collectionButton : m_collectionButtons)
 				{
-					if (m_collectionButtons[i]->isSelected())
+					if (collectionButton->isSelected())
 					{
-						collectionName = m_collectionButtons[i]->getCollectionName();
+						collectionName = collectionButton->getCollectionName();
 						break;
 					}
 				}
 			}
 
 			const std::vector<std::string> beatmapSetHashes = CollectionManagementHelper::getBeatmapSetHashesForSongButton(songButton, m_db);
-			for (size_t i=0; i<beatmapSetHashes.size(); i++)
+			for (const auto & beatmapSetHashe : beatmapSetHashes)
 			{
-				m_db->removeBeatmapFromCollection(collectionName, beatmapSetHashes[i], false); // (don't save here every time)
+				m_db->removeBeatmapFromCollection(collectionName, beatmapSetHashe, false); // (don't save here every time)
 			}
 			m_db->triggerSaveCollections(); // (but do save here once at the end)
 
@@ -4251,9 +4052,9 @@ void OsuSongBrowser2::onSongButtonContextMenu(OsuUISongBrowserSongButton *songBu
 					// id == -4 means add set to the just-created new collection
 
 					const std::vector<std::string> beatmapSetHashes = CollectionManagementHelper::getBeatmapSetHashesForSongButton(songButton, m_db);
-					for (size_t i=0; i<beatmapSetHashes.size(); i++)
+					for (const auto & beatmapSetHashe : beatmapSetHashes)
 					{
-						m_db->addBeatmapToCollection(text, beatmapSetHashes[i], false); // (don't save here every time)
+						m_db->addBeatmapToCollection(text, beatmapSetHashe, false); // (don't save here every time)
 					}
 					m_db->triggerSaveCollections(); // (but do save here once at the end)
 
@@ -4270,15 +4071,15 @@ void OsuSongBrowser2::onSongButtonContextMenu(OsuUISongBrowserSongButton *songBu
 		{
 			recreateCollectionsButtons();
 			rebuildSongButtonsAndVisibleSongButtonsWithSearchMatchSupport(false, false);	// (last false = skipping rebuildSongButtons() here)
-			onSortChangeInt(osu_songbrowser_sortingtype.getString(), false);				// (because this does the rebuildSongButtons())
+			onSortChangeInt(cv::osu::songbrowser_sortingtype.getString(), false);				// (because this does the rebuildSongButtons())
 		}
 		if (previouslySelectedCollectionName.length() > 0)
 		{
-			for (size_t i=0; i<m_collectionButtons.size(); i++)
+			for (auto & collectionButton : m_collectionButtons)
 			{
-				if (m_collectionButtons[i]->getCollectionName() == previouslySelectedCollectionName)
+				if (collectionButton->getCollectionName() == previouslySelectedCollectionName)
 				{
-					m_collectionButtons[i]->select();
+					collectionButton->select();
 					m_songBrowser->scrollToY(prevScrollPosY, false);
 					break;
 				}
@@ -4306,7 +4107,7 @@ void OsuSongBrowser2::onCollectionButtonContextMenu(OsuUISongBrowserCollectionBu
 
 				// update UI
 				{
-					onGroupCollections(false);
+					rebuildAfterGroupOrSortChange(GROUP::GROUP_COLLECTIONS, false);
 				}
 
 				break;
@@ -4317,19 +4118,19 @@ void OsuSongBrowser2::onCollectionButtonContextMenu(OsuUISongBrowserCollectionBu
 	{
 		// update UI
 		{
-			onSortChangeInt(osu_songbrowser_sortingtype.getString(), false);
+			onSortChangeInt(cv::osu::songbrowser_sortingtype.getString(), false);
 		}
 	}
 }
 
 void OsuSongBrowser2::highlightScore(uint64_t unixTimestamp)
 {
-	for (size_t i=0; i<m_scoreButtonCache.size(); i++)
+	for (auto & i : m_scoreButtonCache)
 	{
-		if (m_scoreButtonCache[i]->getScore().unixTimestamp == unixTimestamp)
+		if (i->getScore().unixTimestamp == unixTimestamp)
 		{
-			m_scoreBrowser->scrollToElement(m_scoreButtonCache[i], 0, 10);
-			m_scoreButtonCache[i]->highlight();
+			m_scoreBrowser->scrollToElement(i, 0, 10);
+			i->highlight();
 			break;
 		}
 	}
@@ -4337,11 +4138,11 @@ void OsuSongBrowser2::highlightScore(uint64_t unixTimestamp)
 
 void OsuSongBrowser2::recalculateStarsForSelectedBeatmap(bool force)
 {
-	if (!osu_songbrowser_dynamic_star_recalc.getBool()) return;
+	if (!cv::osu::songbrowser_dynamic_star_recalc.getBool()) return;
 	if (m_selectedBeatmap == NULL || m_selectedBeatmap->getSelectedDifficulty2() == NULL) return;
 
 	// HACKHACK: temporarily deactivated, see OsuSongBrowser2::update(), but only if drawing scrubbing timeline strain graph is enabled (or "Draw Stats: Stars* (Total)", or "Draw Stats: pp (SS)")
-	if (!m_osu_draw_scrubbing_timeline_strain_graph_ref->getBool() && !m_osu_draw_statistics_perfectpp_ref->getBool() && !m_osu_draw_statistics_totalstars_ref->getBool())
+	if (!cv::osu::draw_scrubbing_timeline_strain_graph.getBool() && !cv::osu::draw_statistics_perfectpp.getBool() && !cv::osu::draw_statistics_totalstars.getBool())
 	{
 		if (osu->isInPlayMode())
 		{
@@ -4393,10 +4194,10 @@ void OsuSongBrowser2::selectRandomBeatmap(bool playMusicFromPreviewPoint)
 	// filter songbuttons or independent diffs
 	const std::vector<CBaseUIElement*> &elements = m_songBrowser->getContainer()->getElements();
 	std::vector<OsuUISongBrowserSongButton*> songButtons;
-	for (size_t i=0; i<elements.size(); i++)
+	for (auto element : elements)
 	{
-		auto *songButtonPointer = elements[i]->as<OsuUISongBrowserSongButton>();
-		auto *songDifficultyButtonPointer = elements[i]->as<OsuUISongBrowserSongDifficultyButton>();
+		auto *songButtonPointer = element->as<OsuUISongBrowserSongButton>();
+		auto *songDifficultyButtonPointer = element->as<OsuUISongBrowserSongDifficultyButton>();
 
 		if (songButtonPointer != NULL && (songDifficultyButtonPointer == NULL || songDifficultyButtonPointer->isIndependentDiffButton())) // only allow songbuttons or independent diffs
 			songButtons.push_back(songButtonPointer);
@@ -4425,9 +4226,9 @@ void OsuSongBrowser2::selectPreviousRandomBeatmap()
 		// filter songbuttons
 		const std::vector<CBaseUIElement*> &elements = m_songBrowser->getContainer()->getElements();
 		std::vector<OsuUISongBrowserSongButton*> songButtons;
-		for (size_t i=0; i<elements.size(); i++)
+		for (auto element : elements)
 		{
-			auto *songButtonPointer = elements[i]->as<OsuUISongBrowserSongButton>();
+			auto *songButtonPointer = element->as<OsuUISongBrowserSongButton>();
 			if (songButtonPointer != NULL) // allow ALL songbuttons
 				songButtons.push_back(songButtonPointer);
 		}
@@ -4435,23 +4236,23 @@ void OsuSongBrowser2::selectPreviousRandomBeatmap()
 		// select it, if we can find it (and remove it from memory)
 		bool foundIt = false;
 		const OsuDatabaseBeatmap *previousRandomBeatmap = m_previousRandomBeatmaps.back();
-		for (size_t i=0; i<songButtons.size(); i++)
+		for (auto & songButton : songButtons)
 		{
-			if (songButtons[i]->getDatabaseBeatmap() != NULL && songButtons[i]->getDatabaseBeatmap() == previousRandomBeatmap)
+			if (songButton->getDatabaseBeatmap() != NULL && songButton->getDatabaseBeatmap() == previousRandomBeatmap)
 			{
 				m_previousRandomBeatmaps.pop_back();
-				selectSongButton(songButtons[i]);
+				selectSongButton(songButton);
 				foundIt = true;
 				break;
 			}
 
-			const std::vector<OsuUISongBrowserButton*> &children = songButtons[i]->getChildren();
-			for (size_t c=0; c<children.size(); c++)
+			const std::vector<OsuUISongBrowserButton*> &children = songButton->getChildren();
+			for (auto c : children)
 			{
-				if (children[c]->getDatabaseBeatmap() == previousRandomBeatmap)
+				if (c->getDatabaseBeatmap() == previousRandomBeatmap)
 				{
 					m_previousRandomBeatmaps.pop_back();
-					selectSongButton(children[c]);
+					selectSongButton(c);
 					foundIt = true;
 					break;
 				}
@@ -4470,9 +4271,9 @@ void OsuSongBrowser2::selectPreviousRandomBeatmap()
 void OsuSongBrowser2::playSelectedDifficulty()
 {
 	const std::vector<CBaseUIElement*> &elements = m_songBrowser->getContainer()->getElements();
-	for (size_t i=0; i<elements.size(); i++)
+	for (auto element : elements)
 	{
-		auto *songDifficultyButton = elements[i]->as<OsuUISongBrowserSongDifficultyButton>();
+		auto *songDifficultyButton = element->as<OsuUISongBrowserSongDifficultyButton>();
 		if (songDifficultyButton != NULL && songDifficultyButton->isSelected())
 		{
 			songDifficultyButton->select();
@@ -4503,6 +4304,7 @@ void OsuSongBrowser2::recreateCollectionsButtons()
 	// build lookup maps for faster collection creation
 	std::unordered_map<OsuDatabaseBeatmap *, OsuUISongBrowserButton *> beatmapToSongButton;
 	std::unordered_map<OsuDatabaseBeatmap *, std::vector<OsuUISongBrowserButton *>> beatmapToDiffButtons;
+	std::unordered_map<OsuUISongBrowserButton *, OsuUISongBrowserButton *> diffButtonToSongButton;
 
 	// populate lookup maps
 	for (auto songButton : m_songButtons)
@@ -4526,6 +4328,9 @@ void OsuSongBrowser2::recreateCollectionsButtons()
 				if (beatmapToSongButton.find(childDbBeatmap) == beatmapToSongButton.end())
 					beatmapToSongButton[childDbBeatmap] = songButton;
 			}
+
+			// map diff button to its parent song button
+			diffButtonToSongButton[c] = songButton;
 		}
 	}
 
@@ -4562,8 +4367,9 @@ void OsuSongBrowser2::recreateCollectionsButtons()
 						{
 							for (OsuUISongBrowserButton *diffButton : diffButtonsIt->second)
 							{
-								// only add diff buttons that belong to the matching song button
-								if (std::ranges::find(diffChildren, diffButton) != diffChildren.end())
+								// lookup the hash
+								auto parentSongButtonIt = diffButtonToSongButton.find(diffButton);
+								if (parentSongButtonIt != diffButtonToSongButton.end() && parentSongButtonIt->second == matchingSongButton)
 									matchingDiffs.push_back(diffButton);
 							}
 						}
@@ -4589,8 +4395,8 @@ void OsuSongBrowser2::recreateCollectionsButtons()
 				children.insert(children.end(), matchingDiffs.begin(), matchingDiffs.end());
 		}
 
-		auto *collectionButton = new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250 + m_beatmaps.size() * 50, 200, 50, "",
-		                                                              collection.name, children);
+		auto *collectionButton =
+		    new OsuUISongBrowserCollectionButton(this, m_songBrowser, m_contextMenu, 250, 250 + m_beatmaps.size() * 50, 200, 50, "", collection.name, children);
 		m_collectionButtons.push_back(collectionButton);
 	}
 }

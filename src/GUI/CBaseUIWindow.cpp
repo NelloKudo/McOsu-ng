@@ -19,9 +19,10 @@
 #include "CBaseUIContainer.h"
 #include "CBaseUIButton.h"
 #include "CBaseUIBoxShadow.h"
-
+namespace cv {
 ConVar ui_window_animspeed("ui_window_animspeed", 0.29f, FCVAR_NONE);
 ConVar ui_window_shadow_radius("ui_window_shadow_radius", 13.0f, FCVAR_NONE);
+}
 
 CBaseUIWindow::CBaseUIWindow(float xPos, float yPos, float xSize, float ySize, UString name) : CBaseUIElement(xPos, yPos, xSize, ySize, name)
 {
@@ -80,7 +81,7 @@ CBaseUIWindow::CBaseUIWindow(float xPos, float yPos, float xSize, float ySize, U
 
 	// test features
 	//m_rt = resourceManager->createRenderTarget(m_vPos.x, m_vPos.y, m_vSize.x+1, m_vSize.y+1);
-	//float shadowRadius = ui_window_shadow_radius.getInt();
+	//float shadowRadius = cv::ui_window_shadow_radius.getInt();
 	///m_shadow = new CBaseUIBoxShadow(0xff000000, shadowRadius, m_vPos.x-shadowRadius, m_vPos.y-shadowRadius, m_vSize.x+shadowRadius*2, m_vSize.y+shadowRadius*2+4, "windowshadow");
 
 	setTitle(name);
@@ -100,25 +101,25 @@ CBaseUIWindow::~CBaseUIWindow()
 	SAFE_DELETE(m_titleBarContainer);
 }
 
-void CBaseUIWindow::draw(Graphics *g)
+void CBaseUIWindow::draw()
 {
 	if (!m_bVisible) return;
 
 	// TODO: structure
 	/*
 	if (!anim->isAnimating(&m_fAnimation))
-		m_shadow->draw(g);
+		m_shadow->draw();
 	else
 	{
 		m_shadow->setColor(argb((int)((m_fAnimation)*255.0f), 255, 255, 255));
 
 		// HACKHACK: shadows can't render inside a 3DScene
-		m_shadow->renderOffscreen(g);
+		m_shadow->renderOffscreen();
 
 		g->push3DScene(McRect(m_vPos.x, m_vPos.y, m_vSize.x, m_vSize.y));
 			g->rotate3DScene(0, (m_bAnimIn ? -1 : 1) * (1-m_fAnimation)*10, 0);
 			g->translate3DScene(0, 0, -(1-m_fAnimation)*100);
-			m_shadow->draw(g);
+			m_shadow->draw();
 		g->pop3DScene();
 	}
 	*/
@@ -160,8 +161,8 @@ void CBaseUIWindow::draw(Graphics *g)
 			// draw main container
 			g->pushClipRect(McRect(m_vPos.x+1, m_vPos.y+2, m_vSize.x-1, m_vSize.y-1));
 			{
-				m_container->draw(g);
-				drawCustomContent(g);
+				m_container->draw();
+				drawCustomContent();
 			}
 			g->popClipRect();
 
@@ -191,7 +192,7 @@ void CBaseUIWindow::draw(Graphics *g)
 			// draw title bar container
 			g->pushClipRect(McRect(m_vPos.x+1, m_vPos.y+2, m_vSize.x-1, m_iTitleBarHeight));
 			{
-				m_titleBarContainer->draw(g);
+				m_titleBarContainer->draw();
 			}
 			g->popClipRect();
 
@@ -222,7 +223,7 @@ void CBaseUIWindow::draw(Graphics *g)
 		g->push3DScene(McRect(m_vPos.x, m_vPos.y, m_vSize.x, m_vSize.y));
 			g->rotate3DScene((m_bAnimIn ? -1 : 1) * (1-m_fAnimation)*10, 0, 0);
 			g->translate3DScene(0, 0, -(1-m_fAnimation)*100);
-			m_rt->draw(g, m_vPos.x, m_vPos.y);
+			m_rt->draw(m_vPos.x, m_vPos.y);
 		g->pop3DScene();
 		*/
 	}
@@ -444,7 +445,7 @@ void CBaseUIWindow::close()
 
 	m_bAnimIn = false;
 	m_fAnimation = 1.0f;
-	anim->moveQuadInOut(&m_fAnimation, 0.0f, ui_window_animspeed.getFloat());
+	anim->moveQuadInOut(&m_fAnimation, 0.0f, cv::ui_window_animspeed.getFloat());
 
 	onClosed();
 }
@@ -459,7 +460,7 @@ void CBaseUIWindow::open()
 	{
 		m_bAnimIn = true;
 		m_fAnimation = 0.001f;
-		anim->moveQuadOut(&m_fAnimation, 1.0f, ui_window_animspeed.getFloat());
+		anim->moveQuadOut(&m_fAnimation, 1.0f, cv::ui_window_animspeed.getFloat());
 	}
 	else
 		m_fAnimation = 1.0f;

@@ -26,10 +26,11 @@
 #include "OsuUISongBrowserSongDifficultyButton.h"
 #include "OsuUISongBrowserScoreButton.h"
 #include "OsuUIContextMenu.h"
-
-ConVar osu_draw_songbrowser_thumbnails("osu_draw_songbrowser_thumbnails", true, FCVAR_NONE);
-ConVar osu_songbrowser_thumbnail_delay("osu_songbrowser_thumbnail_delay", 0.1f, FCVAR_NONE);
-ConVar osu_songbrowser_thumbnail_fade_in_duration("osu_songbrowser_thumbnail_fade_in_duration", 0.1f, FCVAR_NONE);
+namespace cv::osu {
+ConVar draw_songbrowser_thumbnails("osu_draw_songbrowser_thumbnails", true, FCVAR_NONE);
+ConVar songbrowser_thumbnail_delay("osu_songbrowser_thumbnail_delay", 0.1f, FCVAR_NONE);
+ConVar songbrowser_thumbnail_fade_in_duration("osu_songbrowser_thumbnail_fade_in_duration", 0.1f, FCVAR_NONE);
+}
 
 float OsuUISongBrowserSongButton::thumbnailYRatio = 1.333333f;
 
@@ -86,17 +87,17 @@ OsuUISongBrowserSongButton::~OsuUISongBrowserSongButton()
 	}
 }
 
-void OsuUISongBrowserSongButton::draw(Graphics *g)
+void OsuUISongBrowserSongButton::draw()
 {
 	if (!m_bVisible) return;
-	OsuUISongBrowserButton::draw(g);
+	OsuUISongBrowserButton::draw();
 
 	// draw background image
 	if (m_representativeDatabaseBeatmap != NULL)
-		drawBeatmapBackgroundThumbnail(g, osu->getBackgroundImageHandler()->getLoadBackgroundImage(m_representativeDatabaseBeatmap));
+		drawBeatmapBackgroundThumbnail(osu->getBackgroundImageHandler()->getLoadBackgroundImage(m_representativeDatabaseBeatmap));
 
-	drawTitle(g);
-	drawSubTitle(g);
+	drawTitle();
+	drawSubTitle();
 }
 
 void OsuUISongBrowserSongButton::update()
@@ -109,18 +110,18 @@ void OsuUISongBrowserSongButton::update()
 	updateRepresentativeDatabaseBeatmap();
 }
 
-void OsuUISongBrowserSongButton::drawBeatmapBackgroundThumbnail(Graphics *g, Image *image)
+void OsuUISongBrowserSongButton::drawBeatmapBackgroundThumbnail(Image *image)
 {
-	if (!osu_draw_songbrowser_thumbnails.getBool() || osu->getSkin()->getVersion() < 2.2f) return;
+	if (!cv::osu::draw_songbrowser_thumbnails.getBool() || osu->getSkin()->getVersion() < 2.2f) return;
 
 	float alpha = 1.0f;
-	if (osu_songbrowser_thumbnail_fade_in_duration.getFloat() > 0.0f)
+	if (cv::osu::songbrowser_thumbnail_fade_in_duration.getFloat() > 0.0f)
 	{
 		if (image == NULL || !image->isReady())
 			m_fThumbnailFadeInTime = engine->getTime();
 		else if (m_fThumbnailFadeInTime > 0.0f && engine->getTime() > m_fThumbnailFadeInTime)
 		{
-			alpha = std::clamp<float>((engine->getTime() - m_fThumbnailFadeInTime)/osu_songbrowser_thumbnail_fade_in_duration.getFloat(), 0.0f, 1.0f);
+			alpha = std::clamp<float>((engine->getTime() - m_fThumbnailFadeInTime)/cv::osu::songbrowser_thumbnail_fade_in_duration.getFloat(), 0.0f, 1.0f);
 			alpha = 1.0f - (1.0f - alpha)*(1.0f - alpha);
 		}
 	}
@@ -151,7 +152,7 @@ void OsuUISongBrowserSongButton::drawBeatmapBackgroundThumbnail(Graphics *g, Ima
 	g->popTransform();
 
 	// debug cliprect bounding box
-	if (Osu::debug->getBool())
+	if (cv::osu::debug.getBool())
 	{
 		Vector2 clipRectPos = Vector2(clipRect.getX(), clipRect.getY()-1);
 		Vector2 clipRectSize = Vector2(clipRect.getWidth(), clipRect.getHeight());
@@ -164,7 +165,7 @@ void OsuUISongBrowserSongButton::drawBeatmapBackgroundThumbnail(Graphics *g, Ima
 	}
 }
 
-void OsuUISongBrowserSongButton::drawGrade(Graphics *g)
+void OsuUISongBrowserSongButton::drawGrade()
 {
 	// scaling
 	const Vector2 pos = getActualPos();
@@ -176,12 +177,12 @@ void OsuUISongBrowserSongButton::drawGrade(Graphics *g)
 		const float scale = calculateGradeScale();
 
 		g->setColor(0xffffffff);
-		grade->drawRaw(g, Vector2(pos.x + m_fGradeOffset + grade->getSizeBaseRaw().x*scale/2, pos.y + size.y/2), scale);
+		grade->drawRaw(Vector2(pos.x + m_fGradeOffset + grade->getSizeBaseRaw().x*scale/2, pos.y + size.y/2), scale);
 	}
 	g->popTransform();
 }
 
-void OsuUISongBrowserSongButton::drawTitle(Graphics *g, float deselectedAlpha, bool forceSelectedStyle)
+void OsuUISongBrowserSongButton::drawTitle(float deselectedAlpha, bool forceSelectedStyle)
 {
 	// scaling
 	const Vector2 pos = getActualPos();
@@ -204,7 +205,7 @@ void OsuUISongBrowserSongButton::drawTitle(Graphics *g, float deselectedAlpha, b
 	g->popTransform();
 }
 
-void OsuUISongBrowserSongButton::drawSubTitle(Graphics *g, float deselectedAlpha, bool forceSelectedStyle)
+void OsuUISongBrowserSongButton::drawSubTitle(float deselectedAlpha, bool forceSelectedStyle)
 {
 	// scaling
 	const Vector2 pos = getActualPos();
@@ -239,7 +240,7 @@ void OsuUISongBrowserSongButton::drawSubTitle(Graphics *g, float deselectedAlpha
 
 void OsuUISongBrowserSongButton::sortChildren()
 {
-	std::ranges::sort(m_children, OsuSongBrowser2::SortByDifficulty());
+	std::ranges::sort(m_children, OsuSongBrowser2::sortByDifficulty);
 }
 
 void OsuUISongBrowserSongButton::updateLayoutEx()

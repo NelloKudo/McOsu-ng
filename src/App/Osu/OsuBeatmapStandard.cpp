@@ -16,7 +16,6 @@
 #include "ConVar.h"
 
 #include "Osu.h"
-#include "OsuVR.h"
 #include "OsuMultiplayer.h"
 #include "OsuHUD.h"
 #include "OsuSkin.h"
@@ -42,73 +41,74 @@
 #include <algorithm>
 #include <chrono>
 #include <utility>
+namespace cv::osu {
+ConVar draw_followpoints("osu_draw_followpoints", true, FCVAR_NONE);
+ConVar draw_reverse_order("osu_draw_reverse_order", false, FCVAR_NONE);
+ConVar draw_playfield_border("osu_draw_playfield_border", true, FCVAR_NONE);
 
-ConVar osu_draw_followpoints("osu_draw_followpoints", true, FCVAR_NONE);
-ConVar osu_draw_reverse_order("osu_draw_reverse_order", false, FCVAR_NONE);
-ConVar osu_draw_playfield_border("osu_draw_playfield_border", true, FCVAR_NONE);
+ConVar stacking("osu_stacking", true, FCVAR_NONE, "Whether to use stacking calculations or not");
+ConVar stacking_leniency_override("osu_stacking_leniency_override", -1.0f, FCVAR_NONE);
 
-ConVar osu_stacking("osu_stacking", true, FCVAR_NONE, "Whether to use stacking calculations or not");
-ConVar osu_stacking_leniency_override("osu_stacking_leniency_override", -1.0f, FCVAR_NONE);
+ConVar auto_snapping_strength("osu_auto_snapping_strength", 1.0f, FCVAR_NONE, "How many iterations of quadratic interpolation to use, more = snappier, 0 = linear");
+ConVar auto_cursordance("osu_auto_cursordance", false, FCVAR_NONE);
+ConVar autopilot_snapping_strength("osu_autopilot_snapping_strength", 2.0f, FCVAR_NONE, "How many iterations of quadratic interpolation to use, more = snappier, 0 = linear");
+ConVar autopilot_lenience("osu_autopilot_lenience", 0.75f, FCVAR_NONE);
 
-ConVar osu_auto_snapping_strength("osu_auto_snapping_strength", 1.0f, FCVAR_NONE, "How many iterations of quadratic interpolation to use, more = snappier, 0 = linear");
-ConVar osu_auto_cursordance("osu_auto_cursordance", false, FCVAR_NONE);
-ConVar osu_autopilot_snapping_strength("osu_autopilot_snapping_strength", 2.0f, FCVAR_NONE, "How many iterations of quadratic interpolation to use, more = snappier, 0 = linear");
-ConVar osu_autopilot_lenience("osu_autopilot_lenience", 0.75f, FCVAR_NONE);
+ConVar followpoints_clamp("osu_followpoints_clamp", false, FCVAR_NONE, "clamp followpoint approach time to current circle approach time (instead of using the hardcoded default 800 ms raw)");
+ConVar followpoints_anim("osu_followpoints_anim", false, FCVAR_NONE, "scale + move animation while fading in followpoints (osu only does this when its internal default skin is being used)");
+ConVar followpoints_connect_combos("osu_followpoints_connect_combos", false, FCVAR_NONE, "connect followpoints even if a new combo has started");
+ConVar followpoints_connect_spinners("osu_followpoints_connect_spinners", false, FCVAR_NONE, "connect followpoints even through spinners");
+ConVar followpoints_approachtime("osu_followpoints_approachtime", 800.0f, FCVAR_NONE);
+ConVar followpoints_scale_multiplier("osu_followpoints_scale_multiplier", 1.0f, FCVAR_NONE);
+ConVar followpoints_separation_multiplier("osu_followpoints_separation_multiplier", 1.0f, FCVAR_NONE);
 
-ConVar osu_followpoints_clamp("osu_followpoints_clamp", false, FCVAR_NONE, "clamp followpoint approach time to current circle approach time (instead of using the hardcoded default 800 ms raw)");
-ConVar osu_followpoints_anim("osu_followpoints_anim", false, FCVAR_NONE, "scale + move animation while fading in followpoints (osu only does this when its internal default skin is being used)");
-ConVar osu_followpoints_connect_combos("osu_followpoints_connect_combos", false, FCVAR_NONE, "connect followpoints even if a new combo has started");
-ConVar osu_followpoints_connect_spinners("osu_followpoints_connect_spinners", false, FCVAR_NONE, "connect followpoints even through spinners");
-ConVar osu_followpoints_approachtime("osu_followpoints_approachtime", 800.0f, FCVAR_NONE);
-ConVar osu_followpoints_scale_multiplier("osu_followpoints_scale_multiplier", 1.0f, FCVAR_NONE);
-ConVar osu_followpoints_separation_multiplier("osu_followpoints_separation_multiplier", 1.0f, FCVAR_NONE);
+ConVar number_scale_multiplier("osu_number_scale_multiplier", 1.0f, FCVAR_NONE);
 
-ConVar osu_number_scale_multiplier("osu_number_scale_multiplier", 1.0f, FCVAR_NONE);
+ConVar playfield_mirror_horizontal("osu_playfield_mirror_horizontal", false, FCVAR_NONE);
+ConVar playfield_mirror_vertical("osu_playfield_mirror_vertical", false, FCVAR_NONE);
+ConVar playfield_rotation("osu_playfield_rotation", 0.0f, FCVAR_NONE, "rotates the entire playfield by this many degrees");
+ConVar playfield_stretch_x("osu_playfield_stretch_x", 0.0f, FCVAR_NONE, "offsets/multiplies all hitobject coordinates by it (0 = default 1x playfield size, -1 = on a line, -0.5 = 0.5x playfield size, 0.5 = 1.5x playfield size)");
+ConVar playfield_stretch_y("osu_playfield_stretch_y", 0.0f, FCVAR_NONE, "offsets/multiplies all hitobject coordinates by it (0 = default 1x playfield size, -1 = on a line, -0.5 = 0.5x playfield size, 0.5 = 1.5x playfield size)");
+ConVar playfield_circular("osu_playfield_circular", false, FCVAR_NONE, "whether the playfield area should be transformed from a rectangle into a circle/disc/oval");
 
-ConVar osu_playfield_mirror_horizontal("osu_playfield_mirror_horizontal", false, FCVAR_NONE);
-ConVar osu_playfield_mirror_vertical("osu_playfield_mirror_vertical", false, FCVAR_NONE);
-ConVar osu_playfield_rotation("osu_playfield_rotation", 0.0f, FCVAR_NONE, "rotates the entire playfield by this many degrees");
-ConVar osu_playfield_stretch_x("osu_playfield_stretch_x", 0.0f, FCVAR_NONE, "offsets/multiplies all hitobject coordinates by it (0 = default 1x playfield size, -1 = on a line, -0.5 = 0.5x playfield size, 0.5 = 1.5x playfield size)");
-ConVar osu_playfield_stretch_y("osu_playfield_stretch_y", 0.0f, FCVAR_NONE, "offsets/multiplies all hitobject coordinates by it (0 = default 1x playfield size, -1 = on a line, -0.5 = 0.5x playfield size, 0.5 = 1.5x playfield size)");
-ConVar osu_playfield_circular("osu_playfield_circular", false, FCVAR_NONE, "whether the playfield area should be transformed from a rectangle into a circle/disc/oval");
+ConVar drain_lazer_health_min("osu_drain_lazer_health_min", 0.95f, FCVAR_NONE);
+ConVar drain_lazer_health_mid("osu_drain_lazer_health_mid", 0.70f, FCVAR_NONE);
+ConVar drain_lazer_health_max("osu_drain_lazer_health_max", 0.30f, FCVAR_NONE);
 
-ConVar osu_drain_lazer_health_min("osu_drain_lazer_health_min", 0.95f, FCVAR_NONE);
-ConVar osu_drain_lazer_health_mid("osu_drain_lazer_health_mid", 0.70f, FCVAR_NONE);
-ConVar osu_drain_lazer_health_max("osu_drain_lazer_health_max", 0.30f, FCVAR_NONE);
+ConVar mod_wobble("osu_mod_wobble", false, FCVAR_NONE);
+ConVar mod_wobble2("osu_mod_wobble2", false, FCVAR_NONE);
+ConVar mod_wobble_strength("osu_mod_wobble_strength", 25.0f, FCVAR_NONE);
+ConVar mod_wobble_frequency("osu_mod_wobble_frequency", 1.0f, FCVAR_NONE);
+ConVar mod_wobble_rotation_speed("osu_mod_wobble_rotation_speed", 1.0f, FCVAR_NONE);
+ConVar mod_jigsaw2("osu_mod_jigsaw2", false, FCVAR_NONE);
+ConVar mod_jigsaw_followcircle_radius_factor("osu_mod_jigsaw_followcircle_radius_factor", 0.0f, FCVAR_NONE);
+ConVar mod_shirone("osu_mod_shirone", false, FCVAR_NONE);
+ConVar mod_shirone_combo("osu_mod_shirone_combo", 20.0f, FCVAR_NONE);
+ConVar mod_mafham_render_chunksize("osu_mod_mafham_render_chunksize", 15, FCVAR_NONE, "render this many hitobjects per frame chunk into the scene buffer (spreads rendering across many frames to minimize lag)");
 
-ConVar osu_mod_wobble("osu_mod_wobble", false, FCVAR_NONE);
-ConVar osu_mod_wobble2("osu_mod_wobble2", false, FCVAR_NONE);
-ConVar osu_mod_wobble_strength("osu_mod_wobble_strength", 25.0f, FCVAR_NONE);
-ConVar osu_mod_wobble_frequency("osu_mod_wobble_frequency", 1.0f, FCVAR_NONE);
-ConVar osu_mod_wobble_rotation_speed("osu_mod_wobble_rotation_speed", 1.0f, FCVAR_NONE);
-ConVar osu_mod_jigsaw2("osu_mod_jigsaw2", false, FCVAR_NONE);
-ConVar osu_mod_jigsaw_followcircle_radius_factor("osu_mod_jigsaw_followcircle_radius_factor", 0.0f, FCVAR_NONE);
-ConVar osu_mod_shirone("osu_mod_shirone", false, FCVAR_NONE);
-ConVar osu_mod_shirone_combo("osu_mod_shirone_combo", 20.0f, FCVAR_NONE);
-ConVar osu_mod_mafham_render_chunksize("osu_mod_mafham_render_chunksize", 15, FCVAR_NONE, "render this many hitobjects per frame chunk into the scene buffer (spreads rendering across many frames to minimize lag)");
+ConVar mandala("osu_mandala", false, FCVAR_NONE);
+ConVar mandala_num("osu_mandala_num", 7, FCVAR_NONE);
 
-ConVar osu_mandala("osu_mandala", false, FCVAR_NONE);
-ConVar osu_mandala_num("osu_mandala_num", 7, FCVAR_NONE);
+ConVar debug_hiterrorbar_misaims("osu_debug_hiterrorbar_misaims", false, FCVAR_NONE);
 
-ConVar osu_debug_hiterrorbar_misaims("osu_debug_hiterrorbar_misaims", false, FCVAR_NONE);
+ConVar pp_live_timeout("osu_pp_live_timeout", 1.0f, FCVAR_NONE, "show message that we're still calculating stars after this many seconds, on the first start of the beatmap");
+}
 
-ConVar osu_pp_live_timeout("osu_pp_live_timeout", 1.0f, FCVAR_NONE, "show message that we're still calculating stars after this many seconds, on the first start of the beatmap");
 
-ConVar *OsuBeatmapStandard::m_osu_draw_statistics_pp_ref = NULL;
-ConVar *OsuBeatmapStandard::m_osu_draw_statistics_livestars_ref = NULL;
-ConVar *OsuBeatmapStandard::m_osu_mod_fullalternate_ref = NULL;
-ConVar *OsuBeatmapStandard::m_fposu_distance_ref = NULL;
-ConVar *OsuBeatmapStandard::m_fposu_curved_ref = NULL;
-ConVar *OsuBeatmapStandard::m_fposu_3d_curve_multiplier_ref = NULL;
-ConVar *OsuBeatmapStandard::m_fposu_mod_strafing_ref = NULL;
-ConVar *OsuBeatmapStandard::m_fposu_mod_strafing_frequency_x_ref = NULL;
-ConVar *OsuBeatmapStandard::m_fposu_mod_strafing_frequency_y_ref = NULL;
-ConVar *OsuBeatmapStandard::m_fposu_mod_strafing_frequency_z_ref = NULL;
-ConVar *OsuBeatmapStandard::m_fposu_mod_strafing_strength_x_ref = NULL;
-ConVar *OsuBeatmapStandard::m_fposu_mod_strafing_strength_y_ref = NULL;
-ConVar *OsuBeatmapStandard::m_fposu_mod_strafing_strength_z_ref = NULL;
-ConVar *OsuBeatmapStandard::m_fposu_mod_3d_depthwobble_ref = NULL;
-ConVar *OsuBeatmapStandard::m_osu_slider_scorev2_ref = NULL;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 OsuBeatmapStandard::OsuBeatmapStandard() : OsuBeatmap()
 {
@@ -149,8 +149,6 @@ OsuBeatmapStandard::OsuBeatmapStandard() : OsuBeatmap()
 	m_fPrevHitCircleDiameterForStarCache = 1.0f;
 	m_fPrevSpeedForStarCache = 1.0f;
 
-	m_bIsVRDraw = false;
-
 	m_bIsPreLoading = true;
 	m_iPreLoadingIndex = 0;
 
@@ -166,64 +164,50 @@ OsuBeatmapStandard::OsuBeatmapStandard() : OsuBeatmap()
 	m_iMandalaIndex = 0;
 
 	// convar refs
-	if (m_osu_draw_statistics_pp_ref == NULL)
-		m_osu_draw_statistics_pp_ref = convar->getConVarByName("osu_draw_statistics_pp");
-	if (m_osu_draw_statistics_livestars_ref == NULL)
-		m_osu_draw_statistics_livestars_ref = convar->getConVarByName("osu_draw_statistics_livestars");
-	if (m_osu_mod_fullalternate_ref == NULL)
-		m_osu_mod_fullalternate_ref = convar->getConVarByName("osu_mod_fullalternate");
-	if (m_fposu_distance_ref == NULL)
-		m_fposu_distance_ref = convar->getConVarByName("fposu_distance");
-	if (m_fposu_curved_ref == NULL)
-		m_fposu_curved_ref = convar->getConVarByName("fposu_curved");
-	if (m_fposu_3d_curve_multiplier_ref == NULL)
-		m_fposu_3d_curve_multiplier_ref = convar->getConVarByName("fposu_3d_curve_multiplier");
-	if (m_fposu_mod_strafing_ref == NULL)
-		m_fposu_mod_strafing_ref = convar->getConVarByName("fposu_mod_strafing");
-	if (m_fposu_mod_strafing_frequency_x_ref == NULL)
-		m_fposu_mod_strafing_frequency_x_ref = convar->getConVarByName("fposu_mod_strafing_frequency_x");
-	if (m_fposu_mod_strafing_frequency_y_ref == NULL)
-		m_fposu_mod_strafing_frequency_y_ref = convar->getConVarByName("fposu_mod_strafing_frequency_y");
-	if (m_fposu_mod_strafing_frequency_z_ref == NULL)
-		m_fposu_mod_strafing_frequency_z_ref = convar->getConVarByName("fposu_mod_strafing_frequency_z");
-	if (m_fposu_mod_strafing_strength_x_ref == NULL)
-		m_fposu_mod_strafing_strength_x_ref = convar->getConVarByName("fposu_mod_strafing_strength_x");
-	if (m_fposu_mod_strafing_strength_y_ref == NULL)
-		m_fposu_mod_strafing_strength_y_ref = convar->getConVarByName("fposu_mod_strafing_strength_y");
-	if (m_fposu_mod_strafing_strength_z_ref == NULL)
-		m_fposu_mod_strafing_strength_z_ref = convar->getConVarByName("fposu_mod_strafing_strength_z");
-	if (m_fposu_mod_3d_depthwobble_ref == NULL)
-		m_fposu_mod_3d_depthwobble_ref = convar->getConVarByName("fposu_mod_3d_depthwobble");
-	if (m_osu_slider_scorev2_ref == NULL)
-		m_osu_slider_scorev2_ref = convar->getConVarByName("osu_slider_scorev2");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 OsuBeatmapStandard::~OsuBeatmapStandard()
 {
 	m_starCacheLoader->kill();
 
-	if (resourceManager->isLoadingResource(m_starCacheLoader))
-		while (!m_starCacheLoader->isAsyncReady()) {;}
+	// spec: resourceManager->destroyResource should take care of this? why do we have to manually block here
+	// if (resourceManager->isLoadingResource(m_starCacheLoader))
+	// 	while (!m_starCacheLoader->isAsyncReady()) {;}
 
 	resourceManager->destroyResource(m_starCacheLoader);
 }
 
-void OsuBeatmapStandard::draw(Graphics *g)
+void OsuBeatmapStandard::draw()
 {
-	OsuBeatmap::draw(g);
+	OsuBeatmap::draw();
 	if (!canDraw()) return;
 	if (isLoading()) return; // only start drawing the rest of the playfield if everything has loaded
 
 	// draw playfield border
-	if (osu_draw_playfield_border.getBool() && !OsuGameRules::osu_mod_fps.getBool())
-		osu->getHUD()->drawPlayfieldBorder(g, m_vPlayfieldCenter, m_vPlayfieldSize, m_fHitcircleDiameter);
+	if (cv::osu::draw_playfield_border.getBool() && !cv::osu::stdrules::mod_fps.getBool())
+		osu->getHUD()->drawPlayfieldBorder(m_vPlayfieldCenter, m_vPlayfieldSize, m_fHitcircleDiameter);
 
 	// draw hiterrorbar
-	if (!m_osu_mod_fposu_ref->getBool())
-		osu->getHUD()->drawHitErrorBar(g, this);
+	if (!cv::osu::fposu::mod_fposu.getBool())
+		osu->getHUD()->drawHitErrorBar(this);
 
 	// draw first person crosshair
-	if (OsuGameRules::osu_mod_fps.getBool())
+	if (cv::osu::stdrules::mod_fps.getBool())
 	{
 		const int length = 15;
 		Vector2 center = osuCoords2Pixels(Vector2(OsuGameRules::OSU_COORD_WIDTH/2, OsuGameRules::OSU_COORD_HEIGHT/2));
@@ -232,24 +216,20 @@ void OsuBeatmapStandard::draw(Graphics *g)
 		g->drawLine((int)(center.x - length), center.y, (int)(center.x + length + 1), center.y);
 	}
 
-	// allow players to not draw all hitobjects twice if in VR
-	if (osu->isInVRMode() && !m_osu_vr_draw_desktop_playfield_ref->getBool())
-		return;
-
 	// draw followpoints
-	if (osu_draw_followpoints.getBool() && !OsuGameRules::osu_mod_mafham.getBool())
-		drawFollowPoints(g);
+	if (cv::osu::draw_followpoints.getBool() && !cv::osu::stdrules::mod_mafham.getBool())
+		drawFollowPoints();
 
 	// draw all hitobjects in reverse
-	if (m_osu_draw_hitobjects_ref->getBool())
-		drawHitObjects(g);
+	if (cv::osu::draw_hitobjects.getBool())
+		drawHitObjects();
 
-	if (osu_mandala.getBool())
+	if (cv::osu::mandala.getBool())
 	{
-		for (int i=0; i<osu_mandala_num.getInt(); i++)
+		for (int i=0; i<cv::osu::mandala_num.getInt(); i++)
 		{
 			m_iMandalaIndex = i;
-			drawHitObjects(g);
+			drawHitObjects();
 		}
 	}
 
@@ -268,7 +248,7 @@ void OsuBeatmapStandard::draw(Graphics *g)
 	*/
 
 	// debug stuff
-	if (osu_debug_hiterrorbar_misaims.getBool())
+	if (cv::osu::debug_hiterrorbar_misaims.getBool())
 	{
 		for (int i=0; i<m_misaimObjects.size(); i++)
 		{
@@ -279,9 +259,9 @@ void OsuBeatmapStandard::draw(Graphics *g)
 	}
 }
 
-void OsuBeatmapStandard::drawInt(Graphics *g)
+void OsuBeatmapStandard::drawInt()
 {
-	OsuBeatmap::drawInt(g);
+	OsuBeatmap::drawInt();
 	if (!canDraw()) return;
 
 	if (isLoadingStarCache() && engine->getTime() > m_fStarCacheTime)
@@ -295,13 +275,13 @@ void OsuBeatmapStandard::drawInt(Graphics *g)
 		UString loadingMessage2 = "(To get rid of this delay, disable [Draw Statistics: pp/Stars***])";
 		g->pushTransform();
 		{
-			g->translate((int)(osu->getScreenWidth()/2 - osu->getSubTitleFont()->getStringWidth(loadingMessage)/2), osu->getScreenHeight() - osu->getSubTitleFont()->getHeight() - 25);
+			g->translate((int)(osu->getVirtScreenWidth()/2 - osu->getSubTitleFont()->getStringWidth(loadingMessage)/2), osu->getVirtScreenHeight() - osu->getSubTitleFont()->getHeight() - 25);
 			g->drawString(osu->getSubTitleFont(), loadingMessage);
 		}
 		g->popTransform();
 		g->pushTransform();
 		{
-			g->translate((int)(osu->getScreenWidth()/2 - osu->getSubTitleFont()->getStringWidth(loadingMessage2)/2), osu->getScreenHeight() - 15);
+			g->translate((int)(osu->getVirtScreenWidth()/2 - osu->getSubTitleFont()->getStringWidth(loadingMessage2)/2), osu->getVirtScreenHeight() - 15);
 			g->drawString(osu->getSubTitleFont(), loadingMessage2);
 		}
 		g->popTransform();
@@ -314,7 +294,7 @@ void OsuBeatmapStandard::drawInt(Graphics *g)
 			UString loadingMessage = "Waiting for players ...";
 			g->pushTransform();
 			{
-				g->translate((int)(osu->getScreenWidth()/2 - osu->getSubTitleFont()->getStringWidth(loadingMessage)/2), osu->getScreenHeight() - osu->getSubTitleFont()->getHeight() - 15);
+				g->translate((int)(osu->getVirtScreenWidth()/2 - osu->getSubTitleFont()->getStringWidth(loadingMessage)/2), osu->getVirtScreenHeight() - osu->getSubTitleFont()->getHeight() - 15);
 				g->drawString(osu->getSubTitleFont(), loadingMessage);
 			}
 			g->popTransform();
@@ -322,138 +302,22 @@ void OsuBeatmapStandard::drawInt(Graphics *g)
 	}
 }
 
-void OsuBeatmapStandard::drawVR(Graphics *g, Matrix4 &mvp, OsuVR *vr)
+void OsuBeatmapStandard::draw3D()
 {
-	OsuBeatmap::drawVR(g, mvp, vr);
-	if (!canDraw()) return;
-
-	m_bIsVRDraw = true; // this flag is used by getHitcircleDiameter() and osuCoords2Pixels(), for easier backwards compatibility
-	{
-		updateHitobjectMetrics(); // needed for raw hitcircleDiameter
-
-		// draw playfield border
-		if (osu_draw_playfield_border.getBool())
-		{
-			vr->getShaderUntexturedLegacyGeneric()->enable();
-			{
-				vr->getShaderUntexturedLegacyGeneric()->setUniformMatrix4fv("matrix", mvp);
-				g->setColor(0xffffffff);
-				osu->getHUD()->drawPlayfieldBorder(g, Vector2(0,0), Vector2(OsuGameRules::OSU_COORD_WIDTH, OsuGameRules::OSU_COORD_HEIGHT), getHitcircleDiameter());
-			}
-			vr->getShaderUntexturedLegacyGeneric()->disable();
-		}
-
-		// only start drawing the rest of the playfield if the music has loaded
-		if (!isLoading())
-		{
-			// draw all hitobjects in reverse
-			if (m_osu_draw_hitobjects_ref->getBool())
-			{
-				g->setDepthBuffer(false);
-				vr->getShaderTexturedLegacyGeneric()->enable();
-				{
-					const long curPos = m_iCurMusicPosWithOffsets;
-					const long pvs = getPVS();
-					const bool usePVS = m_osu_pvs->getBool();
-
-					if (!osu_draw_reverse_order.getBool())
-					{
-						for (int i=m_hitobjectsSortedByEndTime.size()-1; i>=0; i--)
-						{
-							// PVS optimization (reversed)
-							if (usePVS)
-							{
-								if (m_hitobjectsSortedByEndTime[i]->isFinished() && (curPos - pvs > m_hitobjectsSortedByEndTime[i]->getTime() + m_hitobjectsSortedByEndTime[i]->getDuration())) // past objects
-									break;
-								if (m_hitobjectsSortedByEndTime[i]->getTime() > curPos + pvs) // future objects
-									continue;
-							}
-
-							m_hitobjectsSortedByEndTime[i]->drawVR(g, mvp, vr);
-						}
-					}
-					else
-					{
-						for (int i=0; i<m_hitobjectsSortedByEndTime.size(); i++)
-						{
-							// PVS optimization
-							if (usePVS)
-							{
-								if (m_hitobjectsSortedByEndTime[i]->isFinished() && (curPos - pvs > m_hitobjectsSortedByEndTime[i]->getTime() + m_hitobjectsSortedByEndTime[i]->getDuration())) // past objects
-									continue;
-								if (m_hitobjectsSortedByEndTime[i]->getTime() > curPos + pvs) // future objects
-									break;
-							}
-
-							m_hitobjectsSortedByEndTime[i]->drawVR(g, mvp, vr);
-						}
-					}
-					if (OsuHitObject::m_osu_vr_draw_approach_circles->getBool() && OsuHitObject::m_osu_vr_approach_circles_on_top->getBool())
-					{
-						for (int i=0; i<m_hitobjectsSortedByEndTime.size(); i++)
-						{
-							// PVS optimization
-							if (usePVS)
-							{
-								if (m_hitobjectsSortedByEndTime[i]->isFinished() && (curPos - pvs > m_hitobjectsSortedByEndTime[i]->getTime() + m_hitobjectsSortedByEndTime[i]->getDuration())) // past objects
-									continue;
-								if (m_hitobjectsSortedByEndTime[i]->getTime() > curPos + pvs) // future objects
-									break;
-							}
-
-							m_hitobjectsSortedByEndTime[i]->drawVR2(g, mvp, vr);
-						}
-					}
-				}
-				vr->getShaderTexturedLegacyGeneric()->disable();
-				g->setDepthBuffer(true);
-			}
-
-			if (m_bFailed)
-			{
-				vr->getShaderUntexturedLegacyGeneric()->enable();
-				vr->getShaderUntexturedLegacyGeneric()->setUniformMatrix4fv("matrix", mvp);
-				{
-					Vector2 vrPlayfieldCenter = Vector2(0,0);
-					Vector2 vrPlayfieldSize = Vector2(OsuGameRules::OSU_COORD_WIDTH, OsuGameRules::OSU_COORD_HEIGHT);
-					float vrHitcircleDiameter = getHitcircleDiameter();
-
-					float failTimePercentInv = 1.0f - m_fFailAnim; // goes from 0 to 1 over the duration of osu_fail_time
-					Vector2 playfieldBorderTopLeft = Vector2((int)(vrPlayfieldCenter.x - vrPlayfieldSize.x/2 - vrHitcircleDiameter/2), (int)(vrPlayfieldCenter.y - vrPlayfieldSize.y/2 - vrHitcircleDiameter/2));
-					Vector2 playfieldBorderSize = Vector2((int)(vrPlayfieldSize.x + vrHitcircleDiameter), (int)(vrPlayfieldSize.y + vrHitcircleDiameter));
-
-					g->setColor(0xff000000);
-					g->setAlpha(failTimePercentInv);
-					g->pushTransform();
-					{
-						g->translate(0, 0, 1.0f);
-						g->fillRect(playfieldBorderTopLeft.x, playfieldBorderTopLeft.y, playfieldBorderSize.x, playfieldBorderSize.y);
-					}
-					g->popTransform();
-				}
-				vr->getShaderUntexturedLegacyGeneric()->disable();
-			}
-		}
-	}
-	m_bIsVRDraw = false;
-}
-
-void OsuBeatmapStandard::draw3D(Graphics *g)
-{
-	OsuBeatmap::draw3D(g);
+	OsuBeatmap::draw3D();
 	if (!canDraw()) return;
 	if (isLoading()) return; // only start drawing the rest of the playfield if everything has loaded
 
 	updateHitobjectMetrics(); // needed for raw hitcircleDiameter
 
 	// draw all hitobjects in reverse
-	if (m_osu_draw_hitobjects_ref->getBool())
+	if (cv::osu::draw_hitobjects.getBool())
 	{
 		const long curPos = m_iCurMusicPosWithOffsets;
 		const long pvs = getPVS();
-		const bool usePVS = m_osu_pvs->getBool();
+		const bool usePVS = cv::osu::pvs.getBool();
 
-		if (!osu_draw_reverse_order.getBool())
+		if (!cv::osu::draw_reverse_order.getBool())
 		{
 			for (int i=(int)m_hitobjectsSortedByEndTime.size()-1; i>=0; i--)
 			{
@@ -466,7 +330,7 @@ void OsuBeatmapStandard::draw3D(Graphics *g)
 						continue;
 				}
 
-				m_hitobjectsSortedByEndTime[i]->draw3D(g);
+				m_hitobjectsSortedByEndTime[i]->draw3D();
 			}
 		}
 		else
@@ -482,15 +346,15 @@ void OsuBeatmapStandard::draw3D(Graphics *g)
 						break;
 				}
 
-				m_hitobjectsSortedByEndTime[i]->draw3D(g);
+				m_hitobjectsSortedByEndTime[i]->draw3D();
 			}
 		}
 	}
 }
 
-void OsuBeatmapStandard::draw3D2(Graphics *g)
+void OsuBeatmapStandard::draw3D2()
 {
-	OsuBeatmap::draw3D2(g);
+	OsuBeatmap::draw3D2();
 	if (!canDraw()) return;
 	if (isLoading()) return; // only start drawing the rest of the playfield if everything has loaded
 
@@ -499,17 +363,17 @@ void OsuBeatmapStandard::draw3D2(Graphics *g)
 	// TODO: draw followpoints
 	{
 		/*
-		if (osu_draw_followpoints.getBool() && !OsuGameRules::osu_mod_mafham.getBool())
-			drawFollowPoints(g);
+		if (cv::osu::draw_followpoints.getBool() && !cv::osu::stdrules::mod_mafham.getBool())
+			drawFollowPoints();
 		*/
 	}
 
 	// draw all hitobjects in reverse
-	if (m_osu_draw_hitobjects_ref->getBool())
+	if (cv::osu::draw_hitobjects.getBool())
 	{
 		const long curPos = m_iCurMusicPosWithOffsets;
 		const long pvs = getPVS();
-		const bool usePVS = m_osu_pvs->getBool();
+		const bool usePVS = cv::osu::pvs.getBool();
 
 		for (int i=0; std::cmp_less(i,m_hitobjectsSortedByEndTime.size()); i++)
 		{
@@ -522,12 +386,12 @@ void OsuBeatmapStandard::draw3D2(Graphics *g)
 					break;
 			}
 
-			m_hitobjectsSortedByEndTime[i]->draw3D2(g);
+			m_hitobjectsSortedByEndTime[i]->draw3D2();
 		}
 	}
 }
 
-void OsuBeatmapStandard::drawFollowPoints(Graphics *g)
+void OsuBeatmapStandard::drawFollowPoints()
 {
 	OsuSkin *skin = osu->getSkin();
 
@@ -536,13 +400,13 @@ void OsuBeatmapStandard::drawFollowPoints(Graphics *g)
 	// I absolutely hate this, followpoints can be abused for cheesing high AR reading since they always fade in with a fixed 800 ms custom approach time
 	// capping it at the current approach rate seems sensible, but unfortunately that's not what osu is doing
 	// it was non-osu-compliant-clamped since this client existed, but let's see how many people notice a change after all this time (26.02.2020)
-	const long followPointApproachTime = osu_followpoints_clamp.getBool() ? std::min((long)OsuGameRules::getApproachTime(this), (long)osu_followpoints_approachtime.getFloat()) : (long)osu_followpoints_approachtime.getFloat();
+	const long followPointApproachTime = cv::osu::followpoints_clamp.getBool() ? std::min((long)OsuGameRules::getApproachTime(this), (long)cv::osu::followpoints_approachtime.getFloat()) : (long)cv::osu::followpoints_approachtime.getFloat();
 
-	const bool followPointsConnectCombos = osu_followpoints_connect_combos.getBool();
-	const bool followPointsConnectSpinners = osu_followpoints_connect_spinners.getBool();
-	const float followPointSeparationMultiplier = std::max(osu_followpoints_separation_multiplier.getFloat(), 0.1f);
-	const float followPointPrevFadeTime = m_osu_followpoints_prevfadetime_ref->getFloat();
-	const float followPointScaleMultiplier = osu_followpoints_scale_multiplier.getFloat();
+	const bool followPointsConnectCombos = cv::osu::followpoints_connect_combos.getBool();
+	const bool followPointsConnectSpinners = cv::osu::followpoints_connect_spinners.getBool();
+	const float followPointSeparationMultiplier = std::max(cv::osu::followpoints_separation_multiplier.getFloat(), 0.1f);
+	const float followPointPrevFadeTime = cv::osu::followpoints_prevfadetime.getFloat();
+	const float followPointScaleMultiplier = cv::osu::followpoints_scale_multiplier.getFloat();
 
 	// include previous object in followpoints
 	int lastObjectIndex = -1;
@@ -602,12 +466,12 @@ void OsuBeatmapStandard::drawFollowPoints(Graphics *g)
 				followAnimPercent = -followAnimPercent*(followAnimPercent - 2.0f); // quad out
 
 				// NOTE: only internal osu default skin uses scale + move transforms here, it is impossible to achieve this effect with user skins
-				const float scale = osu_followpoints_anim.getBool() ? 1.5f - 0.5f*followAnimPercent : 1.0f;
-				const Vector2 followPos = osu_followpoints_anim.getBool() ? animPosStart + (finalPos - animPosStart)*followAnimPercent : finalPos;
+				const float scale = cv::osu::followpoints_anim.getBool() ? 1.5f - 0.5f*followAnimPercent : 1.0f;
+				const Vector2 followPos = cv::osu::followpoints_anim.getBool() ? animPosStart + (finalPos - animPosStart)*followAnimPercent : finalPos;
 
 				// bullshit performance optimization: only draw followpoints if within screen bounds (plus a bit of a margin)
 				// there is only one beatmap where this matters currently: https://osu.ppy.sh/b/1145513
-				if (followPos.x < -osu->getScreenWidth() || followPos.x > osu->getScreenWidth()*2 || followPos.y < -osu->getScreenHeight() || followPos.y > osu->getScreenHeight()*2)
+				if (followPos.x < -osu->getVirtScreenWidth() || followPos.x > osu->getVirtScreenWidth()*2 || followPos.y < -osu->getVirtScreenHeight() || followPos.y > osu->getVirtScreenHeight()*2)
 					continue;
 
 				// calculate trail alpha
@@ -639,7 +503,7 @@ void OsuBeatmapStandard::drawFollowPoints(Graphics *g)
 					// the followpoints are scaled by one eighth of the hitcirclediameter (not the raw diameter, but the scaled diameter)
 					const float followPointImageScale = ((m_fHitcircleDiameter / 8.0f) / skin->getFollowPoint2()->getSizeBaseRaw().x) * followPointScaleMultiplier;
 
-					skin->getFollowPoint2()->drawRaw(g, followPos, followPointImageScale*scale);
+					skin->getFollowPoint2()->drawRaw(followPos, followPointImageScale*scale);
 				}
 				g->popTransform();
 			}
@@ -654,15 +518,15 @@ void OsuBeatmapStandard::drawFollowPoints(Graphics *g)
 	}
 }
 
-void OsuBeatmapStandard::drawHitObjects(Graphics *g)
+void OsuBeatmapStandard::drawHitObjects()
 {
 	const long curPos = m_iCurMusicPosWithOffsets;
 	const long pvs = getPVS();
-	const bool usePVS = m_osu_pvs->getBool();
+	const bool usePVS = cv::osu::pvs.getBool();
 
-	if (!OsuGameRules::osu_mod_mafham.getBool())
+	if (!cv::osu::stdrules::mod_mafham.getBool())
 	{
-		if (!osu_draw_reverse_order.getBool())
+		if (!cv::osu::draw_reverse_order.getBool())
 		{
 			for (int i=m_hitobjectsSortedByEndTime.size()-1; i>=0; i--)
 			{
@@ -675,7 +539,7 @@ void OsuBeatmapStandard::drawHitObjects(Graphics *g)
 						continue;
 				}
 
-				m_hitobjectsSortedByEndTime[i]->draw(g);
+				m_hitobjectsSortedByEndTime[i]->draw();
 			}
 		}
 		else
@@ -691,7 +555,7 @@ void OsuBeatmapStandard::drawHitObjects(Graphics *g)
 						break;
 				}
 
-				m_hitobjectsSortedByEndTime[i]->draw(g);
+				m_hitobjectsSortedByEndTime[i]->draw();
 			}
 		}
 		for (int i=0; i<m_hitobjectsSortedByEndTime.size(); i++)
@@ -706,12 +570,12 @@ void OsuBeatmapStandard::drawHitObjects(Graphics *g)
 					break;
 			}
 
-			m_hitobjectsSortedByEndTime[i]->draw2(g);
+			m_hitobjectsSortedByEndTime[i]->draw2();
 		}
 	}
 	else
 	{
-		const int mafhamRenderLiveSize = OsuGameRules::osu_mod_mafham_render_livesize.getInt();
+		const int mafhamRenderLiveSize = cv::osu::stdrules::mod_mafham_render_livesize.getInt();
 
 		if (m_mafhamActiveRenderTarget == NULL)
 			m_mafhamActiveRenderTarget = osu->getFrameBuffer();
@@ -737,7 +601,7 @@ void OsuBeatmapStandard::drawHitObjects(Graphics *g)
 					for (int i=m_hitobjectsSortedByEndTime.size()-1 - m_iMafhamHitObjectRenderIndex; i>=0; i--, m_iMafhamHitObjectRenderIndex++)
 					{
 						chunkCounter++;
-						if (chunkCounter > osu_mod_mafham_render_chunksize.getInt())
+						if (chunkCounter > cv::osu::mod_mafham_render_chunksize.getInt())
 							break; // continue chunk render in next frame
 
 						if (i <= m_iCurrentHitObjectIndex + mafhamRenderLiveSize) // skip live objects
@@ -758,7 +622,7 @@ void OsuBeatmapStandard::drawHitObjects(Graphics *g)
 								continue;
 						}
 
-						m_hitobjectsSortedByEndTime[i]->draw(g);
+						m_hitobjectsSortedByEndTime[i]->draw();
 
 						m_iMafhamActiveRenderHitObjectIndex = i;
 					}
@@ -788,14 +652,14 @@ void OsuBeatmapStandard::drawHitObjects(Graphics *g)
 		{
 			g->setBlendMode(Graphics::BLEND_MODE::BLEND_MODE_PREMUL_COLOR);
 			{
-				m_mafhamFinishedRenderTarget->draw(g, 0, 0);
+				m_mafhamFinishedRenderTarget->draw(0, 0);
 			}
 			g->setBlendMode(Graphics::BLEND_MODE::BLEND_MODE_ALPHA);
 		}
 
 		// draw followpoints
-		if (osu_draw_followpoints.getBool())
-			drawFollowPoints(g);
+		if (cv::osu::draw_followpoints.getBool())
+			drawFollowPoints();
 
 		// draw live hitobjects (also, code duplication yay)
 		{
@@ -813,7 +677,7 @@ void OsuBeatmapStandard::drawHitObjects(Graphics *g)
 				if (i > m_iCurrentHitObjectIndex + mafhamRenderLiveSize || (i > m_iMafhamFinishedRenderHitObjectIndex-1 && shouldDrawBuffer)) // skip non-live objects
 					continue;
 
-				m_hitobjectsSortedByEndTime[i]->draw(g);
+				m_hitobjectsSortedByEndTime[i]->draw();
 			}
 
 			for (int i=0; i<m_hitobjectsSortedByEndTime.size(); i++)
@@ -830,7 +694,7 @@ void OsuBeatmapStandard::drawHitObjects(Graphics *g)
 				if (i >= m_iCurrentHitObjectIndex + mafhamRenderLiveSize || (i >= m_iMafhamFinishedRenderHitObjectIndex-1 && shouldDrawBuffer)) // skip non-live objects
 					break;
 
-				m_hitobjectsSortedByEndTime[i]->draw2(g);
+				m_hitobjectsSortedByEndTime[i]->draw2();
 			}
 		}
 	}
@@ -852,10 +716,10 @@ void OsuBeatmapStandard::update()
 	updatePlayfieldMetrics();
 
 	// wobble mod
-	if (osu_mod_wobble.getBool())
+	if (cv::osu::mod_wobble.getBool())
 	{
 		const float speedMultiplierCompensation = 1.0f / getSpeedMultiplier();
-		m_fPlayfieldRotation = (m_iCurMusicPos / 1000.0f) * 30.0f * speedMultiplierCompensation * osu_mod_wobble_rotation_speed.getFloat();
+		m_fPlayfieldRotation = (m_iCurMusicPos / 1000.0f) * 30.0f * speedMultiplierCompensation * cv::osu::mod_wobble_rotation_speed.getFloat();
 		m_fPlayfieldRotation = std::fmod(m_fPlayfieldRotation, 360.0f);
 	}
 	else
@@ -867,7 +731,7 @@ void OsuBeatmapStandard::update()
 	// handle preloading (only for distributed slider vertexbuffer generation atm)
 	if (m_bIsPreLoading)
 	{
-		if (Osu::debug->getBool() && m_iPreLoadingIndex == 0)
+		if (cv::osu::debug.getBool() && m_iPreLoadingIndex == 0)
 			debugLog("OsuBeatmapStandard: Preloading slider vertexbuffers ...\n");
 
 		double startTime = Timing::getTimeReal();
@@ -918,7 +782,7 @@ void OsuBeatmapStandard::update()
 	}
 
 	// scene buffering logic
-	if (OsuGameRules::osu_mod_mafham.getBool())
+	if (cv::osu::stdrules::mod_mafham.getBool())
 	{
 		if (!m_bMafhamRenderScheduled && m_iCurrentHitObjectIndex != m_iMafhamPrevHitObjectIndex) // if we are not already rendering and the index changed
 		{
@@ -929,7 +793,7 @@ void OsuBeatmapStandard::update()
 	}
 
 	// full alternate mod lenience
-	if (m_osu_mod_fullalternate_ref->getBool())
+	if (cv::osu::mod_fullalternate.getBool())
 	{
 		if (m_bInBreak || m_bIsInSkippableSection || m_bIsSpinnerActive || m_iCurrentHitObjectIndex < 1)
 			m_iAllowAnyNextKeyForFullAlternateUntilHitObjectIndex = m_iCurrentHitObjectIndex + 1;
@@ -938,7 +802,7 @@ void OsuBeatmapStandard::update()
 
 void OsuBeatmapStandard::onModUpdate(bool rebuildSliderVertexBuffers, bool recomputeDrainRate)
 {
-	if (Osu::debug->getBool())
+	if (cv::osu::debug.getBool())
 		debugLog("@ {:f}\n", engine->getTime());
 
 	osu->getMultiplayer()->onServerModUpdate();
@@ -956,11 +820,11 @@ void OsuBeatmapStandard::onModUpdate(bool rebuildSliderVertexBuffers, bool recom
 	}
 
 	// recalculate slider vertexbuffers
-	if (osu->getModHR() != m_bWasHREnabled || osu_playfield_mirror_horizontal.getBool() != m_bWasHorizontalMirrorEnabled || osu_playfield_mirror_vertical.getBool() != m_bWasVerticalMirrorEnabled)
+	if (osu->getModHR() != m_bWasHREnabled || cv::osu::playfield_mirror_horizontal.getBool() != m_bWasHorizontalMirrorEnabled || cv::osu::playfield_mirror_vertical.getBool() != m_bWasVerticalMirrorEnabled)
 	{
 		m_bWasHREnabled = osu->getModHR();
-		m_bWasHorizontalMirrorEnabled = osu_playfield_mirror_horizontal.getBool();
-		m_bWasVerticalMirrorEnabled = osu_playfield_mirror_vertical.getBool();
+		m_bWasHorizontalMirrorEnabled = cv::osu::playfield_mirror_horizontal.getBool();
+		m_bWasVerticalMirrorEnabled = cv::osu::playfield_mirror_vertical.getBool();
 
 		calculateStacks();
 
@@ -983,31 +847,31 @@ void OsuBeatmapStandard::onModUpdate(bool rebuildSliderVertexBuffers, bool recom
 		if (rebuildSliderVertexBuffers)
 			updateSliderVertexBuffers();
 	}
-	if (osu_playfield_rotation.getFloat() != m_fPrevPlayfieldRotationFromConVar)
+	if (cv::osu::playfield_rotation.getFloat() != m_fPrevPlayfieldRotationFromConVar)
 	{
-		m_fPrevPlayfieldRotationFromConVar = osu_playfield_rotation.getFloat();
+		m_fPrevPlayfieldRotationFromConVar = cv::osu::playfield_rotation.getFloat();
 		if (rebuildSliderVertexBuffers)
 			updateSliderVertexBuffers();
 	}
-	if (osu_playfield_stretch_x.getFloat() != m_fPrevPlayfieldStretchX)
+	if (cv::osu::playfield_stretch_x.getFloat() != m_fPrevPlayfieldStretchX)
 	{
 		calculateStacks();
 
-		m_fPrevPlayfieldStretchX = osu_playfield_stretch_x.getFloat();
+		m_fPrevPlayfieldStretchX = cv::osu::playfield_stretch_x.getFloat();
 		if (rebuildSliderVertexBuffers)
 			updateSliderVertexBuffers();
 	}
-	if (osu_playfield_stretch_y.getFloat() != m_fPrevPlayfieldStretchY)
+	if (cv::osu::playfield_stretch_y.getFloat() != m_fPrevPlayfieldStretchY)
 	{
 		calculateStacks();
 
-		m_fPrevPlayfieldStretchY = osu_playfield_stretch_y.getFloat();
+		m_fPrevPlayfieldStretchY = cv::osu::playfield_stretch_y.getFloat();
 		if (rebuildSliderVertexBuffers)
 			updateSliderVertexBuffers();
 	}
-	if (OsuGameRules::osu_mod_mafham.getBool() != m_bWasMafhamEnabled)
+	if (cv::osu::stdrules::mod_mafham.getBool() != m_bWasMafhamEnabled)
 	{
-		m_bWasMafhamEnabled = OsuGameRules::osu_mod_mafham.getBool();
+		m_bWasMafhamEnabled = cv::osu::stdrules::mod_mafham.getBool();
 		for (int i=0; i<m_hitobjects.size(); i++)
 		{
 			m_hitobjects[i]->update(m_iCurMusicPosWithOffsets);
@@ -1015,7 +879,7 @@ void OsuBeatmapStandard::onModUpdate(bool rebuildSliderVertexBuffers, bool recom
 	}
 
 	// recalculate star cache for live pp
-	if (m_osu_draw_statistics_pp_ref->getBool() || m_osu_draw_statistics_livestars_ref->getBool()) // sanity + performance/usability
+	if (cv::osu::draw_statistics_pp.getBool() || cv::osu::draw_statistics_livestars.getBool()) // sanity + performance/usability
 	{
 		bool didCSChange = false;
 		if (getHitcircleDiameter() != m_fPrevHitCircleDiameterForStarCache && m_hitobjects.size() > 0)
@@ -1047,7 +911,7 @@ bool OsuBeatmapStandard::isLoading() const
 Vector2 OsuBeatmapStandard::pixels2OsuCoords(Vector2 pixelCoords) const
 {
 	// un-first-person
-	if (OsuGameRules::osu_mod_fps.getBool())
+	if (cv::osu::stdrules::mod_fps.getBool())
 	{
 		// HACKHACK: this is the worst hack possible (engine->isDrawing()), but it works
 		// the problem is that this same function is called while draw()ing and update()ing
@@ -1064,42 +928,39 @@ Vector2 OsuBeatmapStandard::pixels2OsuCoords(Vector2 pixelCoords) const
 
 Vector2 OsuBeatmapStandard::osuCoords2Pixels(Vector2 coords) const
 {
-	if (m_bIsVRDraw)
-		return osuCoords2VRPixels(coords);
-
 	if (osu->getModHR())
 		coords.y = OsuGameRules::OSU_COORD_HEIGHT - coords.y;
-	if (osu_playfield_mirror_horizontal.getBool())
+	if (cv::osu::playfield_mirror_horizontal.getBool())
 		coords.y = OsuGameRules::OSU_COORD_HEIGHT - coords.y;
-	if (osu_playfield_mirror_vertical.getBool())
+	if (cv::osu::playfield_mirror_vertical.getBool())
 		coords.x = OsuGameRules::OSU_COORD_WIDTH - coords.x;
 
 	// wobble
-	if (osu_mod_wobble.getBool())
+	if (cv::osu::mod_wobble.getBool())
 	{
 		const float speedMultiplierCompensation = 1.0f / getSpeedMultiplier();
-		coords.x += std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*osu_mod_wobble_frequency.getFloat())*osu_mod_wobble_strength.getFloat();
-		coords.y += std::sin((m_iCurMusicPos/1000.0f)*4*speedMultiplierCompensation*osu_mod_wobble_frequency.getFloat())*osu_mod_wobble_strength.getFloat();
+		coords.x += std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*cv::osu::mod_wobble_frequency.getFloat())*cv::osu::mod_wobble_strength.getFloat();
+		coords.y += std::sin((m_iCurMusicPos/1000.0f)*4*speedMultiplierCompensation*cv::osu::mod_wobble_frequency.getFloat())*cv::osu::mod_wobble_strength.getFloat();
 	}
 
 	// wobble2
-	if (osu_mod_wobble2.getBool())
+	if (cv::osu::mod_wobble2.getBool())
 	{
 		const float speedMultiplierCompensation = 1.0f / getSpeedMultiplier();
 		Vector2 centerDelta = coords - Vector2(OsuGameRules::OSU_COORD_WIDTH, OsuGameRules::OSU_COORD_HEIGHT)/2.0f;
-		coords.x += centerDelta.x*0.25f*std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*osu_mod_wobble_frequency.getFloat())*osu_mod_wobble_strength.getFloat();
-		coords.y += centerDelta.y*0.25f*std::sin((m_iCurMusicPos/1000.0f)*3*speedMultiplierCompensation*osu_mod_wobble_frequency.getFloat())*osu_mod_wobble_strength.getFloat();
+		coords.x += centerDelta.x*0.25f*std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*cv::osu::mod_wobble_frequency.getFloat())*cv::osu::mod_wobble_strength.getFloat();
+		coords.y += centerDelta.y*0.25f*std::sin((m_iCurMusicPos/1000.0f)*3*speedMultiplierCompensation*cv::osu::mod_wobble_frequency.getFloat())*cv::osu::mod_wobble_strength.getFloat();
 	}
 
 	// rotation
-	if (m_fPlayfieldRotation + osu_playfield_rotation.getFloat() != 0.0f)
+	if (m_fPlayfieldRotation + cv::osu::playfield_rotation.getFloat() != 0.0f)
 	{
 		coords.x -= OsuGameRules::OSU_COORD_WIDTH/2;
 		coords.y -= OsuGameRules::OSU_COORD_HEIGHT/2;
 
 		Vector3 coords3 = Vector3(coords.x, coords.y, 0);
 		Matrix4 rot;
-		rot.rotateZ(m_fPlayfieldRotation + osu_playfield_rotation.getFloat()); // (m_iCurMusicPos/1000.0f)*30
+		rot.rotateZ(m_fPlayfieldRotation + cv::osu::playfield_rotation.getFloat()); // (m_iCurMusicPos/1000.0f)*30
 
 		coords3 = coords3 * rot;
 		coords3.x += OsuGameRules::OSU_COORD_WIDTH/2;
@@ -1109,14 +970,14 @@ Vector2 OsuBeatmapStandard::osuCoords2Pixels(Vector2 coords) const
 		coords.y = coords3.y;
 	}
 
-	if (osu_mandala.getBool())
+	if (cv::osu::mandala.getBool())
 	{
 		coords.x -= OsuGameRules::OSU_COORD_WIDTH/2;
 		coords.y -= OsuGameRules::OSU_COORD_HEIGHT/2;
 
 		Vector3 coords3 = Vector3(coords.x, coords.y, 0);
 		Matrix4 rot;
-		rot.rotateZ((360.0f / osu_mandala_num.getInt()) * (m_iMandalaIndex + 1)); // (m_iCurMusicPos/1000.0f)*30
+		rot.rotateZ((360.0f / cv::osu::mandala_num.getInt()) * (m_iMandalaIndex + 1)); // (m_iCurMusicPos/1000.0f)*30
 
 		coords3 = coords3 * rot;
 		coords3.x += OsuGameRules::OSU_COORD_WIDTH/2;
@@ -1127,7 +988,7 @@ Vector2 OsuBeatmapStandard::osuCoords2Pixels(Vector2 coords) const
 	}
 
 	// if wobble, clamp coordinates
-	if (osu_mod_wobble.getBool() || osu_mod_wobble2.getBool())
+	if (cv::osu::mod_wobble.getBool() || cv::osu::mod_wobble2.getBool())
 	{
 		coords.x = std::clamp<float>(coords.x, 0.0f, OsuGameRules::OSU_COORD_WIDTH);
 		coords.y = std::clamp<float>(coords.y, 0.0f, OsuGameRules::OSU_COORD_HEIGHT);
@@ -1157,7 +1018,7 @@ Vector2 OsuBeatmapStandard::osuCoords2Pixels(Vector2 coords) const
 	coords.x -= OsuGameRules::OSU_COORD_WIDTH/2; // center
 	coords.y -= OsuGameRules::OSU_COORD_HEIGHT/2;
 	{
-		if (osu_playfield_circular.getBool())
+		if (cv::osu::playfield_circular.getBool())
 		{
 			// normalize to -1 +1
 			coords.x /= (float)OsuGameRules::OSU_COORD_WIDTH / 2.0f;
@@ -1174,8 +1035,8 @@ Vector2 OsuBeatmapStandard::osuCoords2Pixels(Vector2 coords) const
 		}
 
 		// stretch
-		coords.x *= 1.0f + osu_playfield_stretch_x.getFloat();
-		coords.y *= 1.0f + osu_playfield_stretch_y.getFloat();
+		coords.x *= 1.0f + cv::osu::playfield_stretch_x.getFloat();
+		coords.y *= 1.0f + cv::osu::playfield_stretch_y.getFloat();
 	}
 	coords.x += OsuGameRules::OSU_COORD_WIDTH/2; // undo center
 	coords.y += OsuGameRules::OSU_COORD_HEIGHT/2;
@@ -1185,7 +1046,7 @@ Vector2 OsuBeatmapStandard::osuCoords2Pixels(Vector2 coords) const
 	coords += m_vPlayfieldOffset; // the offset is already scaled, just add it
 
 	// first person mod, centered cursor
-	if (OsuGameRules::osu_mod_fps.getBool())
+	if (cv::osu::stdrules::mod_fps.getBool())
 	{
 		// this is the worst hack possible (engine->isDrawing()), but it works
 		// the problem is that this same function is called while draw()ing and update()ing
@@ -1205,139 +1066,41 @@ Vector2 OsuBeatmapStandard::osuCoords2RawPixels(Vector2 coords) const
 	return coords;
 }
 
-Vector2 OsuBeatmapStandard::osuCoords2VRPixels(Vector2 coords) const
-{
-	if (osu->getModHR())
-		coords.y = OsuGameRules::OSU_COORD_HEIGHT - coords.y;
-	if (osu_playfield_mirror_horizontal.getBool())
-		coords.y = OsuGameRules::OSU_COORD_HEIGHT - coords.y;
-	if (osu_playfield_mirror_vertical.getBool())
-		coords.x = OsuGameRules::OSU_COORD_WIDTH - coords.x;
-
-	// wobble
-	if (osu_mod_wobble.getBool())
-	{
-		const float speedMultiplierCompensation = 1.0f / getSpeedMultiplier();
-		coords.x += std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*osu_mod_wobble_frequency.getFloat())*osu_mod_wobble_strength.getFloat();
-		coords.y += std::sin((m_iCurMusicPos/1000.0f)*4*speedMultiplierCompensation*osu_mod_wobble_frequency.getFloat())*osu_mod_wobble_strength.getFloat();
-	}
-
-	// wobble2
-	if (osu_mod_wobble2.getBool())
-	{
-		const float speedMultiplierCompensation = 1.0f / getSpeedMultiplier();
-		Vector2 centerDelta = coords - Vector2(OsuGameRules::OSU_COORD_WIDTH, OsuGameRules::OSU_COORD_HEIGHT)/2.0f;
-		coords.x += centerDelta.x*0.25f*std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*osu_mod_wobble_frequency.getFloat())*osu_mod_wobble_strength.getFloat();
-		coords.y += centerDelta.y*0.25f*std::sin((m_iCurMusicPos/1000.0f)*3*speedMultiplierCompensation*osu_mod_wobble_frequency.getFloat())*osu_mod_wobble_strength.getFloat();
-	}
-
-	// rotation
-	if (m_fPlayfieldRotation + osu_playfield_rotation.getFloat() != 0.0f)
-	{
-		coords.x -= OsuGameRules::OSU_COORD_WIDTH/2;
-		coords.y -= OsuGameRules::OSU_COORD_HEIGHT/2;
-
-		Vector3 coords3 = Vector3(coords.x, coords.y, 0);
-		Matrix4 rot;
-		rot.rotateZ(m_fPlayfieldRotation + osu_playfield_rotation.getFloat());
-
-		coords3 = coords3 * rot;
-		coords3.x += OsuGameRules::OSU_COORD_WIDTH/2;
-		coords3.y += OsuGameRules::OSU_COORD_HEIGHT/2;
-
-		coords.x = coords3.x;
-		coords.y = coords3.y;
-	}
-
-	// if wobble, clamp coordinates
-	if (osu_mod_wobble.getBool() || osu_mod_wobble2.getBool())
-	{
-		coords.x = std::clamp<float>(coords.x, 0.0f, OsuGameRules::OSU_COORD_WIDTH);
-		coords.y = std::clamp<float>(coords.y, 0.0f, OsuGameRules::OSU_COORD_HEIGHT);
-	}
-
-	if (m_bFailed)
-	{
-		float failTimePercentInv = 1.0f - m_fFailAnim; // goes from 0 to 1 over the duration of osu_fail_time
-		failTimePercentInv *= failTimePercentInv;
-
-		coords.x -= OsuGameRules::OSU_COORD_WIDTH/2;
-		coords.y -= OsuGameRules::OSU_COORD_HEIGHT/2;
-
-		Vector3 coords3 = Vector3(coords.x, coords.y, 0);
-		Matrix4 rot;
-		rot.rotateZ(failTimePercentInv*60.0f);
-
-		coords3 = coords3 * rot;
-		coords3.x += OsuGameRules::OSU_COORD_WIDTH/2;
-		coords3.y += OsuGameRules::OSU_COORD_HEIGHT/2;
-
-		coords.x = coords3.x + failTimePercentInv*OsuGameRules::OSU_COORD_WIDTH*0.25f;
-		coords.y = coords3.y + failTimePercentInv*OsuGameRules::OSU_COORD_HEIGHT*1.25f;
-	}
-
-	// VR center
-	coords.x -= OsuGameRules::OSU_COORD_WIDTH/2;
-	coords.y -= OsuGameRules::OSU_COORD_HEIGHT/2;
-
-	if (osu_playfield_circular.getBool())
-	{
-		// normalize to -1 +1
-		coords.x /= (float)OsuGameRules::OSU_COORD_WIDTH / 2.0f;
-		coords.y /= (float)OsuGameRules::OSU_COORD_HEIGHT / 2.0f;
-
-		// clamp (for sqrt) and transform
-		coords.x = std::clamp<float>(coords.x, -1.0f, 1.0f);
-		coords.y = std::clamp<float>(coords.y, -1.0f, 1.0f);
-		coords = mapNormalizedCoordsOntoUnitCircle(coords);
-
-		// and scale back up
-		coords.x *= (float)OsuGameRules::OSU_COORD_WIDTH / 2.0f;
-		coords.y *= (float)OsuGameRules::OSU_COORD_HEIGHT / 2.0f;
-	}
-
-	// VR scale
-	coords.x *= 1.0f + osu_playfield_stretch_x.getFloat();
-	coords.y *= 1.0f + osu_playfield_stretch_y.getFloat();
-
-	return coords;
-}
-
 Vector3 OsuBeatmapStandard::osuCoordsTo3D(Vector2 coords, const OsuHitObject *hitObject) const
 {
 	if (osu->getModHR())
 		coords.y = OsuGameRules::OSU_COORD_HEIGHT - coords.y;
-	if (osu_playfield_mirror_horizontal.getBool())
+	if (cv::osu::playfield_mirror_horizontal.getBool())
 		coords.y = OsuGameRules::OSU_COORD_HEIGHT - coords.y;
-	if (osu_playfield_mirror_vertical.getBool())
+	if (cv::osu::playfield_mirror_vertical.getBool())
 		coords.x = OsuGameRules::OSU_COORD_WIDTH - coords.x;
 
 	// wobble
-	if (osu_mod_wobble.getBool())
+	if (cv::osu::mod_wobble.getBool())
 	{
 		const float speedMultiplierCompensation = 1.0f / getSpeedMultiplier();
-		coords.x += std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*osu_mod_wobble_frequency.getFloat())*osu_mod_wobble_strength.getFloat();
-		coords.y += std::sin((m_iCurMusicPos/1000.0f)*4*speedMultiplierCompensation*osu_mod_wobble_frequency.getFloat())*osu_mod_wobble_strength.getFloat();
+		coords.x += std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*cv::osu::mod_wobble_frequency.getFloat())*cv::osu::mod_wobble_strength.getFloat();
+		coords.y += std::sin((m_iCurMusicPos/1000.0f)*4*speedMultiplierCompensation*cv::osu::mod_wobble_frequency.getFloat())*cv::osu::mod_wobble_strength.getFloat();
 	}
 
 	// wobble2
-	if (osu_mod_wobble2.getBool())
+	if (cv::osu::mod_wobble2.getBool())
 	{
 		const float speedMultiplierCompensation = 1.0f / getSpeedMultiplier();
 		Vector2 centerDelta = coords - Vector2(OsuGameRules::OSU_COORD_WIDTH, OsuGameRules::OSU_COORD_HEIGHT)/2.0f;
-		coords.x += centerDelta.x*0.25f*std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*osu_mod_wobble_frequency.getFloat())*osu_mod_wobble_strength.getFloat();
-		coords.y += centerDelta.y*0.25f*std::sin((m_iCurMusicPos/1000.0f)*3*speedMultiplierCompensation*osu_mod_wobble_frequency.getFloat())*osu_mod_wobble_strength.getFloat();
+		coords.x += centerDelta.x*0.25f*std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*cv::osu::mod_wobble_frequency.getFloat())*cv::osu::mod_wobble_strength.getFloat();
+		coords.y += centerDelta.y*0.25f*std::sin((m_iCurMusicPos/1000.0f)*3*speedMultiplierCompensation*cv::osu::mod_wobble_frequency.getFloat())*cv::osu::mod_wobble_strength.getFloat();
 	}
 
 	// rotation
-	if (m_fPlayfieldRotation + osu_playfield_rotation.getFloat() != 0.0f)
+	if (m_fPlayfieldRotation + cv::osu::playfield_rotation.getFloat() != 0.0f)
 	{
 		coords.x -= OsuGameRules::OSU_COORD_WIDTH/2;
 		coords.y -= OsuGameRules::OSU_COORD_HEIGHT/2;
 
 		Vector3 coords3 = Vector3(coords.x, coords.y, 0);
 		Matrix4 rot;
-		rot.rotateZ(m_fPlayfieldRotation + osu_playfield_rotation.getFloat());
+		rot.rotateZ(m_fPlayfieldRotation + cv::osu::playfield_rotation.getFloat());
 
 		coords3 = coords3 * rot;
 		coords3.x += OsuGameRules::OSU_COORD_WIDTH/2;
@@ -1348,7 +1111,7 @@ Vector3 OsuBeatmapStandard::osuCoordsTo3D(Vector2 coords, const OsuHitObject *hi
 	}
 
 	// if wobble, clamp coordinates
-	if (osu_mod_wobble.getBool() || osu_mod_wobble2.getBool())
+	if (cv::osu::mod_wobble.getBool() || cv::osu::mod_wobble2.getBool())
 	{
 		coords.x = std::clamp<float>(coords.x, 0.0f, OsuGameRules::OSU_COORD_WIDTH);
 		coords.y = std::clamp<float>(coords.y, 0.0f, OsuGameRules::OSU_COORD_HEIGHT);
@@ -1378,7 +1141,7 @@ Vector3 OsuBeatmapStandard::osuCoordsTo3D(Vector2 coords, const OsuHitObject *hi
 	coords.x -= OsuGameRules::OSU_COORD_WIDTH / 2;
 	coords.y -= OsuGameRules::OSU_COORD_HEIGHT / 2;
 
-	if (osu_playfield_circular.getBool())
+	if (cv::osu::playfield_circular.getBool())
 	{
 		// normalize to -1 +1
 		coords.x /= (float)OsuGameRules::OSU_COORD_WIDTH / 2.0f;
@@ -1395,20 +1158,20 @@ Vector3 OsuBeatmapStandard::osuCoordsTo3D(Vector2 coords, const OsuHitObject *hi
 	}
 
 	// 3d scale
-	coords.x *= 1.0f + osu_playfield_stretch_x.getFloat();
-	coords.y *= 1.0f + osu_playfield_stretch_y.getFloat();
+	coords.x *= 1.0f + cv::osu::playfield_stretch_x.getFloat();
+	coords.y *= 1.0f + cv::osu::playfield_stretch_y.getFloat();
 
-	const float xCurvePercent = (1.0f + ((coords.x / ((float)OsuGameRules::OSU_COORD_WIDTH / 2.0f)) * m_fposu_3d_curve_multiplier_ref->getFloat())) / 2.0f;
+	const float xCurvePercent = (1.0f + ((coords.x / ((float)OsuGameRules::OSU_COORD_WIDTH / 2.0f)) * cv::osu::fposu::threeD_curve_multiplier.getFloat())) / 2.0f;
 
 	Vector3 coords3d = Vector3(coords.x, -coords.y, 0) * OsuModFPoSu::SIZEDIV3D * osu->getFPoSu()->get3DPlayfieldScale();
 
-	if (m_fposu_mod_strafing_ref->getBool())
+	if (cv::osu::fposu::mod_strafing.getBool())
 	{
 		const float speedMultiplierCompensation = 1.0f / getSpeedMultiplier();
 
-		const float x = std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*m_fposu_mod_strafing_frequency_x_ref->getFloat())*m_fposu_mod_strafing_strength_x_ref->getFloat();
-		const float y = std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*m_fposu_mod_strafing_frequency_y_ref->getFloat())*m_fposu_mod_strafing_strength_y_ref->getFloat();
-		const float z = std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*m_fposu_mod_strafing_frequency_z_ref->getFloat())*m_fposu_mod_strafing_strength_z_ref->getFloat();
+		const float x = std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*cv::osu::fposu::mod_strafing_frequency_x.getFloat())*cv::osu::fposu::mod_strafing_strength_x.getFloat();
+		const float y = std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*cv::osu::fposu::mod_strafing_frequency_y.getFloat())*cv::osu::fposu::mod_strafing_strength_y.getFloat();
+		const float z = std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*cv::osu::fposu::mod_strafing_frequency_z.getFloat())*cv::osu::fposu::mod_strafing_strength_z.getFloat();
 
 		coords3d += Vector3(x, y, z);
 	}
@@ -1443,7 +1206,7 @@ Vector3 OsuBeatmapStandard::osuCoordsTo3D(Vector2 coords, const OsuHitObject *hi
 		}
 	}
 	*/
-	//if (m_fposu_mod_3d_depthwobble_ref->getBool())
+	//if (cv::osu::fposu::mod_3d_depthwobble.getBool())
 	/*
 	{
 		// TODO: try coords.y multiplier such that we get 3d multiplied sines with random mountains sprinkled regularly, should be more enjoyable to have more height differences like that
@@ -1451,10 +1214,10 @@ Vector3 OsuBeatmapStandard::osuCoordsTo3D(Vector2 coords, const OsuHitObject *hi
 	}
 	*/
 
-	if (m_fposu_curved_ref->getBool())
-		return (coords3d + Vector3(0, 0, -quadLerp3f(m_fposu_distance_ref->getFloat(), osu->getFPoSu()->getEdgeDistance(), m_fposu_distance_ref->getFloat(), xCurvePercent)));
+	if (cv::osu::fposu::curved.getBool())
+		return (coords3d + Vector3(0, 0, -quadLerp3f(cv::osu::fposu::distance.getFloat(), osu->getFPoSu()->getEdgeDistance(), cv::osu::fposu::distance.getFloat(), xCurvePercent)));
 	else
-		return (coords3d + Vector3(0, 0, -m_fposu_distance_ref->getFloat()));
+		return (coords3d + Vector3(0, 0, -cv::osu::fposu::distance.getFloat()));
 }
 
 Vector3 OsuBeatmapStandard::osuCoordsToRaw3D(Vector2 coords) const
@@ -1463,50 +1226,50 @@ Vector3 OsuBeatmapStandard::osuCoordsToRaw3D(Vector2 coords) const
 	coords.x -= OsuGameRules::OSU_COORD_WIDTH / 2;
 	coords.y -= OsuGameRules::OSU_COORD_HEIGHT / 2;
 
-	const float xCurvePercent = (1.0f + ((coords.x / ((float)OsuGameRules::OSU_COORD_WIDTH / 2.0f)) * m_fposu_3d_curve_multiplier_ref->getFloat())) / 2.0f;
+	const float xCurvePercent = (1.0f + ((coords.x / ((float)OsuGameRules::OSU_COORD_WIDTH / 2.0f)) * cv::osu::fposu::threeD_curve_multiplier.getFloat())) / 2.0f;
 
 	Vector3 coords3d = Vector3(coords.x, -coords.y, 0) * OsuModFPoSu::SIZEDIV3D * osu->getFPoSu()->get3DPlayfieldScale();
 
-	if (m_fposu_mod_strafing_ref->getBool())
+	if (cv::osu::fposu::mod_strafing.getBool())
 	{
 		const float speedMultiplierCompensation = 1.0f / getSpeedMultiplier();
 
-		const float x = std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*m_fposu_mod_strafing_frequency_x_ref->getFloat())*m_fposu_mod_strafing_strength_x_ref->getFloat();
-		const float y = std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*m_fposu_mod_strafing_frequency_y_ref->getFloat())*m_fposu_mod_strafing_strength_y_ref->getFloat();
-		const float z = std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*m_fposu_mod_strafing_frequency_z_ref->getFloat())*m_fposu_mod_strafing_strength_z_ref->getFloat();
+		const float x = std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*cv::osu::fposu::mod_strafing_frequency_x.getFloat())*cv::osu::fposu::mod_strafing_strength_x.getFloat();
+		const float y = std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*cv::osu::fposu::mod_strafing_frequency_y.getFloat())*cv::osu::fposu::mod_strafing_strength_y.getFloat();
+		const float z = std::sin((m_iCurMusicPos/1000.0f)*5*speedMultiplierCompensation*cv::osu::fposu::mod_strafing_frequency_z.getFloat())*cv::osu::fposu::mod_strafing_strength_z.getFloat();
 
 		coords3d += Vector3(x, y, z);
 	}
 
-	if (m_fposu_mod_3d_depthwobble_ref->getBool())
+	if (cv::osu::fposu::mod_3d_depthwobble.getBool())
 	{
 		// TODO: implement (all 3d transforms need to match osuCoordsTo3D(), otherwise auto and traceLine() would break)
 	}
 
-	if (m_fposu_curved_ref->getBool())
-		return (coords3d + Vector3(0, 0, -quadLerp3f(m_fposu_distance_ref->getFloat(), osu->getFPoSu()->getEdgeDistance(), m_fposu_distance_ref->getFloat(), xCurvePercent)));
+	if (cv::osu::fposu::curved.getBool())
+		return (coords3d + Vector3(0, 0, -quadLerp3f(cv::osu::fposu::distance.getFloat(), osu->getFPoSu()->getEdgeDistance(), cv::osu::fposu::distance.getFloat(), xCurvePercent)));
 	else
-		return (coords3d + Vector3(0, 0, -m_fposu_distance_ref->getFloat()));
+		return (coords3d + Vector3(0, 0, -cv::osu::fposu::distance.getFloat()));
 }
 
 Vector2 OsuBeatmapStandard::osuCoords2LegacyPixels(Vector2 coords) const
 {
 	if (osu->getModHR())
 		coords.y = OsuGameRules::OSU_COORD_HEIGHT - coords.y;
-	if (osu_playfield_mirror_horizontal.getBool())
+	if (cv::osu::playfield_mirror_horizontal.getBool())
 		coords.y = OsuGameRules::OSU_COORD_HEIGHT - coords.y;
-	if (osu_playfield_mirror_vertical.getBool())
+	if (cv::osu::playfield_mirror_vertical.getBool())
 		coords.x = OsuGameRules::OSU_COORD_WIDTH - coords.x;
 
 	// rotation
-	if (m_fPlayfieldRotation + osu_playfield_rotation.getFloat() != 0.0f)
+	if (m_fPlayfieldRotation + cv::osu::playfield_rotation.getFloat() != 0.0f)
 	{
 		coords.x -= OsuGameRules::OSU_COORD_WIDTH/2;
 		coords.y -= OsuGameRules::OSU_COORD_HEIGHT/2;
 
 		Vector3 coords3 = Vector3(coords.x, coords.y, 0);
 		Matrix4 rot;
-		rot.rotateZ(m_fPlayfieldRotation + osu_playfield_rotation.getFloat());
+		rot.rotateZ(m_fPlayfieldRotation + cv::osu::playfield_rotation.getFloat());
 
 		coords3 = coords3 * rot;
 		coords3.x += OsuGameRules::OSU_COORD_WIDTH/2;
@@ -1520,7 +1283,7 @@ Vector2 OsuBeatmapStandard::osuCoords2LegacyPixels(Vector2 coords) const
 	coords.x -= OsuGameRules::OSU_COORD_WIDTH/2;
 	coords.y -= OsuGameRules::OSU_COORD_HEIGHT/2;
 
-	if (osu_playfield_circular.getBool())
+	if (cv::osu::playfield_circular.getBool())
 	{
 		// normalize to -1 +1
 		coords.x /= (float)OsuGameRules::OSU_COORD_WIDTH / 2.0f;
@@ -1537,15 +1300,15 @@ Vector2 OsuBeatmapStandard::osuCoords2LegacyPixels(Vector2 coords) const
 	}
 
 	// VR scale
-	coords.x *= 1.0f + osu_playfield_stretch_x.getFloat();
-	coords.y *= 1.0f + osu_playfield_stretch_y.getFloat();
+	coords.x *= 1.0f + cv::osu::playfield_stretch_x.getFloat();
+	coords.y *= 1.0f + cv::osu::playfield_stretch_y.getFloat();
 
 	return coords;
 }
 
 Vector2 OsuBeatmapStandard::getCursorPos() const
 {
-	if (OsuGameRules::osu_mod_fps.getBool() && !m_bIsPaused)
+	if (cv::osu::stdrules::mod_fps.getBool() && !m_bIsPaused)
 	{
 		if (osu->getModAuto() || osu->getModAutopilot())
 			return m_vAutoCursorPos;
@@ -1557,8 +1320,8 @@ Vector2 OsuBeatmapStandard::getCursorPos() const
 	else
 	{
 		Vector2 pos = mouse->getPos();
-		if (osu_mod_shirone.getBool() && osu->getScore()->getCombo() > 0) // <3
-			return pos + Vector2(std::sin((m_iCurMusicPos/20.0f)*1.15f)*((float)osu->getScore()->getCombo()/osu_mod_shirone_combo.getFloat()), std::cos((m_iCurMusicPos/20.0f)*1.3f)*((float)osu->getScore()->getCombo()/osu_mod_shirone_combo.getFloat()));
+		if (cv::osu::mod_shirone.getBool() && osu->getScore()->getCombo() > 0) // <3
+			return pos + Vector2(std::sin((m_iCurMusicPos/20.0f)*1.15f)*((float)osu->getScore()->getCombo()/cv::osu::mod_shirone_combo.getFloat()), std::cos((m_iCurMusicPos/20.0f)*1.3f)*((float)osu->getScore()->getCombo()/cv::osu::mod_shirone_combo.getFloat()));
 		else
 			return pos;
 	}
@@ -1571,9 +1334,7 @@ Vector2 OsuBeatmapStandard::getFirstPersonCursorDelta() const
 
 float OsuBeatmapStandard::getHitcircleDiameter() const
 {
-	// in VR, there is no resolution to which the playfield would have to get scaled up to (since the entire playfield is scaled at once as the player sees fit)
-	// therefore just return the raw hitcircle diameter (osu!pixels)
-	return m_bIsVRDraw ? m_fRawHitcircleDiameter : m_fHitcircleDiameter;
+	return m_fHitcircleDiameter;
 }
 
 void OsuBeatmapStandard::onBeforeLoad()
@@ -1602,7 +1363,7 @@ void OsuBeatmapStandard::onLoad()
 	m_iPreLoadingIndex = 0;
 
 	// build stars
-	m_fStarCacheTime = engine->getTime() + osu_pp_live_timeout.getFloat(); // first time delay only. subsequent updates should immediately show the loading spinner
+	m_fStarCacheTime = engine->getTime() + cv::osu::pp_live_timeout.getFloat(); // first time delay only. subsequent updates should immediately show the loading spinner
 	updateStarCache();
 }
 
@@ -1693,7 +1454,7 @@ void OsuBeatmapStandard::onBeforeStop(bool quit)
 				score.unixTimestamp = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
 				// default
-				score.playerName = convar->getConVarByName("name")->getString();
+				score.playerName = cv::name.getString();
 
 				score.num300s = osu->getScore()->getNum300s();
 				score.num100s = osu->getScore()->getNum100s();
@@ -1708,7 +1469,7 @@ void OsuBeatmapStandard::onBeforeStop(bool quit)
 				{
 					// special case: manual slider accuracy has been enabled (affects pp but not score), so force scorev2 for potential future score recalculations
 					// NOTE: I forgot to add this before 20210103, so all old scores which were played without scorev2 but with osu_slider_scorev2 will get downgraded slighly :(
-					score.modsLegacy |= (m_osu_slider_scorev2_ref->getBool() ? OsuReplay::Mods::ScoreV2 : 0);
+					score.modsLegacy |= (cv::osu::slider_scorev2.getBool() ? OsuReplay::Mods::ScoreV2 : 0);
 				}
 
 				// custom
@@ -1779,7 +1540,7 @@ void OsuBeatmapStandard::onPaused(bool first)
 	{
 		m_vContinueCursorPoint = mouse->getPos();
 
-		if (OsuGameRules::osu_mod_fps.getBool())
+		if (cv::osu::stdrules::mod_fps.getBool())
 			m_vContinueCursorPoint = OsuGameRules::getPlayfieldCenter();
 	}
 }
@@ -1827,8 +1588,8 @@ void OsuBeatmapStandard::updateAutoCursorPos()
 	// dance
 	int nextPosIndex = 0;
 
-	if (m_hitobjects[0]->getTime() < (long)m_osu_early_note_time_ref->getInt())
-		prevTime = -(long)m_osu_early_note_time_ref->getInt() * getSpeedMultiplier();
+	if (m_hitobjects[0]->getTime() < (long)cv::osu::early_note_time.getInt())
+		prevTime = -(long)cv::osu::early_note_time.getInt() * getSpeedMultiplier();
 
 	if (osu->getModAuto())
 	{
@@ -1844,7 +1605,7 @@ void OsuBeatmapStandard::updateAutoCursorPos()
 				prevPos = o->getAutoCursorPos(curMusicPos);
 				if (o->getDuration() > 0 && curMusicPos - o->getTime() <= o->getDuration())
 				{
-					if (osu_auto_cursordance.getBool())
+					if (cv::osu::auto_cursordance.getBool())
 					{
 						const auto *sliderPointer = o->asSlider();
 						if (sliderPointer != NULL)
@@ -1931,7 +1692,7 @@ void OsuBeatmapStandard::updateAutoCursorPos()
 			OsuHitObject *o = m_hitobjects[i];
 
 			// get previous object
-			if (o->isFinished() || (curMusicPos > o->getTime() + o->getDuration() + (long)(OsuGameRules::getHitWindow50(this)*osu_autopilot_lenience.getFloat())))
+			if (o->isFinished() || (curMusicPos > o->getTime() + o->getDuration() + (long)(OsuGameRules::getHitWindow50(this)*cv::osu::autopilot_lenience.getFloat())))
 			{
 				prevTime = o->getTime() + o->getDuration() + o->getAutopilotDelta();
 				prevPos = o->getAutoCursorPos(curMusicPos);
@@ -1980,7 +1741,7 @@ void OsuBeatmapStandard::updateAutoCursorPos()
 		float distance = (nextPos-prevPos).length();
 		if (distance > m_fHitcircleDiameter*1.05f) // snap only if not in a stream (heuristic)
 		{
-			int numIterations = std::clamp<int>(osu->getModAutopilot() ? osu_autopilot_snapping_strength.getInt() : osu_auto_snapping_strength.getInt(), 0, 42);
+			int numIterations = std::clamp<int>(osu->getModAutopilot() ? cv::osu::autopilot_snapping_strength.getInt() : cv::osu::auto_snapping_strength.getInt(), 0, 42);
 			for (int i=0; i<numIterations; i++)
 			{
 				percent = (-percent)*(percent-2.0f);
@@ -1993,7 +1754,7 @@ void OsuBeatmapStandard::updateAutoCursorPos()
 
 		m_vAutoCursorPos = prevPos + (nextPos - prevPos)*percent;
 
-		if (osu_auto_cursordance.getBool() && !osu->getModAutopilot())
+		if (cv::osu::auto_cursordance.getBool() && !osu->getModAutopilot())
 		{
 			Vector3 dir = Vector3(nextPos.x, nextPos.y, 0) - Vector3(prevPos.x, prevPos.y, 0);
 			Vector3 center = dir*0.5f;
@@ -2023,10 +1784,10 @@ void OsuBeatmapStandard::updateHitobjectMetrics()
 	m_fHitcircleDiameter = OsuGameRules::getHitCircleDiameter(this);
 
 	const float osuCoordScaleMultiplier = (getHitcircleDiameter() / m_fRawHitcircleDiameter);
-	m_fNumberScale = (m_fRawHitcircleDiameter / (160.0f * (skin->isDefault12x() ? 2.0f : 1.0f))) * osuCoordScaleMultiplier * osu_number_scale_multiplier.getFloat();
-	m_fHitcircleOverlapScale = (m_fRawHitcircleDiameter / (160.0f)) * osuCoordScaleMultiplier * osu_number_scale_multiplier.getFloat();
+	m_fNumberScale = (m_fRawHitcircleDiameter / (160.0f * (skin->isDefault12x() ? 2.0f : 1.0f))) * osuCoordScaleMultiplier * cv::osu::number_scale_multiplier.getFloat();
+	m_fHitcircleOverlapScale = (m_fRawHitcircleDiameter / (160.0f)) * osuCoordScaleMultiplier * cv::osu::number_scale_multiplier.getFloat();
 
-	const float sliderFollowCircleDiameterMultiplier = (osu->getModNM() || osu_mod_jigsaw2.getBool() ? (1.0f*(1.0f - osu_mod_jigsaw_followcircle_radius_factor.getFloat()) + osu_mod_jigsaw_followcircle_radius_factor.getFloat()*OsuGameRules::osu_slider_followcircle_size_multiplier.getFloat()) : OsuGameRules::osu_slider_followcircle_size_multiplier.getFloat());
+	const float sliderFollowCircleDiameterMultiplier = (osu->getModNM() || cv::osu::mod_jigsaw2.getBool() ? (1.0f*(1.0f - cv::osu::mod_jigsaw_followcircle_radius_factor.getFloat()) + cv::osu::mod_jigsaw_followcircle_radius_factor.getFloat()*cv::osu::stdrules::slider_followcircle_size_multiplier.getFloat()) : cv::osu::stdrules::slider_followcircle_size_multiplier.getFloat());
 	m_fRawSliderFollowCircleDiameter = m_fRawHitcircleDiameter * sliderFollowCircleDiameterMultiplier;
 	m_fSliderFollowCircleDiameter = getHitcircleDiameter() * sliderFollowCircleDiameterMultiplier;
 }
@@ -2038,9 +1799,9 @@ void OsuBeatmapStandard::updateSliderVertexBuffers()
 
 	m_bWasEZEnabled = osu->getModEZ(); // to avoid useless double updates in onModUpdate()
 	m_fPrevHitCircleDiameter = getHitcircleDiameter(); // same here
-	m_fPrevPlayfieldRotationFromConVar = osu_playfield_rotation.getFloat(); // same here
-	m_fPrevPlayfieldStretchX = osu_playfield_stretch_x.getFloat(); // same here
-	m_fPrevPlayfieldStretchY = osu_playfield_stretch_y.getFloat(); // same here
+	m_fPrevPlayfieldRotationFromConVar = cv::osu::playfield_rotation.getFloat(); // same here
+	m_fPrevPlayfieldStretchX = cv::osu::playfield_stretch_x.getFloat(); // same here
+	m_fPrevPlayfieldStretchY = cv::osu::playfield_stretch_y.getFloat(); // same here
 
 	debugLog(" for {} hitobjects ...\n", m_hitobjects.size());
 
@@ -2054,7 +1815,7 @@ void OsuBeatmapStandard::updateSliderVertexBuffers()
 
 void OsuBeatmapStandard::calculateStacks()
 {
-	if (!osu_stacking.getBool()) return;
+	if (!cv::osu::stacking.getBool()) return;
 
 	updateHitobjectMetrics();
 
@@ -2071,7 +1832,7 @@ void OsuBeatmapStandard::calculateStacks()
 
 	const float approachTime = OsuGameRules::getApproachTimeForStacking(this);
 
-	const float stackLeniency = (osu_stacking_leniency_override.getFloat() >= 0.0f ? osu_stacking_leniency_override.getFloat() : m_selectedDifficulty2->getStackLeniency());
+	const float stackLeniency = (cv::osu::stacking_leniency_override.getFloat() >= 0.0f ? cv::osu::stacking_leniency_override.getFloat() : m_selectedDifficulty2->getStackLeniency());
 
 	if (getSelectedDifficulty2()->getVersion() > 5)
 	{
@@ -2205,13 +1966,13 @@ void OsuBeatmapStandard::computeDrainRate()
 	m_fHpMultiplierNormal = 1.0;
 	m_fHpMultiplierComboEnd = 1.0;
 
-	if (osu->isInVRMode() || m_hitobjects.size() < 1 || m_selectedDifficulty2 == NULL) return;
+	if (m_hitobjects.size() < 1 || m_selectedDifficulty2 == NULL) return;
 
 	debugLog("OsuBeatmapStandard: Calculating drain ...\n");
 
-	const int drainType = m_osu_drain_type_ref->getInt();
+	const int drainType = cv::osu::drain_type.getInt();
 
-	if (drainType == 2) // osu!stable
+	if (drainType == 1) // osu!stable
 	{
 		// see https://github.com/ppy/osu-iPhone/blob/master/Classes/OsuPlayer.m
 		// see calcHPDropRate() @ https://github.com/ppy/osu-iPhone/blob/master/Classes/OsuFiletype.m#L661
@@ -2277,7 +2038,7 @@ void OsuBeatmapStandard::computeDrainRate()
 			double hpMultiplierNormal;
 			double hpMultiplierComboEnd;
 		};
-		TestPlayer testPlayer((double)m_osu_drain_stable_hpbar_maximum_ref->getFloat());
+		TestPlayer testPlayer((double)cv::osu::drain_stable_hpbar_maximum.getFloat());
 
 		const double HP = getHP();
 		const int version = m_selectedDifficulty2->getVersion();
@@ -2429,7 +2190,7 @@ void OsuBeatmapStandard::computeDrainRate()
 		m_fHpMultiplierComboEnd = testPlayer.hpMultiplierComboEnd;
 		m_fHpMultiplierNormal = testPlayer.hpMultiplierNormal;
 	}
-	else if (drainType == 3) // osu!lazer 2020
+	else if (drainType == 2) // osu!lazer 2020
 	{
 		// build healthIncreases
 		std::vector<std::pair<double, double>> healthIncreases; // [first = time, second = health]
@@ -2464,9 +2225,9 @@ void OsuBeatmapStandard::computeDrainRate()
 
 		const double minimum_health_error = 0.01;
 
-		const double min_health_target = osu_drain_lazer_health_min.getFloat();
-		const double mid_health_target = osu_drain_lazer_health_mid.getFloat();
-		const double max_health_target = osu_drain_lazer_health_max.getFloat();
+		const double min_health_target = cv::osu::drain_lazer_health_min.getFloat();
+		const double mid_health_target = cv::osu::drain_lazer_health_mid.getFloat();
+		const double max_health_target = cv::osu::drain_lazer_health_max.getFloat();
 
 		const double targetMinimumHealth = OsuGameRules::mapDifficultyRange(getHP(), min_health_target, mid_health_target, max_health_target);
 
@@ -2524,7 +2285,7 @@ void OsuBeatmapStandard::computeDrainRate()
 
 void OsuBeatmapStandard::updateStarCache()
 {
-	if (m_osu_draw_statistics_pp_ref->getBool() || m_osu_draw_statistics_livestars_ref->getBool())
+	if (cv::osu::draw_statistics_pp.getBool() || cv::osu::draw_statistics_livestars.getBool())
 	{
 		// so we don't get a useless double load inside onModUpdate()
 		m_fPrevHitCircleDiameterForStarCache = getHitcircleDiameter();
@@ -2563,7 +2324,7 @@ void OsuBeatmapStandard::stopStarCacheLoader()
 
 bool OsuBeatmapStandard::isLoadingStarCache() const
 {
-	return ((m_osu_draw_statistics_pp_ref->getBool() || m_osu_draw_statistics_livestars_ref->getBool()) && !m_starCacheLoader->isReady());
+	return ((cv::osu::draw_statistics_pp.getBool() || cv::osu::draw_statistics_livestars.getBool()) && !m_starCacheLoader->isReady());
 }
 
 bool OsuBeatmapStandard::isLoadingInt() const

@@ -29,23 +29,22 @@
                                // (works on desktop too, but it's not necessary)
 #else
 #define MAIN_FUNC int main(int argc, char *argv[])
-#define nocbinline static forceinline
+#define nocbinline forceinline
 #endif
 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
 #include "Engine.h"
-#include "Mouse.h"
-#include "Keyboard.h"
 #include "Environment.h"
+#include "Keyboard.h"
+#include "Mouse.h"
 #include "Profiler.h"
 #include "Timing.h"
 
 // thin environment subclass to provide SDL callbacks with direct access to members
 class SDLMain final : public Environment
 {
-	friend class Environment;
 public:
 	SDLMain(int argc, char *argv[]);
 	~SDLMain();
@@ -70,8 +69,8 @@ private:
 
 	// set iteration rate for callbacks
 	// clang-format off
-	inline void setFgFPS() { if constexpr (Env::cfg(FEAT::MAINCB)) SDL_SetHint(SDL_HINT_MAIN_CALLBACK_RATE, std::format("%i", m_iFpsMax).c_str()); else m_iNextFrameTime = SDL_GetTicksNS(); }
-	inline void setBgFPS() { if constexpr (Env::cfg(FEAT::MAINCB)) SDL_SetHint(SDL_HINT_MAIN_CALLBACK_RATE, std::format("%i", m_iFpsMaxBG).c_str()); }
+	inline void setFgFPS() { if constexpr (Env::cfg(FEAT::MAINCB)) SDL_SetHint(SDL_HINT_MAIN_CALLBACK_RATE, fmt::format("{}", m_iFpsMax).c_str()); else m_iNextFrameTime = Timing::getTicksNS(); }
+	inline void setBgFPS() { if constexpr (Env::cfg(FEAT::MAINCB)) SDL_SetHint(SDL_HINT_MAIN_CALLBACK_RATE, fmt::format("{}", m_iFpsMaxBG).c_str()); }
 	// clang-format on
 
 	// init methods
@@ -82,9 +81,9 @@ private:
 	float queryDisplayHz();
 
 	// callback handlers
-	void fps_max_callback(UString oldVal, UString newVal);
-	void fps_max_background_callback(UString oldVal, UString newVal);
-	void fps_unlimited_callback(UString oldVal, UString newVal);
+	void fps_max_callback(float newVal);
+	void fps_max_background_callback(float newVal);
+	void fps_unlimited_callback(float newVal);
 
 	void doEarlyCmdlineOverrides();
 };
@@ -98,7 +97,7 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result)
 {
 	if (result == SDL_APP_FAILURE)
 	{
-		fprintf(stderr, "Force exiting now, a fatal error occurred. (SDL error: %s)\n", SDL_GetError());
+		fprintf(stderr, "[main]: Force exiting now, a fatal error occurred. (SDL error: %s)\n", SDL_GetError());
 		std::abort();
 	}
 
@@ -106,25 +105,42 @@ void SDL_AppQuit(void *appstate, SDL_AppResult result)
 	fmain->shutdown(result);
 	SAFE_DELETE(fmain);
 
+	printf("[main]: Shutdown success.\n");
+
 	if constexpr (!Env::cfg(FEAT::MAINCB))
 		std::exit(0);
 }
 
+// we can just call handleEvent and iterate directly if we're not using main callbacks
+#if defined(MCENGINE_PLATFORM_WASM) || defined(MCENGINE_FEATURE_MAINCALLBACKS)
 // (event queue processing) serialized with SDL_AppIterate
-nocbinline SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
+SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
 {
 	return static_cast<SDLMain *>(appstate)->handleEvent(event);
 }
 
 // (update tick) serialized with SDL_AppEvent
-nocbinline SDL_AppResult SDL_AppIterate(void *appstate)
+SDL_AppResult SDL_AppIterate(void *appstate)
 {
 	return static_cast<SDLMain *>(appstate)->iterate();
 }
+#endif
 
 // actual main/init, called once
 MAIN_FUNC /* int argc, char *argv[] */
 {
+	std::string lowerPackageName = PACKAGE_NAME;
+	std::ranges::transform(lowerPackageName, lowerPackageName.begin(), [](char c) { return std::tolower(c); });
+
+	// setup some common app metadata (SDL says these should be called as early as possible)
+	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_NAME_STRING, PACKAGE_NAME);
+	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_VERSION_STRING, PACKAGE_VERSION);
+	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_IDENTIFIER_STRING, fmt::format("com.mcengine.{}", lowerPackageName).c_str());
+	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_CREATOR_STRING, PACKAGE_BUGREPORT);
+	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_COPYRIGHT_STRING, "MIT/GPL3"); // mcosu is gpl3, mcengine is mit
+	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_URL_STRING, PACKAGE_URL);
+	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING, "game");
+
 	SDL_SetHint(SDL_HINT_VIDEO_DOUBLE_BUFFER, "1");
 	if (!SDL_Init(SDL_INIT_VIDEO)) // other subsystems can be init later
 	{
@@ -135,11 +151,11 @@ MAIN_FUNC /* int argc, char *argv[] */
 	auto *fmain = new SDLMain(argc, argv);
 
 #if !(defined(MCENGINE_PLATFORM_WASM) || defined(MCENGINE_FEATURE_MAINCALLBACKS))
-	if (fmain->initialize() == SDL_APP_FAILURE)
+	if (!fmain || fmain->initialize() == SDL_APP_FAILURE)
 		SDL_AppQuit(fmain, SDL_APP_FAILURE);
 
 	constexpr int SIZE_EVENTS = 64;
-	std::array<SDL_Event, SIZE_EVENTS> events;
+	std::array<SDL_Event, SIZE_EVENTS> events{};
 
 	while (fmain->isRunning())
 	{
@@ -154,12 +170,12 @@ MAIN_FUNC /* int argc, char *argv[] */
 			{
 				eventCount = SDL_PeepEvents(&events[0], SIZE_EVENTS, SDL_GETEVENT, SDL_EVENT_FIRST, SDL_EVENT_LAST);
 				for (int i = 0; i < eventCount; ++i)
-					SDL_AppEvent(fmain, &events[i]);
+					fmain->handleEvent(&events[i]);
 			} while (eventCount == SIZE_EVENTS);
 		}
 		{
 			// engine update + draw + fps limiter
-			SDL_AppIterate(fmain);
+			fmain->iterate();
 		}
 	}
 
@@ -182,30 +198,27 @@ static constexpr auto WINDOW_WIDTH_MIN = 100;
 static constexpr auto WINDOW_HEIGHT_MIN = 100;
 
 // convars
-ConVar fps_max("fps_max", 420.0f, FCVAR_NONE, "framerate limiter, foreground");
+namespace cv
+{
+ConVar fps_max("fps_max", 360.0f, FCVAR_NONE, "framerate limiter, foreground");
 ConVar fps_max_background("fps_max_background", 30.0f, FCVAR_NONE, "framerate limiter, background");
 ConVar fps_unlimited("fps_unlimited", false, FCVAR_NONE);
 
 ConVar fps_yield("fps_yield", true, FCVAR_NONE, "always release rest of timeslice at the end of each frame (call scheduler via sleep(0))");
-
-// engine convars
-extern ConVar _fullscreen_;
-extern ConVar _windowed_;
-extern ConVar _fullscreen_windowed_borderless_;
-extern ConVar _monitor_;
+} // namespace cv
 
 SDLMain::SDLMain(int argc, char *argv[]) : Environment(argc, argv)
 {
 	m_context = nullptr;
 	m_deltaTimer = nullptr;
 
-	m_iFpsMax = 420;
+	m_iFpsMax = 360;
 	m_iFpsMaxBG = 30;
 
 	// setup callbacks
-	fps_max.setCallback(fastdelegate::MakeDelegate(this, &SDLMain::fps_max_callback));
-	fps_max_background.setCallback(fastdelegate::MakeDelegate(this, &SDLMain::fps_max_background_callback));
-	fps_unlimited.setCallback(fastdelegate::MakeDelegate(this, &SDLMain::fps_unlimited_callback));
+	cv::fps_max.setCallback(fastdelegate::MakeDelegate(this, &SDLMain::fps_max_callback));
+	cv::fps_max_background.setCallback(fastdelegate::MakeDelegate(this, &SDLMain::fps_max_background_callback));
+	cv::fps_unlimited.setCallback(fastdelegate::MakeDelegate(this, &SDLMain::fps_unlimited_callback));
 }
 
 SDLMain::~SDLMain()
@@ -245,8 +258,15 @@ SDL_AppResult SDLMain::initialize()
 	// initialize with the display refresh rate of the current monitor
 	m_fDisplayHzSecs = 1.0f / (m_fDisplayHz = queryDisplayHz());
 
+	// init timing
+	m_deltaTimer = new Timer(false);
+
 	// initialize engine, now that all the setup is done
 	m_engine = Environment::initEngine();
+
+	// start engine frame timer
+	m_deltaTimer->start();
+	m_deltaTimer->update();
 
 	// if we got to this point, all relevant subsystems (input handling, graphics interface, etc.) have been initialized
 
@@ -257,20 +277,20 @@ SDL_AppResult SDLMain::initialize()
 	// load app
 	engine->loadApp();
 
-	// start engine frame timer
-	m_deltaTimer = new Timer();
-
 	// SDL3 stops listening to text input globally when window is created
 	SDL_StartTextInput(m_window);
 	SDL_SetWindowKeyboardGrab(m_window, false); // this allows windows key and such to work
 
-	m_iNextFrameTime = SDL_GetTicksNS(); // init fps timer
+	m_iNextFrameTime = Timing::getTicksNS(); // init fps timer
 
 	// return init success
 	return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDLMain::handleEvent(SDL_Event *event)
+static_assert(SDL_EVENT_WINDOW_FIRST == SDL_EVENT_WINDOW_SHOWN);
+static_assert(SDL_EVENT_WINDOW_LAST == SDL_EVENT_WINDOW_HDR_STATE_CHANGED);
+
+nocbinline SDL_AppResult SDLMain::handleEvent(SDL_Event *event)
 {
 	switch (event->type)
 	{
@@ -284,9 +304,20 @@ SDL_AppResult SDLMain::handleEvent(SDL_Event *event)
 			else
 				SDL_AppQuit(this, SDL_APP_SUCCESS);
 		}
+		break;
 
-	// window events
-	case SDL_EVENT_WINDOW_FIRST ... SDL_EVENT_WINDOW_LAST:
+	// window events (i hate you msvc ffs)
+	// clang-format off
+	case SDL_EVENT_WINDOW_SHOWN:				 case SDL_EVENT_WINDOW_HIDDEN:			  case SDL_EVENT_WINDOW_EXPOSED:
+	case SDL_EVENT_WINDOW_MOVED:				 case SDL_EVENT_WINDOW_RESIZED:			  case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+	case SDL_EVENT_WINDOW_METAL_VIEW_RESIZED:	 case SDL_EVENT_WINDOW_MINIMIZED:		  case SDL_EVENT_WINDOW_MAXIMIZED:
+	case SDL_EVENT_WINDOW_RESTORED:				 case SDL_EVENT_WINDOW_MOUSE_ENTER:		  case SDL_EVENT_WINDOW_MOUSE_LEAVE:
+	case SDL_EVENT_WINDOW_FOCUS_GAINED:			 case SDL_EVENT_WINDOW_FOCUS_LOST:		  case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+	case SDL_EVENT_WINDOW_HIT_TEST:				 case SDL_EVENT_WINDOW_ICCPROF_CHANGED:	  case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
+	case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED: case SDL_EVENT_WINDOW_SAFE_AREA_CHANGED: case SDL_EVENT_WINDOW_OCCLUDED:
+	case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:		 case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:  case SDL_EVENT_WINDOW_DESTROYED:
+	case SDL_EVENT_WINDOW_HDR_STATE_CHANGED:
+	// clang-format on
 		switch (event->window.type)
 		{
 		case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
@@ -299,6 +330,7 @@ SDL_AppResult SDLMain::handleEvent(SDL_Event *event)
 				else
 					SDL_AppQuit(this, SDL_APP_SUCCESS);
 			}
+			break;
 
 		case SDL_EVENT_WINDOW_FOCUS_GAINED:
 			m_bHasFocus = true;
@@ -342,14 +374,14 @@ SDL_AppResult SDLMain::handleEvent(SDL_Event *event)
 			break;
 
 		case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
-			_monitor_.setValue<int>(event->window.data1);
+			cv::monitor.setValue(event->window.data1);
 		case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED: // TODO?
 			engine->requestResolutionChange(getWindowSize());
 			m_fDisplayHzSecs = 1.0f / (m_fDisplayHz = queryDisplayHz());
 			break;
 
 		default:
-			if (envDebug())
+			if (m_bEnvDebug)
 				debugLog("DEBUG: unhandled SDL window event {}\n", static_cast<int>(event->window.type));
 			break;
 		}
@@ -380,15 +412,14 @@ SDL_AppResult SDLMain::handleEvent(SDL_Event *event)
 
 	case SDL_EVENT_MOUSE_WHEEL:
 		if (event->wheel.x != 0)
-			mouse->onWheelHorizontal(event->wheel.x > 0 ? 120 * std::abs(static_cast<int>(event->wheel.x))
-			                                                    : -120 * std::abs(static_cast<int>(event->wheel.x)));
+			mouse->onWheelHorizontal(event->wheel.x > 0 ? 120 * std::abs(static_cast<int>(event->wheel.x)) : -120 * std::abs(static_cast<int>(event->wheel.x)));
 		if (event->wheel.y != 0)
-			mouse->onWheelVertical(event->wheel.y > 0 ? 120 * std::abs(static_cast<int>(event->wheel.y))
-			                                                  : -120 * std::abs(static_cast<int>(event->wheel.y)));
+			mouse->onWheelVertical(event->wheel.y > 0 ? 120 * std::abs(static_cast<int>(event->wheel.y)) : -120 * std::abs(static_cast<int>(event->wheel.y)));
 		break;
 
 	case SDL_EVENT_MOUSE_MOTION:
-		// cache the position
+		// debugLog("mouse motion on frame {}\n", engine->getFrameCount());
+		//  cache the position
 		m_vLastRelMousePos.x = event->motion.xrel;
 		m_vLastRelMousePos.y = event->motion.yrel;
 		m_vLastAbsMousePos.x = event->motion.x;
@@ -397,13 +428,15 @@ SDL_AppResult SDLMain::handleEvent(SDL_Event *event)
 		break;
 
 	default:
+		if (m_bEnvDebug)
+			debugLog("DEBUG: unhandled SDL event {}\n", static_cast<int>(event->type));
 		break;
 	}
 
 	return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDLMain::iterate()
+nocbinline SDL_AppResult SDLMain::iterate()
 {
 	if (!m_bRunning)
 		return SDL_APP_SUCCESS;
@@ -425,21 +458,19 @@ SDL_AppResult SDLMain::iterate()
 	if constexpr (!Env::cfg(FEAT::MAINCB)) // main callbacks use SDL iteration rate to limit fps
 	{
 		VPROF_BUDGET("FPSLimiter", VPROF_BUDGETGROUP_SLEEP);
-		bool shouldYield = fps_yield.getBool();
 
 		// if minimized or unfocused, use BG fps, otherwise use fps_max (if 0 it's unlimited)
 		const int targetFPS = m_bMinimized || !m_bHasFocus ? m_iFpsMaxBG : m_iFpsMax;
 		if (targetFPS > 0)
 		{
-			const uint64_t frameTimeNS = SDL_NS_PER_SECOND / static_cast<uint64_t>(targetFPS);
-			const uint64_t now = SDL_GetTicksNS();
+			const uint64_t frameTimeNS = Timing::NS_PER_SECOND / static_cast<uint64_t>(targetFPS);
+			const uint64_t now = Timing::getTicksNS();
 
 			// if we're ahead of schedule, sleep until next frame
 			if (m_iNextFrameTime > now)
 			{
 				const uint64_t sleepTime = m_iNextFrameTime - now;
 				Timing::sleepNS(sleepTime);
-				shouldYield = false;
 			}
 			else
 			{
@@ -449,7 +480,7 @@ SDL_AppResult SDLMain::iterate()
 			// set time for next frame
 			m_iNextFrameTime += frameTimeNS;
 		}
-		if (shouldYield)
+		if (cv::fps_yield.getBool())
 			Timing::sleep(0);
 	}
 
@@ -473,9 +504,10 @@ bool SDLMain::createWindow(int width, int height)
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	}
 
-	constexpr auto windowFlags = SDL_WINDOW_HIDDEN | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS |
-	                             ((Env::cfg((REND::GL | REND::GLES2 | REND::GLES32 | REND::GL3), !REND::DX11)) ? SDL_WINDOW_OPENGL
-	                                                                                                           : 0UL);
+	// set vulkan for linux dxvk-native, opengl otherwise (or none for windows dx11)
+	constexpr auto windowFlags =
+	    SDL_WINDOW_HIDDEN | SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_MOUSE_FOCUS |
+	    (Env::cfg((REND::GL | REND::GLES2 | REND::GLES32 | REND::GL3)) ? SDL_WINDOW_OPENGL : (Env::cfg(OS::LINUX, REND::DX11) ? SDL_WINDOW_VULKAN : 0UL));
 
 	SDL_PropertiesID props = SDL_CreateProperties();
 	SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, WINDOW_TITLE);
@@ -487,8 +519,8 @@ bool SDLMain::createWindow(int width, int height)
 	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_MAXIMIZED_BOOLEAN, false);
 	SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, windowFlags);
 
-	const bool shouldBeBorderless = _fullscreen_windowed_borderless_.getBool();
-	const bool shouldBeFullscreen = _fullscreen_.getBool() || !_windowed_.getBool() || shouldBeBorderless;
+	const bool shouldBeBorderless = cv::fullscreen_windowed_borderless.getBool();
+	const bool shouldBeFullscreen = cv::fullscreen.getBool() || !cv::windowed.getBool() || shouldBeBorderless;
 
 	if (shouldBeBorderless)
 		SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN, true);
@@ -501,18 +533,6 @@ bool SDLMain::createWindow(int width, int height)
 	SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "0", SDL_HINT_OVERRIDE);
 	SDL_SetHintWithPriority(SDL_HINT_TOUCH_MOUSE_EVENTS, "0", SDL_HINT_OVERRIDE);
 	SDL_SetHintWithPriority(SDL_HINT_MOUSE_EMULATE_WARP_WITH_RELATIVE, "0", SDL_HINT_OVERRIDE);
-
-	std::string lowerPackageName = PACKAGE_NAME;
-	std::ranges::transform(lowerPackageName, lowerPackageName.begin(), [](char c) { return std::tolower(c); });
-
-	// setup some common app metadata
-	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_NAME_STRING, PACKAGE_NAME);
-	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_VERSION_STRING, PACKAGE_VERSION);
-	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_IDENTIFIER_STRING, std::format("com.mcengine.{}", lowerPackageName).c_str());
-	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_CREATOR_STRING, PACKAGE_BUGREPORT);
-	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_COPYRIGHT_STRING, "MIT/GPL3"); // mcosu is gpl3, mcengine is mit
-	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_URL_STRING, PACKAGE_URL);
-	SDL_SetAppMetadataProperty(SDL_PROP_APP_METADATA_TYPE_STRING, "game");
 
 	// create window
 	m_window = SDL_CreateWindowWithProperties(props);
@@ -573,19 +593,21 @@ float SDLMain::queryDisplayHz()
 	if constexpr (!Env::cfg(OS::WASM)) // not in WASM
 	{
 		const SDL_DisplayID display = SDL_GetDisplayForWindow(m_window);
-		const SDL_DisplayMode *currentDisplayMode = SDL_GetCurrentDisplayMode(display);
+		const SDL_DisplayMode *currentDisplayMode = display ? SDL_GetCurrentDisplayMode(display) : nullptr;
 
 		if (currentDisplayMode && currentDisplayMode->refresh_rate > 0)
 		{
 			if (!almostEqual(m_fDisplayHz, currentDisplayMode->refresh_rate))
 				debugLog("Got refresh rate {:.3f} Hz for display {:d}.\n", currentDisplayMode->refresh_rate, display);
-			auto fourxhz = currentDisplayMode->refresh_rate * 4;
-			if (fps_max.getFloat() == fps_max.getDefaultFloat())
+			const auto refreshRateSanityClamped = std::clamp<float>(currentDisplayMode->refresh_rate, 60.0f, 540.0f);
+			const auto fourxhz = refreshRateSanityClamped * 4.0f;
+			// also set fps_max to 4x the refresh rate if it's the default
+			if (cv::fps_max.getFloat() == cv::fps_max.getDefaultFloat())
 			{
-				fps_max.setValue(fourxhz);
-				fps_max.setDefaultFloat(fourxhz);
+				cv::fps_max.setValue(fourxhz);
+				cv::fps_max.setDefaultFloat(fourxhz);
 			}
-			return std::clamp<float>(currentDisplayMode->refresh_rate, 60.0f, 500.0f);
+			return refreshRateSanityClamped;
 		}
 		else
 		{
@@ -594,7 +616,8 @@ float SDLMain::queryDisplayHz()
 				debugLog("Couldn't SDL_GetCurrentDisplayMode(SDL display: {:d}): {:s}\n", display, SDL_GetError());
 		}
 	}
-	return std::clamp<float>(fps_max.getFloat(), 60.0f, 500.0f);
+	// in wasm or if we couldn't get the refresh rate just return a sane value to use for "vsync"-related calculations
+	return std::clamp<float>(cv::fps_max.getFloat(), 60.0f, 360.0f);
 }
 
 void SDLMain::setupLogging()
@@ -656,7 +679,7 @@ void SDLMain::doEarlyCmdlineOverrides()
 	// enable DPI awareness if not -nodpi
 	if (!m_mArgMap.contains("-noime"))
 	{
-		typedef WINBOOL(WINAPI * PSPDA)(void);
+		typedef BOOL(WINAPI * PSPDA)(void);
 		auto pSetProcessDPIAware = (PSPDA)GetProcAddress(GetModuleHandle(TEXT("user32.dll")), "SetProcessDPIAware");
 		if (pSetProcessDPIAware != NULL)
 			pSetProcessDPIAware();
@@ -677,30 +700,30 @@ void SDLMain::shutdown(SDL_AppResult result)
 }
 
 // convar change callbacks, to set app iteration rate
-void SDLMain::fps_max_callback(UString, UString newVal)
+void SDLMain::fps_max_callback(float newVal)
 {
-	int newFps = newVal.toInt();
-	if ((newFps == 0 || newFps > 30) && !fps_unlimited.getBool())
+	int newFps = static_cast<int>(newVal);
+	if ((newFps == 0 || newFps > 30) && !cv::fps_unlimited.getBool())
 		m_iFpsMax = newFps;
 	if (m_bHasFocus)
 		setFgFPS();
 }
 
-void SDLMain::fps_max_background_callback(UString, UString newVal)
+void SDLMain::fps_max_background_callback(float newVal)
 {
-	int newFps = newVal.toInt();
+	int newFps = static_cast<int>(newVal);
 	if (newFps >= 0)
 		m_iFpsMaxBG = newFps;
 	if (!m_bHasFocus)
 		setBgFPS();
 }
 
-void SDLMain::fps_unlimited_callback(UString, UString newVal)
+void SDLMain::fps_unlimited_callback(float newVal)
 {
-	if (newVal.toBool())
+	if (newVal > 0.0f)
 		m_iFpsMax = 0;
 	else
-		m_iFpsMax = fps_max.getInt();
+		m_iFpsMax = cv::fps_max.getInt();
 	if (m_bHasFocus)
 		setFgFPS();
 }

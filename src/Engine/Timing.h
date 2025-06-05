@@ -2,70 +2,159 @@
 //
 // Purpose:		stopwatch/timer
 //
-// $NoKeywords: $time $sdltime
+// $NoKeywords: $time $chrono
 //===============================================================================//
+
+#include "config.h"
 
 #pragma once
 #ifndef TIMER_H
 #define TIMER_H
 
-#include <SDL3/SDL.h>
+#include <SDL3/SDL_timer.h>
+
+#include <thread>
 #include <concepts>
+#include <cstdint>
 
 namespace Timing
 {
-	static inline void sleep(unsigned int us) { !!us ? SDL_DelayPrecise(static_cast<uint64_t>(us) * 1000) : SDL_Delay(0); }
-	static inline void sleepNS(uint64_t ns) { !!ns ? SDL_DelayPrecise(ns) : SDL_Delay(0); }
-	// seconds as a double
-	template <typename T = double>
-	    requires(std::is_same_v<T, double> || std::convertible_to<T, double>)
-	static inline T getTimeReal()
-	{
-		return static_cast<T>(SDL_GetTicksNS()) / static_cast<T>(SDL_NS_PER_SECOND);
-	}
+// conversion constants
+constexpr uint64_t NS_PER_SECOND = 1'000'000'000;
+constexpr uint64_t NS_PER_MS = 1'000'000;
+constexpr uint64_t NS_PER_US = 1'000;
+constexpr uint64_t US_PER_MS = 1'000;
+constexpr uint64_t MS_PER_SECOND = 1'000;
+
+namespace detail
+{
+#ifdef _MSC_VER
+__forceinline void yield_internal() noexcept
+#else
+[[gnu::always_inline]] inline void yield_internal() noexcept
+#endif
+{
+#ifdef MCENGINE_PLATFORM_WASM
+	SDL_Delay(0);
+#else
+	std::this_thread::yield();
+#endif
+}
+
+template <uint64_t Ratio>
+constexpr uint64_t convertTime(uint64_t ns) noexcept
+{
+	return ns / Ratio;
+}
+
+} // namespace detail
+
+inline uint64_t getTicksNS() noexcept
+{
+	return SDL_GetTicksNS();
+}
+
+constexpr uint64_t ticksNSToMS(uint64_t ns) noexcept
+{
+	return detail::convertTime<NS_PER_MS>(ns);
+}
+
+inline uint64_t getTicksMS() noexcept
+{
+	return ticksNSToMS(getTicksNS());
+}
+
+inline void sleepPrecise(uint64_t ns) noexcept
+{
+	SDL_DelayPrecise(ns);
+}
+
+inline void sleep(uint64_t us) noexcept
+{
+	!!us ? sleepPrecise(us * NS_PER_US) : detail::yield_internal();
+}
+
+inline void sleepNS(uint64_t ns) noexcept
+{
+	!!ns ? sleepPrecise(ns) : detail::yield_internal();
+}
+
+inline void sleepMS(uint64_t ms) noexcept
+{
+	!!ms ? sleepPrecise(ms * NS_PER_MS) : detail::yield_internal();
+}
+
+template <typename T = double>
+    requires(std::floating_point<T>)
+constexpr T timeNSToSeconds(uint64_t ns) noexcept
+{
+	return static_cast<T>(ns) / static_cast<T>(NS_PER_SECOND);
+}
+
+// current time (since init.) in seconds as float
+// decoupled from engine updates!
+template <typename T = double>
+    requires(std::floating_point<T>)
+inline T getTimeReal() noexcept
+{
+	return timeNSToSeconds<T>(getTicksNS());
+}
 
 class Timer
 {
-
 public:
-	inline Timer(bool startOnCtor = true)
+	explicit Timer(bool startOnCtor = true) noexcept
 	{
 		if (startOnCtor)
 			start();
 	}
+
 	~Timer() = default;
+	Timer(const Timer &) = default;
+	Timer &operator=(const Timer &) = default;
+	Timer(Timer &&) = default;
+	Timer &operator=(Timer &&) = default;
 
-	inline void start()
+	inline void start() noexcept
 	{
-		m_startTimeNS = SDL_GetTicksNS();
-		m_currentTimeNS = m_startTimeNS;
-		m_delta = 0.0;
-		m_elapsedTime = 0.0;
-		m_elapsedTimeMS = 0;
+		m_startTimeNS = getTicksNS();
+		m_lastUpdateNS = m_startTimeNS;
+		m_deltaSeconds = 0.0;
 	}
 
-	inline void update()
+	inline void update() noexcept
 	{
-		const uint64_t now = SDL_GetTicksNS();
-		m_delta = static_cast<double>(now - m_currentTimeNS) / static_cast<double>(SDL_NS_PER_SECOND);
-		const uint64_t elapsed = now - m_startTimeNS;
-		m_elapsedTime = static_cast<double>(elapsed) / static_cast<double>(SDL_NS_PER_SECOND);
-		m_elapsedTimeMS = elapsed / SDL_NS_PER_MS;
-		m_currentTimeNS = now;
+		const uint64_t now = getTicksNS();
+		m_deltaSeconds = timeNSToSeconds<double>(now - m_lastUpdateNS);
+		m_lastUpdateNS = now;
 	}
 
-	[[nodiscard]] inline double getDelta() const { return m_delta; }
-	[[nodiscard]] inline double getElapsedTime() const { return m_elapsedTime; }
-	[[nodiscard]] inline uint64_t getElapsedTimeMS() const { return m_elapsedTimeMS; }
+	inline void reset() noexcept
+	{
+		m_startTimeNS = getTicksNS();
+		m_lastUpdateNS = m_startTimeNS;
+		m_deltaSeconds = 0.0;
+	}
+
+	[[nodiscard]] constexpr double getDelta() const noexcept { return m_deltaSeconds; }
+
+	[[nodiscard]] inline double getElapsedTime() const noexcept { return timeNSToSeconds<double>(m_lastUpdateNS - m_startTimeNS); }
+
+	[[nodiscard]] inline uint64_t getElapsedTimeMS() const noexcept { return ticksNSToMS(m_lastUpdateNS - m_startTimeNS); }
+
+	[[nodiscard]] inline uint64_t getElapsedTimeNS() const noexcept { return m_lastUpdateNS - m_startTimeNS; }
+
+	// get elapsed time without needing update()
+	[[nodiscard]] inline double getLiveElapsedTime() const noexcept { return timeNSToSeconds<double>(getTicksNS() - m_startTimeNS); }
+
+	[[nodiscard]] inline uint64_t getLiveElapsedTimeNS() const noexcept { return getTicksNS() - m_startTimeNS; }
 
 private:
 	uint64_t m_startTimeNS{};
-	uint64_t m_currentTimeNS{};
-
-	double m_delta{};
-	double m_elapsedTime{};
-	uint64_t m_elapsedTimeMS{};
+	uint64_t m_lastUpdateNS{};
+	double m_deltaSeconds{};
 };
+
 }; // namespace Timing
 
 using Timer = Timing::Timer;

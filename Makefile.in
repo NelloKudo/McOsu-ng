@@ -94,8 +94,8 @@ target_triplet = @target@
 bin_PROGRAMS = McOsu-ng$(EXEEXT)
 @BUILD_SDL3_TRUE@am__append_1 = $(shell $(PKG_CONFIG) --cflags sdl3)
 @BUILD_SDL3_TRUE@am__append_2 = $(shell $(PKG_CONFIG) --libs sdl3)
-@BUILD_LIBJPEG_TRUE@am__append_3 = $(shell $(PKG_CONFIG) --cflags libjpeg)
-@BUILD_LIBJPEG_TRUE@am__append_4 = $(shell $(PKG_CONFIG) --libs libjpeg)
+@BUILD_LIBJPEG_TRUE@am__append_3 = $(shell $(PKG_CONFIG) --cflags libturbojpeg)
+@BUILD_LIBJPEG_TRUE@am__append_4 = $(shell $(PKG_CONFIG) --libs libturbojpeg)
 @BUILD_GLM_TRUE@am__append_5 = -I$(DEPS_PREFIX)/include
 @BUILD_LIBPNG_TRUE@am__append_6 = $(shell $(PKG_CONFIG) --cflags libpng)
 @BUILD_LIBPNG_TRUE@am__append_7 = $(shell $(PKG_CONFIG) --libs libpng)
@@ -130,9 +130,9 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
-am_McOsu_ng_OBJECTS = libraries/glad/glad/McOsu_ng-glad.$(OBJEXT) \
+am_McOsu_ng_OBJECTS = libraries/include/McOsu_ng-MD5.$(OBJEXT) \
+	libraries/include/glad/McOsu_ng-glad.$(OBJEXT) \
 	src/App/Osu/McOsu_ng-Osu.$(OBJEXT) \
-	src/App/Osu/McOsu_ng-Osu2.$(OBJEXT) \
 	src/App/Osu/McOsu_ng-OsuBackgroundImageHandler.$(OBJEXT) \
 	src/App/Osu/McOsu_ng-OsuBackgroundStarCacheLoader.$(OBJEXT) \
 	src/App/Osu/McOsu_ng-OsuBeatmap.$(OBJEXT) \
@@ -197,13 +197,6 @@ am_McOsu_ng_OBJECTS = libraries/glad/glad/McOsu_ng-glad.$(OBJEXT) \
 	src/App/Osu/McOsu_ng-OsuUIVolumeSlider.$(OBJEXT) \
 	src/App/Osu/McOsu_ng-OsuUpdateHandler.$(OBJEXT) \
 	src/App/Osu/McOsu_ng-OsuUserStatsScreen.$(OBJEXT) \
-	src/App/Osu/McOsu_ng-OsuVR.$(OBJEXT) \
-	src/App/Osu/McOsu_ng-OsuVRTutorial.$(OBJEXT) \
-	src/App/Osu/McOsu_ng-OsuVRUIButton.$(OBJEXT) \
-	src/App/Osu/McOsu_ng-OsuVRUIElement.$(OBJEXT) \
-	src/App/Osu/McOsu_ng-OsuVRUIImageButton.$(OBJEXT) \
-	src/App/Osu/McOsu_ng-OsuVRUIImageCheckbox.$(OBJEXT) \
-	src/App/Osu/McOsu_ng-OsuVRUISlider.$(OBJEXT) \
 	src/Engine/McOsu_ng-AnimationHandler.$(OBJEXT) \
 	src/Engine/McOsu_ng-Camera.$(OBJEXT) \
 	src/Engine/McOsu_ng-ConVar.$(OBJEXT) \
@@ -217,10 +210,8 @@ am_McOsu_ng_OBJECTS = libraries/glad/glad/McOsu_ng-glad.$(OBJEXT) \
 	src/Engine/Input/McOsu_ng-Keyboard.$(OBJEXT) \
 	src/Engine/Input/McOsu_ng-KeyboardEvent.$(OBJEXT) \
 	src/Engine/Input/McOsu_ng-Mouse.$(OBJEXT) \
-	src/Engine/Input/McOsu_ng-OpenVRController.$(OBJEXT) \
 	src/Engine/Main/McOsu_ng-main.$(OBJEXT) \
 	src/Engine/McOsu_ng-NetworkHandler.$(OBJEXT) \
-	src/Engine/McOsu_ng-OpenVRInterface.$(OBJEXT) \
 	src/Engine/Platform/McOsu_ng-SDLGLInterface.$(OBJEXT) \
 	src/Engine/McOsu_ng-Profiler.$(OBJEXT) \
 	src/Engine/McOsu_ng-RenderTarget.$(OBJEXT) \
@@ -248,17 +239,20 @@ am_McOsu_ng_OBJECTS = libraries/glad/glad/McOsu_ng-glad.$(OBJEXT) \
 	src/Engine/Renderer/McOsu_ng-OpenGLStateCache.$(OBJEXT) \
 	src/Engine/Renderer/McOsu_ng-OpenGLSync.$(OBJEXT) \
 	src/Engine/Renderer/McOsu_ng-OpenGLVertexArrayObject.$(OBJEXT) \
-	src/Engine/McOsu_ng-Resource.$(OBJEXT) \
-	src/Engine/McOsu_ng-ResourceManager.$(OBJEXT) \
+	src/Engine/Resources/McOsu_ng-AsyncResourceLoader.$(OBJEXT) \
+	src/Engine/Resources/McOsu_ng-Resource.$(OBJEXT) \
+	src/Engine/Resources/McOsu_ng-ResourceManager.$(OBJEXT) \
 	src/Engine/McOsu_ng-Shader.$(OBJEXT) \
-	src/Engine/Sound/BASS/McOsu_ng-BassLoader.$(OBJEXT) \
+	src/Engine/Sound/BASS/McOsu_ng-BassManager.$(OBJEXT) \
 	src/Engine/Sound/BASS/McOsu_ng-BassSound.$(OBJEXT) \
+	src/Engine/Sound/BASS/McOsu_ng-BassSound2.$(OBJEXT) \
 	src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine.$(OBJEXT) \
+	src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine2.$(OBJEXT) \
 	src/Engine/Sound/SDL_mixer/McOsu_ng-SDLSound.$(OBJEXT) \
 	src/Engine/Sound/SDL_mixer/McOsu_ng-SDLSoundEngine.$(OBJEXT) \
+	src/Engine/Sound/SoLoud/McOsu_ng-SoLoudFX.$(OBJEXT) \
 	src/Engine/Sound/SoLoud/McOsu_ng-SoLoudSound.$(OBJEXT) \
 	src/Engine/Sound/SoLoud/McOsu_ng-SoLoudSoundEngine.$(OBJEXT) \
-	src/Engine/Sound/SoLoud/McOsu_ng-SoundTouchFilter.$(OBJEXT) \
 	src/Engine/Sound/McOsu_ng-Sound.$(OBJEXT) \
 	src/Engine/Sound/McOsu_ng-SoundEngine.$(OBJEXT) \
 	src/Engine/McOsu_ng-SteamworksInterface.$(OBJEXT) \
@@ -292,7 +286,6 @@ am_McOsu_ng_OBJECTS = libraries/glad/glad/McOsu_ng-glad.$(OBJEXT) \
 	src/GUI/Windows/VinylScratcher/McOsu_ng-VSTitleBar.$(OBJEXT) \
 	src/GUI/Windows/VinylScratcher/McOsu_ng-VinylScratcher.$(OBJEXT) \
 	src/GUI/Windows/McOsu_ng-VisualProfiler.$(OBJEXT) \
-	src/Util/McOsu_ng-MD5.$(OBJEXT) \
 	src/Util/McOsu_ng-McMath.$(OBJEXT) \
 	src/Util/McOsu_ng-Quaternion.$(OBJEXT) \
 	src/Util/McOsu_ng-Rect.$(OBJEXT) \
@@ -316,9 +309,9 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src
 depcomp = $(SHELL) $(top_srcdir)/build/aux/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = libraries/glad/glad/$(DEPDIR)/McOsu_ng-glad.Po \
+am__depfiles_remade = libraries/include/$(DEPDIR)/McOsu_ng-MD5.Po \
+	libraries/include/glad/$(DEPDIR)/McOsu_ng-glad.Po \
 	src/App/Osu/$(DEPDIR)/McOsu_ng-Osu.Po \
-	src/App/Osu/$(DEPDIR)/McOsu_ng-Osu2.Po \
 	src/App/Osu/$(DEPDIR)/McOsu_ng-OsuBackgroundImageHandler.Po \
 	src/App/Osu/$(DEPDIR)/McOsu_ng-OsuBackgroundStarCacheLoader.Po \
 	src/App/Osu/$(DEPDIR)/McOsu_ng-OsuBeatmap.Po \
@@ -383,13 +376,6 @@ am__depfiles_remade = libraries/glad/glad/$(DEPDIR)/McOsu_ng-glad.Po \
 	src/App/Osu/$(DEPDIR)/McOsu_ng-OsuUIVolumeSlider.Po \
 	src/App/Osu/$(DEPDIR)/McOsu_ng-OsuUpdateHandler.Po \
 	src/App/Osu/$(DEPDIR)/McOsu_ng-OsuUserStatsScreen.Po \
-	src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVR.Po \
-	src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRTutorial.Po \
-	src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIButton.Po \
-	src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIElement.Po \
-	src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageButton.Po \
-	src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageCheckbox.Po \
-	src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUISlider.Po \
 	src/Engine/$(DEPDIR)/McOsu_ng-AnimationHandler.Po \
 	src/Engine/$(DEPDIR)/McOsu_ng-Camera.Po \
 	src/Engine/$(DEPDIR)/McOsu_ng-ConVar.Po \
@@ -401,11 +387,8 @@ am__depfiles_remade = libraries/glad/glad/$(DEPDIR)/McOsu_ng-glad.Po \
 	src/Engine/$(DEPDIR)/McOsu_ng-Graphics.Po \
 	src/Engine/$(DEPDIR)/McOsu_ng-Image.Po \
 	src/Engine/$(DEPDIR)/McOsu_ng-NetworkHandler.Po \
-	src/Engine/$(DEPDIR)/McOsu_ng-OpenVRInterface.Po \
 	src/Engine/$(DEPDIR)/McOsu_ng-Profiler.Po \
 	src/Engine/$(DEPDIR)/McOsu_ng-RenderTarget.Po \
-	src/Engine/$(DEPDIR)/McOsu_ng-Resource.Po \
-	src/Engine/$(DEPDIR)/McOsu_ng-ResourceManager.Po \
 	src/Engine/$(DEPDIR)/McOsu_ng-Shader.Po \
 	src/Engine/$(DEPDIR)/McOsu_ng-SteamworksInterface.Po \
 	src/Engine/$(DEPDIR)/McOsu_ng-TextureAtlas.Po \
@@ -414,7 +397,6 @@ am__depfiles_remade = libraries/glad/glad/$(DEPDIR)/McOsu_ng-glad.Po \
 	src/Engine/Input/$(DEPDIR)/McOsu_ng-Keyboard.Po \
 	src/Engine/Input/$(DEPDIR)/McOsu_ng-KeyboardEvent.Po \
 	src/Engine/Input/$(DEPDIR)/McOsu_ng-Mouse.Po \
-	src/Engine/Input/$(DEPDIR)/McOsu_ng-OpenVRController.Po \
 	src/Engine/Main/$(DEPDIR)/McOsu_ng-main.Po \
 	src/Engine/Platform/$(DEPDIR)/McOsu_ng-SDLGLInterface.Po \
 	src/Engine/Renderer/$(DEPDIR)/McOsu_ng-DirectX11Image.Po \
@@ -441,16 +423,21 @@ am__depfiles_remade = libraries/glad/glad/$(DEPDIR)/McOsu_ng-glad.Po \
 	src/Engine/Renderer/$(DEPDIR)/McOsu_ng-OpenGLStateCache.Po \
 	src/Engine/Renderer/$(DEPDIR)/McOsu_ng-OpenGLSync.Po \
 	src/Engine/Renderer/$(DEPDIR)/McOsu_ng-OpenGLVertexArrayObject.Po \
+	src/Engine/Resources/$(DEPDIR)/McOsu_ng-AsyncResourceLoader.Po \
+	src/Engine/Resources/$(DEPDIR)/McOsu_ng-Resource.Po \
+	src/Engine/Resources/$(DEPDIR)/McOsu_ng-ResourceManager.Po \
 	src/Engine/Sound/$(DEPDIR)/McOsu_ng-Sound.Po \
 	src/Engine/Sound/$(DEPDIR)/McOsu_ng-SoundEngine.Po \
-	src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassLoader.Po \
+	src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassManager.Po \
 	src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSound.Po \
+	src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSound2.Po \
 	src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine.Po \
+	src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine2.Po \
 	src/Engine/Sound/SDL_mixer/$(DEPDIR)/McOsu_ng-SDLSound.Po \
 	src/Engine/Sound/SDL_mixer/$(DEPDIR)/McOsu_ng-SDLSoundEngine.Po \
+	src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudFX.Po \
 	src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudSound.Po \
 	src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudSoundEngine.Po \
-	src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoundTouchFilter.Po \
 	src/GUI/$(DEPDIR)/McOsu_ng-CBaseUIBoxShadow.Po \
 	src/GUI/$(DEPDIR)/McOsu_ng-CBaseUIButton.Po \
 	src/GUI/$(DEPDIR)/McOsu_ng-CBaseUICanvas.Po \
@@ -478,7 +465,6 @@ am__depfiles_remade = libraries/glad/glad/$(DEPDIR)/McOsu_ng-glad.Po \
 	src/GUI/Windows/VinylScratcher/$(DEPDIR)/McOsu_ng-VSMusicBrowser.Po \
 	src/GUI/Windows/VinylScratcher/$(DEPDIR)/McOsu_ng-VSTitleBar.Po \
 	src/GUI/Windows/VinylScratcher/$(DEPDIR)/McOsu_ng-VinylScratcher.Po \
-	src/Util/$(DEPDIR)/McOsu_ng-MD5.Po \
 	src/Util/$(DEPDIR)/McOsu_ng-McMath.Po \
 	src/Util/$(DEPDIR)/McOsu_ng-Quaternion.Po \
 	src/Util/$(DEPDIR)/McOsu_ng-Rect.Po \
@@ -569,8 +555,12 @@ AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
 BASS_CFLAGS = @BASS_CFLAGS@
 BEAR = @BEAR@
+BUNDLED_BASS_ASIO_DIR = @BUNDLED_BASS_ASIO_DIR@
 BUNDLED_BASS_DIR = @BUNDLED_BASS_DIR@
 BUNDLED_BASS_FX_DIR = @BUNDLED_BASS_FX_DIR@
+BUNDLED_BASS_MIX_DIR = @BUNDLED_BASS_MIX_DIR@
+BUNDLED_BASS_WASAPI_DIR = @BUNDLED_BASS_WASAPI_DIR@
+BUNDLED_INCLUDES = @BUNDLED_INCLUDES@
 BUNDLED_LIBS_DIR = @BUNDLED_LIBS_DIR@
 BZIP2_CFLAGS = @BZIP2_CFLAGS@ $(am__append_8)
 BZIP2_LIBS = @BZIP2_LIBS@ $(am__append_9)
@@ -592,12 +582,16 @@ CXX = @CXX@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
+D3D11_CFLAGS = @D3D11_CFLAGS@
+D3D11_LIBS = @D3D11_LIBS@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DEPS_CACHE = @DEPS_CACHE@
 DEPS_PREFIX = @DEPS_PREFIX@
 DISABLE_NATIVE = @DISABLE_NATIVE@
 DLLEXT = @DLLEXT@
+DXGI_CFLAGS = @DXGI_CFLAGS@
+DXGI_LIBS = @DXGI_LIBS@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -618,7 +612,6 @@ FREETYPE2_VERSION = @FREETYPE2_VERSION@
 GENIE = @GENIE@
 GETCONF = @GETCONF@
 GIT = @GIT@
-GLAD_CFLAGS = @GLAD_CFLAGS@
 GLM_CFLAGS = @GLM_CFLAGS@ $(am__append_5)
 GLM_PREFIX = @GLM_PREFIX@
 GLM_VERSION = @GLM_VERSION@
@@ -692,10 +685,13 @@ SOLOUD_PREFIX = @SOLOUD_PREFIX@
 SOLOUD_VERSION = @SOLOUD_VERSION@
 SOUNDTOUCH_PREFIX = @SOUNDTOUCH_PREFIX@
 SOUNDTOUCH_VERSION = @SOUNDTOUCH_VERSION@
+STATICBUILD = @STATICBUILD@
 STRIP = @STRIP@
 SYSNAME = @SYSNAME@
 TAR = @TAR@
 VERSION = @VERSION@
+VKD3D_CFLAGS = @VKD3D_CFLAGS@
+VKD3D_LIBS = @VKD3D_LIBS@
 WGET = @WGET@
 WINSHARED_DLLS = @WINSHARED_DLLS@
 X11_CFLAGS = @X11_CFLAGS@
@@ -767,9 +763,9 @@ top_srcdir = @top_srcdir@
 
 # Automatically generated by autogen.sh - DO NOT EDIT
 McOsu_ng_SOURCES = \
-	libraries/glad/glad/glad.cpp \
+	libraries/include/MD5.cpp \
+	libraries/include/glad/glad.cpp \
 	src/App/Osu/Osu.cpp \
-	src/App/Osu/Osu2.cpp \
 	src/App/Osu/OsuBackgroundImageHandler.cpp \
 	src/App/Osu/OsuBackgroundStarCacheLoader.cpp \
 	src/App/Osu/OsuBeatmap.cpp \
@@ -834,13 +830,6 @@ McOsu_ng_SOURCES = \
 	src/App/Osu/OsuUIVolumeSlider.cpp \
 	src/App/Osu/OsuUpdateHandler.cpp \
 	src/App/Osu/OsuUserStatsScreen.cpp \
-	src/App/Osu/OsuVR.cpp \
-	src/App/Osu/OsuVRTutorial.cpp \
-	src/App/Osu/OsuVRUIButton.cpp \
-	src/App/Osu/OsuVRUIElement.cpp \
-	src/App/Osu/OsuVRUIImageButton.cpp \
-	src/App/Osu/OsuVRUIImageCheckbox.cpp \
-	src/App/Osu/OsuVRUISlider.cpp \
 	src/Engine/AnimationHandler.cpp \
 	src/Engine/Camera.cpp \
 	src/Engine/ConVar.cpp \
@@ -854,10 +843,8 @@ McOsu_ng_SOURCES = \
 	src/Engine/Input/Keyboard.cpp \
 	src/Engine/Input/KeyboardEvent.cpp \
 	src/Engine/Input/Mouse.cpp \
-	src/Engine/Input/OpenVRController.cpp \
 	src/Engine/Main/main.cpp \
 	src/Engine/NetworkHandler.cpp \
-	src/Engine/OpenVRInterface.cpp \
 	src/Engine/Platform/SDLGLInterface.cpp \
 	src/Engine/Profiler.cpp \
 	src/Engine/RenderTarget.cpp \
@@ -885,17 +872,20 @@ McOsu_ng_SOURCES = \
 	src/Engine/Renderer/OpenGLStateCache.cpp \
 	src/Engine/Renderer/OpenGLSync.cpp \
 	src/Engine/Renderer/OpenGLVertexArrayObject.cpp \
-	src/Engine/Resource.cpp \
-	src/Engine/ResourceManager.cpp \
+	src/Engine/Resources/AsyncResourceLoader.cpp \
+	src/Engine/Resources/Resource.cpp \
+	src/Engine/Resources/ResourceManager.cpp \
 	src/Engine/Shader.cpp \
-	src/Engine/Sound/BASS/BassLoader.cpp \
+	src/Engine/Sound/BASS/BassManager.cpp \
 	src/Engine/Sound/BASS/BassSound.cpp \
+	src/Engine/Sound/BASS/BassSound2.cpp \
 	src/Engine/Sound/BASS/BassSoundEngine.cpp \
+	src/Engine/Sound/BASS/BassSoundEngine2.cpp \
 	src/Engine/Sound/SDL_mixer/SDLSound.cpp \
 	src/Engine/Sound/SDL_mixer/SDLSoundEngine.cpp \
+	src/Engine/Sound/SoLoud/SoLoudFX.cpp \
 	src/Engine/Sound/SoLoud/SoLoudSound.cpp \
 	src/Engine/Sound/SoLoud/SoLoudSoundEngine.cpp \
-	src/Engine/Sound/SoLoud/SoundTouchFilter.cpp \
 	src/Engine/Sound/Sound.cpp \
 	src/Engine/Sound/SoundEngine.cpp \
 	src/Engine/SteamworksInterface.cpp \
@@ -929,7 +919,6 @@ McOsu_ng_SOURCES = \
 	src/GUI/Windows/VinylScratcher/VSTitleBar.cpp \
 	src/GUI/Windows/VinylScratcher/VinylScratcher.cpp \
 	src/GUI/Windows/VisualProfiler.cpp \
-	src/Util/MD5.cpp \
 	src/Util/McMath.cpp \
 	src/Util/Quaternion.cpp \
 	src/Util/Rect.cpp \
@@ -956,10 +945,9 @@ comma := ,# bruh
 @BUILD_MIMALLOC_FALSE@MIMALLOC_LIBS := 
 @BUILD_MIMALLOC_TRUE@@WIN_PLATFORM_FALSE@MIMALLOC_LIBS = $(DEPS_PREFIX)/lib/mimalloc$(if $(ENABLE_ASAN),-asan-debug,$(if $(ENABLE_DEBUG),-debug,)).o
 @BUILD_MIMALLOC_TRUE@@WIN_PLATFORM_TRUE@MIMALLOC_LIBS = -L$(DEPS_PREFIX)/lib -Wl,--whole-archive -l:libmimalloc.dll.a -Wl,--no-whole-archive -L$(DEPS_PREFIX)/bin -lmimalloc -lmimalloc-redirect$(if $(filter x86_64,$(host_cpu)),,32)
-@USE_BASS_FALSE@@USE_SDLMIXER_FALSE@AUDIO_CFLAGS = $(shell $(PKG_CONFIG) --cflags soundtouch) $(if $(ENABLE_DEBUG),,-DST_NO_EXCEPTION_HANDLING)
+@USE_BASS_FALSE@@USE_SDLMIXER_FALSE@AUDIO_CFLAGS = $(shell $(PKG_CONFIG) --cflags soundtouch) -DST_NO_EXCEPTION_HANDLING
 @USE_BASS_FALSE@@USE_SDLMIXER_TRUE@AUDIO_CFLAGS = $(shell $(PKG_CONFIG) --cflags sdl3-mixer)
 @USE_BASS_TRUE@AUDIO_CFLAGS := $(BASS_CFLAGS)
-# the dynamic soloud lib is busted somehow
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@AUDIO_LIBS = -L$(DEPS_PREFIX)/lib -lsoloud_static_x$(if $(filter x86_64,$(host_cpu)),64,$(if $(findstring linux,$(host_os)),32,86))$(if $(ENABLE_DEBUG),_d,) $(shell $(PKG_CONFIG) --libs soundtouch)
 @USE_BASS_FALSE@@USE_SDLMIXER_TRUE@AUDIO_LIBS = $(shell $(PKG_CONFIG) --libs sdl3-mixer)
 @USE_BASS_TRUE@AUDIO_LIBS := 
@@ -975,7 +963,7 @@ McOsu_ng_CXXFLAGS := \
 	$(CXXFLAGS_EXTRA) \
 	$(MCOSU_CXXFLAGS) \
 	$(MCOSU_NG_INCLUDE_FLAGS) \
-	$(GLAD_CFLAGS) \
+	$(BUNDLED_INCLUDES) \
 	$(SDL3_CFLAGS) \
 	$(AUDIO_CFLAGS) \
 	$(X11_CFLAGS) \
@@ -989,7 +977,10 @@ McOsu_ng_CXXFLAGS := \
 	$(BZIP2_CFLAGS) \
 	$(LIBJPEG_CFLAGS) \
 	$(GLM_CFLAGS) \
-	$(ZLIB_CFLAGS)
+	$(ZLIB_CFLAGS) \
+	$(DXGI_CFLAGS) \
+	$(D3D11_CFLAGS) \
+	$(VKD3D_CFLAGS)
 
 
 # Wl,--start-group with no --end-group is a stupid hack.
@@ -1010,6 +1001,8 @@ McOsu_ng_LDFLAGS := \
 	$(BZIP2_LIBS) \
 	$(LIBJPEG_LIBS) \
 	$(ZLIB_LIBS) \
+	$(DXGI_LIBS) \
+	$(D3D11_LIBS) \
 	$(MCOSU_LDFLAGS) \
 	$(LDFLAGS_EXTRA)
 
@@ -1118,15 +1111,24 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-$(am__rm_f) $(bin_PROGRAMS)
-libraries/glad/glad/$(am__dirstamp):
-	@$(MKDIR_P) libraries/glad/glad
-	@: >>libraries/glad/glad/$(am__dirstamp)
-libraries/glad/glad/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) libraries/glad/glad/$(DEPDIR)
-	@: >>libraries/glad/glad/$(DEPDIR)/$(am__dirstamp)
-libraries/glad/glad/McOsu_ng-glad.$(OBJEXT):  \
-	libraries/glad/glad/$(am__dirstamp) \
-	libraries/glad/glad/$(DEPDIR)/$(am__dirstamp)
+libraries/include/$(am__dirstamp):
+	@$(MKDIR_P) libraries/include
+	@: >>libraries/include/$(am__dirstamp)
+libraries/include/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) libraries/include/$(DEPDIR)
+	@: >>libraries/include/$(DEPDIR)/$(am__dirstamp)
+libraries/include/McOsu_ng-MD5.$(OBJEXT):  \
+	libraries/include/$(am__dirstamp) \
+	libraries/include/$(DEPDIR)/$(am__dirstamp)
+libraries/include/glad/$(am__dirstamp):
+	@$(MKDIR_P) libraries/include/glad
+	@: >>libraries/include/glad/$(am__dirstamp)
+libraries/include/glad/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) libraries/include/glad/$(DEPDIR)
+	@: >>libraries/include/glad/$(DEPDIR)/$(am__dirstamp)
+libraries/include/glad/McOsu_ng-glad.$(OBJEXT):  \
+	libraries/include/glad/$(am__dirstamp) \
+	libraries/include/glad/$(DEPDIR)/$(am__dirstamp)
 src/App/Osu/$(am__dirstamp):
 	@$(MKDIR_P) src/App/Osu
 	@: >>src/App/Osu/$(am__dirstamp)
@@ -1134,8 +1136,6 @@ src/App/Osu/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) src/App/Osu/$(DEPDIR)
 	@: >>src/App/Osu/$(DEPDIR)/$(am__dirstamp)
 src/App/Osu/McOsu_ng-Osu.$(OBJEXT): src/App/Osu/$(am__dirstamp) \
-	src/App/Osu/$(DEPDIR)/$(am__dirstamp)
-src/App/Osu/McOsu_ng-Osu2.$(OBJEXT): src/App/Osu/$(am__dirstamp) \
 	src/App/Osu/$(DEPDIR)/$(am__dirstamp)
 src/App/Osu/McOsu_ng-OsuBackgroundImageHandler.$(OBJEXT):  \
 	src/App/Osu/$(am__dirstamp) \
@@ -1319,26 +1319,6 @@ src/App/Osu/McOsu_ng-OsuUpdateHandler.$(OBJEXT):  \
 src/App/Osu/McOsu_ng-OsuUserStatsScreen.$(OBJEXT):  \
 	src/App/Osu/$(am__dirstamp) \
 	src/App/Osu/$(DEPDIR)/$(am__dirstamp)
-src/App/Osu/McOsu_ng-OsuVR.$(OBJEXT): src/App/Osu/$(am__dirstamp) \
-	src/App/Osu/$(DEPDIR)/$(am__dirstamp)
-src/App/Osu/McOsu_ng-OsuVRTutorial.$(OBJEXT):  \
-	src/App/Osu/$(am__dirstamp) \
-	src/App/Osu/$(DEPDIR)/$(am__dirstamp)
-src/App/Osu/McOsu_ng-OsuVRUIButton.$(OBJEXT):  \
-	src/App/Osu/$(am__dirstamp) \
-	src/App/Osu/$(DEPDIR)/$(am__dirstamp)
-src/App/Osu/McOsu_ng-OsuVRUIElement.$(OBJEXT):  \
-	src/App/Osu/$(am__dirstamp) \
-	src/App/Osu/$(DEPDIR)/$(am__dirstamp)
-src/App/Osu/McOsu_ng-OsuVRUIImageButton.$(OBJEXT):  \
-	src/App/Osu/$(am__dirstamp) \
-	src/App/Osu/$(DEPDIR)/$(am__dirstamp)
-src/App/Osu/McOsu_ng-OsuVRUIImageCheckbox.$(OBJEXT):  \
-	src/App/Osu/$(am__dirstamp) \
-	src/App/Osu/$(DEPDIR)/$(am__dirstamp)
-src/App/Osu/McOsu_ng-OsuVRUISlider.$(OBJEXT):  \
-	src/App/Osu/$(am__dirstamp) \
-	src/App/Osu/$(DEPDIR)/$(am__dirstamp)
 src/Engine/$(am__dirstamp):
 	@$(MKDIR_P) src/Engine
 	@: >>src/Engine/$(am__dirstamp)
@@ -1382,9 +1362,6 @@ src/Engine/Input/McOsu_ng-KeyboardEvent.$(OBJEXT):  \
 src/Engine/Input/McOsu_ng-Mouse.$(OBJEXT):  \
 	src/Engine/Input/$(am__dirstamp) \
 	src/Engine/Input/$(DEPDIR)/$(am__dirstamp)
-src/Engine/Input/McOsu_ng-OpenVRController.$(OBJEXT):  \
-	src/Engine/Input/$(am__dirstamp) \
-	src/Engine/Input/$(DEPDIR)/$(am__dirstamp)
 src/Engine/Main/$(am__dirstamp):
 	@$(MKDIR_P) src/Engine/Main
 	@: >>src/Engine/Main/$(am__dirstamp)
@@ -1395,9 +1372,6 @@ src/Engine/Main/McOsu_ng-main.$(OBJEXT):  \
 	src/Engine/Main/$(am__dirstamp) \
 	src/Engine/Main/$(DEPDIR)/$(am__dirstamp)
 src/Engine/McOsu_ng-NetworkHandler.$(OBJEXT):  \
-	src/Engine/$(am__dirstamp) \
-	src/Engine/$(DEPDIR)/$(am__dirstamp)
-src/Engine/McOsu_ng-OpenVRInterface.$(OBJEXT):  \
 	src/Engine/$(am__dirstamp) \
 	src/Engine/$(DEPDIR)/$(am__dirstamp)
 src/Engine/Platform/$(am__dirstamp):
@@ -1492,11 +1466,21 @@ src/Engine/Renderer/McOsu_ng-OpenGLSync.$(OBJEXT):  \
 src/Engine/Renderer/McOsu_ng-OpenGLVertexArrayObject.$(OBJEXT):  \
 	src/Engine/Renderer/$(am__dirstamp) \
 	src/Engine/Renderer/$(DEPDIR)/$(am__dirstamp)
-src/Engine/McOsu_ng-Resource.$(OBJEXT): src/Engine/$(am__dirstamp) \
-	src/Engine/$(DEPDIR)/$(am__dirstamp)
-src/Engine/McOsu_ng-ResourceManager.$(OBJEXT):  \
-	src/Engine/$(am__dirstamp) \
-	src/Engine/$(DEPDIR)/$(am__dirstamp)
+src/Engine/Resources/$(am__dirstamp):
+	@$(MKDIR_P) src/Engine/Resources
+	@: >>src/Engine/Resources/$(am__dirstamp)
+src/Engine/Resources/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) src/Engine/Resources/$(DEPDIR)
+	@: >>src/Engine/Resources/$(DEPDIR)/$(am__dirstamp)
+src/Engine/Resources/McOsu_ng-AsyncResourceLoader.$(OBJEXT):  \
+	src/Engine/Resources/$(am__dirstamp) \
+	src/Engine/Resources/$(DEPDIR)/$(am__dirstamp)
+src/Engine/Resources/McOsu_ng-Resource.$(OBJEXT):  \
+	src/Engine/Resources/$(am__dirstamp) \
+	src/Engine/Resources/$(DEPDIR)/$(am__dirstamp)
+src/Engine/Resources/McOsu_ng-ResourceManager.$(OBJEXT):  \
+	src/Engine/Resources/$(am__dirstamp) \
+	src/Engine/Resources/$(DEPDIR)/$(am__dirstamp)
 src/Engine/McOsu_ng-Shader.$(OBJEXT): src/Engine/$(am__dirstamp) \
 	src/Engine/$(DEPDIR)/$(am__dirstamp)
 src/Engine/Sound/BASS/$(am__dirstamp):
@@ -1505,13 +1489,19 @@ src/Engine/Sound/BASS/$(am__dirstamp):
 src/Engine/Sound/BASS/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) src/Engine/Sound/BASS/$(DEPDIR)
 	@: >>src/Engine/Sound/BASS/$(DEPDIR)/$(am__dirstamp)
-src/Engine/Sound/BASS/McOsu_ng-BassLoader.$(OBJEXT):  \
+src/Engine/Sound/BASS/McOsu_ng-BassManager.$(OBJEXT):  \
 	src/Engine/Sound/BASS/$(am__dirstamp) \
 	src/Engine/Sound/BASS/$(DEPDIR)/$(am__dirstamp)
 src/Engine/Sound/BASS/McOsu_ng-BassSound.$(OBJEXT):  \
 	src/Engine/Sound/BASS/$(am__dirstamp) \
 	src/Engine/Sound/BASS/$(DEPDIR)/$(am__dirstamp)
+src/Engine/Sound/BASS/McOsu_ng-BassSound2.$(OBJEXT):  \
+	src/Engine/Sound/BASS/$(am__dirstamp) \
+	src/Engine/Sound/BASS/$(DEPDIR)/$(am__dirstamp)
 src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine.$(OBJEXT):  \
+	src/Engine/Sound/BASS/$(am__dirstamp) \
+	src/Engine/Sound/BASS/$(DEPDIR)/$(am__dirstamp)
+src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine2.$(OBJEXT):  \
 	src/Engine/Sound/BASS/$(am__dirstamp) \
 	src/Engine/Sound/BASS/$(DEPDIR)/$(am__dirstamp)
 src/Engine/Sound/SDL_mixer/$(am__dirstamp):
@@ -1532,13 +1522,13 @@ src/Engine/Sound/SoLoud/$(am__dirstamp):
 src/Engine/Sound/SoLoud/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) src/Engine/Sound/SoLoud/$(DEPDIR)
 	@: >>src/Engine/Sound/SoLoud/$(DEPDIR)/$(am__dirstamp)
+src/Engine/Sound/SoLoud/McOsu_ng-SoLoudFX.$(OBJEXT):  \
+	src/Engine/Sound/SoLoud/$(am__dirstamp) \
+	src/Engine/Sound/SoLoud/$(DEPDIR)/$(am__dirstamp)
 src/Engine/Sound/SoLoud/McOsu_ng-SoLoudSound.$(OBJEXT):  \
 	src/Engine/Sound/SoLoud/$(am__dirstamp) \
 	src/Engine/Sound/SoLoud/$(DEPDIR)/$(am__dirstamp)
 src/Engine/Sound/SoLoud/McOsu_ng-SoLoudSoundEngine.$(OBJEXT):  \
-	src/Engine/Sound/SoLoud/$(am__dirstamp) \
-	src/Engine/Sound/SoLoud/$(DEPDIR)/$(am__dirstamp)
-src/Engine/Sound/SoLoud/McOsu_ng-SoundTouchFilter.$(OBJEXT):  \
 	src/Engine/Sound/SoLoud/$(am__dirstamp) \
 	src/Engine/Sound/SoLoud/$(DEPDIR)/$(am__dirstamp)
 src/Engine/Sound/$(am__dirstamp):
@@ -1649,8 +1639,6 @@ src/Util/$(am__dirstamp):
 src/Util/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) src/Util/$(DEPDIR)
 	@: >>src/Util/$(DEPDIR)/$(am__dirstamp)
-src/Util/McOsu_ng-MD5.$(OBJEXT): src/Util/$(am__dirstamp) \
-	src/Util/$(DEPDIR)/$(am__dirstamp)
 src/Util/McOsu_ng-McMath.$(OBJEXT): src/Util/$(am__dirstamp) \
 	src/Util/$(DEPDIR)/$(am__dirstamp)
 src/Util/McOsu_ng-Quaternion.$(OBJEXT): src/Util/$(am__dirstamp) \
@@ -1666,13 +1654,15 @@ McOsu-ng$(EXEEXT): $(McOsu_ng_OBJECTS) $(McOsu_ng_DEPENDENCIES) $(EXTRA_McOsu_ng
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
-	-rm -f libraries/glad/glad/*.$(OBJEXT)
+	-rm -f libraries/include/*.$(OBJEXT)
+	-rm -f libraries/include/glad/*.$(OBJEXT)
 	-rm -f src/App/Osu/*.$(OBJEXT)
 	-rm -f src/Engine/*.$(OBJEXT)
 	-rm -f src/Engine/Input/*.$(OBJEXT)
 	-rm -f src/Engine/Main/*.$(OBJEXT)
 	-rm -f src/Engine/Platform/*.$(OBJEXT)
 	-rm -f src/Engine/Renderer/*.$(OBJEXT)
+	-rm -f src/Engine/Resources/*.$(OBJEXT)
 	-rm -f src/Engine/Sound/*.$(OBJEXT)
 	-rm -f src/Engine/Sound/BASS/*.$(OBJEXT)
 	-rm -f src/Engine/Sound/SDL_mixer/*.$(OBJEXT)
@@ -1685,9 +1675,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@libraries/glad/glad/$(DEPDIR)/McOsu_ng-glad.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@libraries/include/$(DEPDIR)/McOsu_ng-MD5.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@libraries/include/glad/$(DEPDIR)/McOsu_ng-glad.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/App/Osu/$(DEPDIR)/McOsu_ng-Osu.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/App/Osu/$(DEPDIR)/McOsu_ng-Osu2.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/App/Osu/$(DEPDIR)/McOsu_ng-OsuBackgroundImageHandler.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/App/Osu/$(DEPDIR)/McOsu_ng-OsuBackgroundStarCacheLoader.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/App/Osu/$(DEPDIR)/McOsu_ng-OsuBeatmap.Po@am__quote@ # am--include-marker
@@ -1752,13 +1742,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/App/Osu/$(DEPDIR)/McOsu_ng-OsuUIVolumeSlider.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/App/Osu/$(DEPDIR)/McOsu_ng-OsuUpdateHandler.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/App/Osu/$(DEPDIR)/McOsu_ng-OsuUserStatsScreen.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVR.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRTutorial.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIButton.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIElement.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageButton.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageCheckbox.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUISlider.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/$(DEPDIR)/McOsu_ng-AnimationHandler.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/$(DEPDIR)/McOsu_ng-Camera.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/$(DEPDIR)/McOsu_ng-ConVar.Po@am__quote@ # am--include-marker
@@ -1770,11 +1753,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/$(DEPDIR)/McOsu_ng-Graphics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/$(DEPDIR)/McOsu_ng-Image.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/$(DEPDIR)/McOsu_ng-NetworkHandler.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/Engine/$(DEPDIR)/McOsu_ng-OpenVRInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/$(DEPDIR)/McOsu_ng-Profiler.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/$(DEPDIR)/McOsu_ng-RenderTarget.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/Engine/$(DEPDIR)/McOsu_ng-Resource.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/Engine/$(DEPDIR)/McOsu_ng-ResourceManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/$(DEPDIR)/McOsu_ng-Shader.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/$(DEPDIR)/McOsu_ng-SteamworksInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/$(DEPDIR)/McOsu_ng-TextureAtlas.Po@am__quote@ # am--include-marker
@@ -1783,7 +1763,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Input/$(DEPDIR)/McOsu_ng-Keyboard.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Input/$(DEPDIR)/McOsu_ng-KeyboardEvent.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Input/$(DEPDIR)/McOsu_ng-Mouse.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Input/$(DEPDIR)/McOsu_ng-OpenVRController.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Main/$(DEPDIR)/McOsu_ng-main.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Platform/$(DEPDIR)/McOsu_ng-SDLGLInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Renderer/$(DEPDIR)/McOsu_ng-DirectX11Image.Po@am__quote@ # am--include-marker
@@ -1810,16 +1789,21 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Renderer/$(DEPDIR)/McOsu_ng-OpenGLStateCache.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Renderer/$(DEPDIR)/McOsu_ng-OpenGLSync.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Renderer/$(DEPDIR)/McOsu_ng-OpenGLVertexArrayObject.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Resources/$(DEPDIR)/McOsu_ng-AsyncResourceLoader.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Resources/$(DEPDIR)/McOsu_ng-Resource.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Resources/$(DEPDIR)/McOsu_ng-ResourceManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Sound/$(DEPDIR)/McOsu_ng-Sound.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Sound/$(DEPDIR)/McOsu_ng-SoundEngine.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassLoader.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSound.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSound2.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine2.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Sound/SDL_mixer/$(DEPDIR)/McOsu_ng-SDLSound.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Sound/SDL_mixer/$(DEPDIR)/McOsu_ng-SDLSoundEngine.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudFX.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudSound.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudSoundEngine.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoundTouchFilter.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/GUI/$(DEPDIR)/McOsu_ng-CBaseUIBoxShadow.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/GUI/$(DEPDIR)/McOsu_ng-CBaseUIButton.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/GUI/$(DEPDIR)/McOsu_ng-CBaseUICanvas.Po@am__quote@ # am--include-marker
@@ -1847,7 +1831,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/GUI/Windows/VinylScratcher/$(DEPDIR)/McOsu_ng-VSMusicBrowser.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/GUI/Windows/VinylScratcher/$(DEPDIR)/McOsu_ng-VSTitleBar.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/GUI/Windows/VinylScratcher/$(DEPDIR)/McOsu_ng-VinylScratcher.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@src/Util/$(DEPDIR)/McOsu_ng-MD5.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Util/$(DEPDIR)/McOsu_ng-McMath.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Util/$(DEPDIR)/McOsu_ng-Quaternion.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@src/Util/$(DEPDIR)/McOsu_ng-Rect.Po@am__quote@ # am--include-marker
@@ -1875,19 +1858,33 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-libraries/glad/glad/McOsu_ng-glad.o: libraries/glad/glad/glad.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT libraries/glad/glad/McOsu_ng-glad.o -MD -MP -MF libraries/glad/glad/$(DEPDIR)/McOsu_ng-glad.Tpo -c -o libraries/glad/glad/McOsu_ng-glad.o `test -f 'libraries/glad/glad/glad.cpp' || echo '$(srcdir)/'`libraries/glad/glad/glad.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) libraries/glad/glad/$(DEPDIR)/McOsu_ng-glad.Tpo libraries/glad/glad/$(DEPDIR)/McOsu_ng-glad.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libraries/glad/glad/glad.cpp' object='libraries/glad/glad/McOsu_ng-glad.o' libtool=no @AMDEPBACKSLASH@
+libraries/include/McOsu_ng-MD5.o: libraries/include/MD5.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT libraries/include/McOsu_ng-MD5.o -MD -MP -MF libraries/include/$(DEPDIR)/McOsu_ng-MD5.Tpo -c -o libraries/include/McOsu_ng-MD5.o `test -f 'libraries/include/MD5.cpp' || echo '$(srcdir)/'`libraries/include/MD5.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) libraries/include/$(DEPDIR)/McOsu_ng-MD5.Tpo libraries/include/$(DEPDIR)/McOsu_ng-MD5.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libraries/include/MD5.cpp' object='libraries/include/McOsu_ng-MD5.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o libraries/glad/glad/McOsu_ng-glad.o `test -f 'libraries/glad/glad/glad.cpp' || echo '$(srcdir)/'`libraries/glad/glad/glad.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o libraries/include/McOsu_ng-MD5.o `test -f 'libraries/include/MD5.cpp' || echo '$(srcdir)/'`libraries/include/MD5.cpp
 
-libraries/glad/glad/McOsu_ng-glad.obj: libraries/glad/glad/glad.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT libraries/glad/glad/McOsu_ng-glad.obj -MD -MP -MF libraries/glad/glad/$(DEPDIR)/McOsu_ng-glad.Tpo -c -o libraries/glad/glad/McOsu_ng-glad.obj `if test -f 'libraries/glad/glad/glad.cpp'; then $(CYGPATH_W) 'libraries/glad/glad/glad.cpp'; else $(CYGPATH_W) '$(srcdir)/libraries/glad/glad/glad.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) libraries/glad/glad/$(DEPDIR)/McOsu_ng-glad.Tpo libraries/glad/glad/$(DEPDIR)/McOsu_ng-glad.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libraries/glad/glad/glad.cpp' object='libraries/glad/glad/McOsu_ng-glad.obj' libtool=no @AMDEPBACKSLASH@
+libraries/include/McOsu_ng-MD5.obj: libraries/include/MD5.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT libraries/include/McOsu_ng-MD5.obj -MD -MP -MF libraries/include/$(DEPDIR)/McOsu_ng-MD5.Tpo -c -o libraries/include/McOsu_ng-MD5.obj `if test -f 'libraries/include/MD5.cpp'; then $(CYGPATH_W) 'libraries/include/MD5.cpp'; else $(CYGPATH_W) '$(srcdir)/libraries/include/MD5.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) libraries/include/$(DEPDIR)/McOsu_ng-MD5.Tpo libraries/include/$(DEPDIR)/McOsu_ng-MD5.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libraries/include/MD5.cpp' object='libraries/include/McOsu_ng-MD5.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o libraries/glad/glad/McOsu_ng-glad.obj `if test -f 'libraries/glad/glad/glad.cpp'; then $(CYGPATH_W) 'libraries/glad/glad/glad.cpp'; else $(CYGPATH_W) '$(srcdir)/libraries/glad/glad/glad.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o libraries/include/McOsu_ng-MD5.obj `if test -f 'libraries/include/MD5.cpp'; then $(CYGPATH_W) 'libraries/include/MD5.cpp'; else $(CYGPATH_W) '$(srcdir)/libraries/include/MD5.cpp'; fi`
+
+libraries/include/glad/McOsu_ng-glad.o: libraries/include/glad/glad.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT libraries/include/glad/McOsu_ng-glad.o -MD -MP -MF libraries/include/glad/$(DEPDIR)/McOsu_ng-glad.Tpo -c -o libraries/include/glad/McOsu_ng-glad.o `test -f 'libraries/include/glad/glad.cpp' || echo '$(srcdir)/'`libraries/include/glad/glad.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) libraries/include/glad/$(DEPDIR)/McOsu_ng-glad.Tpo libraries/include/glad/$(DEPDIR)/McOsu_ng-glad.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libraries/include/glad/glad.cpp' object='libraries/include/glad/McOsu_ng-glad.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o libraries/include/glad/McOsu_ng-glad.o `test -f 'libraries/include/glad/glad.cpp' || echo '$(srcdir)/'`libraries/include/glad/glad.cpp
+
+libraries/include/glad/McOsu_ng-glad.obj: libraries/include/glad/glad.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT libraries/include/glad/McOsu_ng-glad.obj -MD -MP -MF libraries/include/glad/$(DEPDIR)/McOsu_ng-glad.Tpo -c -o libraries/include/glad/McOsu_ng-glad.obj `if test -f 'libraries/include/glad/glad.cpp'; then $(CYGPATH_W) 'libraries/include/glad/glad.cpp'; else $(CYGPATH_W) '$(srcdir)/libraries/include/glad/glad.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) libraries/include/glad/$(DEPDIR)/McOsu_ng-glad.Tpo libraries/include/glad/$(DEPDIR)/McOsu_ng-glad.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='libraries/include/glad/glad.cpp' object='libraries/include/glad/McOsu_ng-glad.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o libraries/include/glad/McOsu_ng-glad.obj `if test -f 'libraries/include/glad/glad.cpp'; then $(CYGPATH_W) 'libraries/include/glad/glad.cpp'; else $(CYGPATH_W) '$(srcdir)/libraries/include/glad/glad.cpp'; fi`
 
 src/App/Osu/McOsu_ng-Osu.o: src/App/Osu/Osu.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-Osu.o -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-Osu.Tpo -c -o src/App/Osu/McOsu_ng-Osu.o `test -f 'src/App/Osu/Osu.cpp' || echo '$(srcdir)/'`src/App/Osu/Osu.cpp
@@ -1902,20 +1899,6 @@ src/App/Osu/McOsu_ng-Osu.obj: src/App/Osu/Osu.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/Osu.cpp' object='src/App/Osu/McOsu_ng-Osu.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-Osu.obj `if test -f 'src/App/Osu/Osu.cpp'; then $(CYGPATH_W) 'src/App/Osu/Osu.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/Osu.cpp'; fi`
-
-src/App/Osu/McOsu_ng-Osu2.o: src/App/Osu/Osu2.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-Osu2.o -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-Osu2.Tpo -c -o src/App/Osu/McOsu_ng-Osu2.o `test -f 'src/App/Osu/Osu2.cpp' || echo '$(srcdir)/'`src/App/Osu/Osu2.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-Osu2.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-Osu2.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/Osu2.cpp' object='src/App/Osu/McOsu_ng-Osu2.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-Osu2.o `test -f 'src/App/Osu/Osu2.cpp' || echo '$(srcdir)/'`src/App/Osu/Osu2.cpp
-
-src/App/Osu/McOsu_ng-Osu2.obj: src/App/Osu/Osu2.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-Osu2.obj -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-Osu2.Tpo -c -o src/App/Osu/McOsu_ng-Osu2.obj `if test -f 'src/App/Osu/Osu2.cpp'; then $(CYGPATH_W) 'src/App/Osu/Osu2.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/Osu2.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-Osu2.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-Osu2.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/Osu2.cpp' object='src/App/Osu/McOsu_ng-Osu2.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-Osu2.obj `if test -f 'src/App/Osu/Osu2.cpp'; then $(CYGPATH_W) 'src/App/Osu/Osu2.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/Osu2.cpp'; fi`
 
 src/App/Osu/McOsu_ng-OsuBackgroundImageHandler.o: src/App/Osu/OsuBackgroundImageHandler.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-OsuBackgroundImageHandler.o -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-OsuBackgroundImageHandler.Tpo -c -o src/App/Osu/McOsu_ng-OsuBackgroundImageHandler.o `test -f 'src/App/Osu/OsuBackgroundImageHandler.cpp' || echo '$(srcdir)/'`src/App/Osu/OsuBackgroundImageHandler.cpp
@@ -2813,104 +2796,6 @@ src/App/Osu/McOsu_ng-OsuUserStatsScreen.obj: src/App/Osu/OsuUserStatsScreen.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-OsuUserStatsScreen.obj `if test -f 'src/App/Osu/OsuUserStatsScreen.cpp'; then $(CYGPATH_W) 'src/App/Osu/OsuUserStatsScreen.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/OsuUserStatsScreen.cpp'; fi`
 
-src/App/Osu/McOsu_ng-OsuVR.o: src/App/Osu/OsuVR.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-OsuVR.o -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVR.Tpo -c -o src/App/Osu/McOsu_ng-OsuVR.o `test -f 'src/App/Osu/OsuVR.cpp' || echo '$(srcdir)/'`src/App/Osu/OsuVR.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVR.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVR.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/OsuVR.cpp' object='src/App/Osu/McOsu_ng-OsuVR.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-OsuVR.o `test -f 'src/App/Osu/OsuVR.cpp' || echo '$(srcdir)/'`src/App/Osu/OsuVR.cpp
-
-src/App/Osu/McOsu_ng-OsuVR.obj: src/App/Osu/OsuVR.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-OsuVR.obj -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVR.Tpo -c -o src/App/Osu/McOsu_ng-OsuVR.obj `if test -f 'src/App/Osu/OsuVR.cpp'; then $(CYGPATH_W) 'src/App/Osu/OsuVR.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/OsuVR.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVR.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVR.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/OsuVR.cpp' object='src/App/Osu/McOsu_ng-OsuVR.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-OsuVR.obj `if test -f 'src/App/Osu/OsuVR.cpp'; then $(CYGPATH_W) 'src/App/Osu/OsuVR.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/OsuVR.cpp'; fi`
-
-src/App/Osu/McOsu_ng-OsuVRTutorial.o: src/App/Osu/OsuVRTutorial.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-OsuVRTutorial.o -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRTutorial.Tpo -c -o src/App/Osu/McOsu_ng-OsuVRTutorial.o `test -f 'src/App/Osu/OsuVRTutorial.cpp' || echo '$(srcdir)/'`src/App/Osu/OsuVRTutorial.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRTutorial.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRTutorial.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/OsuVRTutorial.cpp' object='src/App/Osu/McOsu_ng-OsuVRTutorial.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-OsuVRTutorial.o `test -f 'src/App/Osu/OsuVRTutorial.cpp' || echo '$(srcdir)/'`src/App/Osu/OsuVRTutorial.cpp
-
-src/App/Osu/McOsu_ng-OsuVRTutorial.obj: src/App/Osu/OsuVRTutorial.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-OsuVRTutorial.obj -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRTutorial.Tpo -c -o src/App/Osu/McOsu_ng-OsuVRTutorial.obj `if test -f 'src/App/Osu/OsuVRTutorial.cpp'; then $(CYGPATH_W) 'src/App/Osu/OsuVRTutorial.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/OsuVRTutorial.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRTutorial.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRTutorial.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/OsuVRTutorial.cpp' object='src/App/Osu/McOsu_ng-OsuVRTutorial.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-OsuVRTutorial.obj `if test -f 'src/App/Osu/OsuVRTutorial.cpp'; then $(CYGPATH_W) 'src/App/Osu/OsuVRTutorial.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/OsuVRTutorial.cpp'; fi`
-
-src/App/Osu/McOsu_ng-OsuVRUIButton.o: src/App/Osu/OsuVRUIButton.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-OsuVRUIButton.o -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIButton.Tpo -c -o src/App/Osu/McOsu_ng-OsuVRUIButton.o `test -f 'src/App/Osu/OsuVRUIButton.cpp' || echo '$(srcdir)/'`src/App/Osu/OsuVRUIButton.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIButton.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIButton.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/OsuVRUIButton.cpp' object='src/App/Osu/McOsu_ng-OsuVRUIButton.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-OsuVRUIButton.o `test -f 'src/App/Osu/OsuVRUIButton.cpp' || echo '$(srcdir)/'`src/App/Osu/OsuVRUIButton.cpp
-
-src/App/Osu/McOsu_ng-OsuVRUIButton.obj: src/App/Osu/OsuVRUIButton.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-OsuVRUIButton.obj -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIButton.Tpo -c -o src/App/Osu/McOsu_ng-OsuVRUIButton.obj `if test -f 'src/App/Osu/OsuVRUIButton.cpp'; then $(CYGPATH_W) 'src/App/Osu/OsuVRUIButton.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/OsuVRUIButton.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIButton.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIButton.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/OsuVRUIButton.cpp' object='src/App/Osu/McOsu_ng-OsuVRUIButton.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-OsuVRUIButton.obj `if test -f 'src/App/Osu/OsuVRUIButton.cpp'; then $(CYGPATH_W) 'src/App/Osu/OsuVRUIButton.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/OsuVRUIButton.cpp'; fi`
-
-src/App/Osu/McOsu_ng-OsuVRUIElement.o: src/App/Osu/OsuVRUIElement.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-OsuVRUIElement.o -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIElement.Tpo -c -o src/App/Osu/McOsu_ng-OsuVRUIElement.o `test -f 'src/App/Osu/OsuVRUIElement.cpp' || echo '$(srcdir)/'`src/App/Osu/OsuVRUIElement.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIElement.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIElement.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/OsuVRUIElement.cpp' object='src/App/Osu/McOsu_ng-OsuVRUIElement.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-OsuVRUIElement.o `test -f 'src/App/Osu/OsuVRUIElement.cpp' || echo '$(srcdir)/'`src/App/Osu/OsuVRUIElement.cpp
-
-src/App/Osu/McOsu_ng-OsuVRUIElement.obj: src/App/Osu/OsuVRUIElement.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-OsuVRUIElement.obj -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIElement.Tpo -c -o src/App/Osu/McOsu_ng-OsuVRUIElement.obj `if test -f 'src/App/Osu/OsuVRUIElement.cpp'; then $(CYGPATH_W) 'src/App/Osu/OsuVRUIElement.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/OsuVRUIElement.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIElement.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIElement.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/OsuVRUIElement.cpp' object='src/App/Osu/McOsu_ng-OsuVRUIElement.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-OsuVRUIElement.obj `if test -f 'src/App/Osu/OsuVRUIElement.cpp'; then $(CYGPATH_W) 'src/App/Osu/OsuVRUIElement.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/OsuVRUIElement.cpp'; fi`
-
-src/App/Osu/McOsu_ng-OsuVRUIImageButton.o: src/App/Osu/OsuVRUIImageButton.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-OsuVRUIImageButton.o -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageButton.Tpo -c -o src/App/Osu/McOsu_ng-OsuVRUIImageButton.o `test -f 'src/App/Osu/OsuVRUIImageButton.cpp' || echo '$(srcdir)/'`src/App/Osu/OsuVRUIImageButton.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageButton.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageButton.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/OsuVRUIImageButton.cpp' object='src/App/Osu/McOsu_ng-OsuVRUIImageButton.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-OsuVRUIImageButton.o `test -f 'src/App/Osu/OsuVRUIImageButton.cpp' || echo '$(srcdir)/'`src/App/Osu/OsuVRUIImageButton.cpp
-
-src/App/Osu/McOsu_ng-OsuVRUIImageButton.obj: src/App/Osu/OsuVRUIImageButton.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-OsuVRUIImageButton.obj -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageButton.Tpo -c -o src/App/Osu/McOsu_ng-OsuVRUIImageButton.obj `if test -f 'src/App/Osu/OsuVRUIImageButton.cpp'; then $(CYGPATH_W) 'src/App/Osu/OsuVRUIImageButton.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/OsuVRUIImageButton.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageButton.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageButton.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/OsuVRUIImageButton.cpp' object='src/App/Osu/McOsu_ng-OsuVRUIImageButton.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-OsuVRUIImageButton.obj `if test -f 'src/App/Osu/OsuVRUIImageButton.cpp'; then $(CYGPATH_W) 'src/App/Osu/OsuVRUIImageButton.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/OsuVRUIImageButton.cpp'; fi`
-
-src/App/Osu/McOsu_ng-OsuVRUIImageCheckbox.o: src/App/Osu/OsuVRUIImageCheckbox.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-OsuVRUIImageCheckbox.o -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageCheckbox.Tpo -c -o src/App/Osu/McOsu_ng-OsuVRUIImageCheckbox.o `test -f 'src/App/Osu/OsuVRUIImageCheckbox.cpp' || echo '$(srcdir)/'`src/App/Osu/OsuVRUIImageCheckbox.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageCheckbox.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageCheckbox.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/OsuVRUIImageCheckbox.cpp' object='src/App/Osu/McOsu_ng-OsuVRUIImageCheckbox.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-OsuVRUIImageCheckbox.o `test -f 'src/App/Osu/OsuVRUIImageCheckbox.cpp' || echo '$(srcdir)/'`src/App/Osu/OsuVRUIImageCheckbox.cpp
-
-src/App/Osu/McOsu_ng-OsuVRUIImageCheckbox.obj: src/App/Osu/OsuVRUIImageCheckbox.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-OsuVRUIImageCheckbox.obj -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageCheckbox.Tpo -c -o src/App/Osu/McOsu_ng-OsuVRUIImageCheckbox.obj `if test -f 'src/App/Osu/OsuVRUIImageCheckbox.cpp'; then $(CYGPATH_W) 'src/App/Osu/OsuVRUIImageCheckbox.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/OsuVRUIImageCheckbox.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageCheckbox.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageCheckbox.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/OsuVRUIImageCheckbox.cpp' object='src/App/Osu/McOsu_ng-OsuVRUIImageCheckbox.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-OsuVRUIImageCheckbox.obj `if test -f 'src/App/Osu/OsuVRUIImageCheckbox.cpp'; then $(CYGPATH_W) 'src/App/Osu/OsuVRUIImageCheckbox.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/OsuVRUIImageCheckbox.cpp'; fi`
-
-src/App/Osu/McOsu_ng-OsuVRUISlider.o: src/App/Osu/OsuVRUISlider.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-OsuVRUISlider.o -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUISlider.Tpo -c -o src/App/Osu/McOsu_ng-OsuVRUISlider.o `test -f 'src/App/Osu/OsuVRUISlider.cpp' || echo '$(srcdir)/'`src/App/Osu/OsuVRUISlider.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUISlider.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUISlider.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/OsuVRUISlider.cpp' object='src/App/Osu/McOsu_ng-OsuVRUISlider.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-OsuVRUISlider.o `test -f 'src/App/Osu/OsuVRUISlider.cpp' || echo '$(srcdir)/'`src/App/Osu/OsuVRUISlider.cpp
-
-src/App/Osu/McOsu_ng-OsuVRUISlider.obj: src/App/Osu/OsuVRUISlider.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/App/Osu/McOsu_ng-OsuVRUISlider.obj -MD -MP -MF src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUISlider.Tpo -c -o src/App/Osu/McOsu_ng-OsuVRUISlider.obj `if test -f 'src/App/Osu/OsuVRUISlider.cpp'; then $(CYGPATH_W) 'src/App/Osu/OsuVRUISlider.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/OsuVRUISlider.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUISlider.Tpo src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUISlider.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/App/Osu/OsuVRUISlider.cpp' object='src/App/Osu/McOsu_ng-OsuVRUISlider.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/App/Osu/McOsu_ng-OsuVRUISlider.obj `if test -f 'src/App/Osu/OsuVRUISlider.cpp'; then $(CYGPATH_W) 'src/App/Osu/OsuVRUISlider.cpp'; else $(CYGPATH_W) '$(srcdir)/src/App/Osu/OsuVRUISlider.cpp'; fi`
-
 src/Engine/McOsu_ng-AnimationHandler.o: src/Engine/AnimationHandler.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/McOsu_ng-AnimationHandler.o -MD -MP -MF src/Engine/$(DEPDIR)/McOsu_ng-AnimationHandler.Tpo -c -o src/Engine/McOsu_ng-AnimationHandler.o `test -f 'src/Engine/AnimationHandler.cpp' || echo '$(srcdir)/'`src/Engine/AnimationHandler.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/$(DEPDIR)/McOsu_ng-AnimationHandler.Tpo src/Engine/$(DEPDIR)/McOsu_ng-AnimationHandler.Po
@@ -3093,20 +2978,6 @@ src/Engine/Input/McOsu_ng-Mouse.obj: src/Engine/Input/Mouse.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Input/McOsu_ng-Mouse.obj `if test -f 'src/Engine/Input/Mouse.cpp'; then $(CYGPATH_W) 'src/Engine/Input/Mouse.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Input/Mouse.cpp'; fi`
 
-src/Engine/Input/McOsu_ng-OpenVRController.o: src/Engine/Input/OpenVRController.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Input/McOsu_ng-OpenVRController.o -MD -MP -MF src/Engine/Input/$(DEPDIR)/McOsu_ng-OpenVRController.Tpo -c -o src/Engine/Input/McOsu_ng-OpenVRController.o `test -f 'src/Engine/Input/OpenVRController.cpp' || echo '$(srcdir)/'`src/Engine/Input/OpenVRController.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Input/$(DEPDIR)/McOsu_ng-OpenVRController.Tpo src/Engine/Input/$(DEPDIR)/McOsu_ng-OpenVRController.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Input/OpenVRController.cpp' object='src/Engine/Input/McOsu_ng-OpenVRController.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Input/McOsu_ng-OpenVRController.o `test -f 'src/Engine/Input/OpenVRController.cpp' || echo '$(srcdir)/'`src/Engine/Input/OpenVRController.cpp
-
-src/Engine/Input/McOsu_ng-OpenVRController.obj: src/Engine/Input/OpenVRController.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Input/McOsu_ng-OpenVRController.obj -MD -MP -MF src/Engine/Input/$(DEPDIR)/McOsu_ng-OpenVRController.Tpo -c -o src/Engine/Input/McOsu_ng-OpenVRController.obj `if test -f 'src/Engine/Input/OpenVRController.cpp'; then $(CYGPATH_W) 'src/Engine/Input/OpenVRController.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Input/OpenVRController.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Input/$(DEPDIR)/McOsu_ng-OpenVRController.Tpo src/Engine/Input/$(DEPDIR)/McOsu_ng-OpenVRController.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Input/OpenVRController.cpp' object='src/Engine/Input/McOsu_ng-OpenVRController.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Input/McOsu_ng-OpenVRController.obj `if test -f 'src/Engine/Input/OpenVRController.cpp'; then $(CYGPATH_W) 'src/Engine/Input/OpenVRController.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Input/OpenVRController.cpp'; fi`
-
 src/Engine/Main/McOsu_ng-main.o: src/Engine/Main/main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Main/McOsu_ng-main.o -MD -MP -MF src/Engine/Main/$(DEPDIR)/McOsu_ng-main.Tpo -c -o src/Engine/Main/McOsu_ng-main.o `test -f 'src/Engine/Main/main.cpp' || echo '$(srcdir)/'`src/Engine/Main/main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Main/$(DEPDIR)/McOsu_ng-main.Tpo src/Engine/Main/$(DEPDIR)/McOsu_ng-main.Po
@@ -3134,20 +3005,6 @@ src/Engine/McOsu_ng-NetworkHandler.obj: src/Engine/NetworkHandler.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/NetworkHandler.cpp' object='src/Engine/McOsu_ng-NetworkHandler.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/McOsu_ng-NetworkHandler.obj `if test -f 'src/Engine/NetworkHandler.cpp'; then $(CYGPATH_W) 'src/Engine/NetworkHandler.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/NetworkHandler.cpp'; fi`
-
-src/Engine/McOsu_ng-OpenVRInterface.o: src/Engine/OpenVRInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/McOsu_ng-OpenVRInterface.o -MD -MP -MF src/Engine/$(DEPDIR)/McOsu_ng-OpenVRInterface.Tpo -c -o src/Engine/McOsu_ng-OpenVRInterface.o `test -f 'src/Engine/OpenVRInterface.cpp' || echo '$(srcdir)/'`src/Engine/OpenVRInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/$(DEPDIR)/McOsu_ng-OpenVRInterface.Tpo src/Engine/$(DEPDIR)/McOsu_ng-OpenVRInterface.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/OpenVRInterface.cpp' object='src/Engine/McOsu_ng-OpenVRInterface.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/McOsu_ng-OpenVRInterface.o `test -f 'src/Engine/OpenVRInterface.cpp' || echo '$(srcdir)/'`src/Engine/OpenVRInterface.cpp
-
-src/Engine/McOsu_ng-OpenVRInterface.obj: src/Engine/OpenVRInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/McOsu_ng-OpenVRInterface.obj -MD -MP -MF src/Engine/$(DEPDIR)/McOsu_ng-OpenVRInterface.Tpo -c -o src/Engine/McOsu_ng-OpenVRInterface.obj `if test -f 'src/Engine/OpenVRInterface.cpp'; then $(CYGPATH_W) 'src/Engine/OpenVRInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/OpenVRInterface.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/$(DEPDIR)/McOsu_ng-OpenVRInterface.Tpo src/Engine/$(DEPDIR)/McOsu_ng-OpenVRInterface.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/OpenVRInterface.cpp' object='src/Engine/McOsu_ng-OpenVRInterface.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/McOsu_ng-OpenVRInterface.obj `if test -f 'src/Engine/OpenVRInterface.cpp'; then $(CYGPATH_W) 'src/Engine/OpenVRInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/OpenVRInterface.cpp'; fi`
 
 src/Engine/Platform/McOsu_ng-SDLGLInterface.o: src/Engine/Platform/SDLGLInterface.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Platform/McOsu_ng-SDLGLInterface.o -MD -MP -MF src/Engine/Platform/$(DEPDIR)/McOsu_ng-SDLGLInterface.Tpo -c -o src/Engine/Platform/McOsu_ng-SDLGLInterface.o `test -f 'src/Engine/Platform/SDLGLInterface.cpp' || echo '$(srcdir)/'`src/Engine/Platform/SDLGLInterface.cpp
@@ -3527,33 +3384,47 @@ src/Engine/Renderer/McOsu_ng-OpenGLVertexArrayObject.obj: src/Engine/Renderer/Op
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Renderer/McOsu_ng-OpenGLVertexArrayObject.obj `if test -f 'src/Engine/Renderer/OpenGLVertexArrayObject.cpp'; then $(CYGPATH_W) 'src/Engine/Renderer/OpenGLVertexArrayObject.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Renderer/OpenGLVertexArrayObject.cpp'; fi`
 
-src/Engine/McOsu_ng-Resource.o: src/Engine/Resource.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/McOsu_ng-Resource.o -MD -MP -MF src/Engine/$(DEPDIR)/McOsu_ng-Resource.Tpo -c -o src/Engine/McOsu_ng-Resource.o `test -f 'src/Engine/Resource.cpp' || echo '$(srcdir)/'`src/Engine/Resource.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/$(DEPDIR)/McOsu_ng-Resource.Tpo src/Engine/$(DEPDIR)/McOsu_ng-Resource.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Resource.cpp' object='src/Engine/McOsu_ng-Resource.o' libtool=no @AMDEPBACKSLASH@
+src/Engine/Resources/McOsu_ng-AsyncResourceLoader.o: src/Engine/Resources/AsyncResourceLoader.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Resources/McOsu_ng-AsyncResourceLoader.o -MD -MP -MF src/Engine/Resources/$(DEPDIR)/McOsu_ng-AsyncResourceLoader.Tpo -c -o src/Engine/Resources/McOsu_ng-AsyncResourceLoader.o `test -f 'src/Engine/Resources/AsyncResourceLoader.cpp' || echo '$(srcdir)/'`src/Engine/Resources/AsyncResourceLoader.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Resources/$(DEPDIR)/McOsu_ng-AsyncResourceLoader.Tpo src/Engine/Resources/$(DEPDIR)/McOsu_ng-AsyncResourceLoader.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Resources/AsyncResourceLoader.cpp' object='src/Engine/Resources/McOsu_ng-AsyncResourceLoader.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/McOsu_ng-Resource.o `test -f 'src/Engine/Resource.cpp' || echo '$(srcdir)/'`src/Engine/Resource.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Resources/McOsu_ng-AsyncResourceLoader.o `test -f 'src/Engine/Resources/AsyncResourceLoader.cpp' || echo '$(srcdir)/'`src/Engine/Resources/AsyncResourceLoader.cpp
 
-src/Engine/McOsu_ng-Resource.obj: src/Engine/Resource.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/McOsu_ng-Resource.obj -MD -MP -MF src/Engine/$(DEPDIR)/McOsu_ng-Resource.Tpo -c -o src/Engine/McOsu_ng-Resource.obj `if test -f 'src/Engine/Resource.cpp'; then $(CYGPATH_W) 'src/Engine/Resource.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Resource.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/$(DEPDIR)/McOsu_ng-Resource.Tpo src/Engine/$(DEPDIR)/McOsu_ng-Resource.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Resource.cpp' object='src/Engine/McOsu_ng-Resource.obj' libtool=no @AMDEPBACKSLASH@
+src/Engine/Resources/McOsu_ng-AsyncResourceLoader.obj: src/Engine/Resources/AsyncResourceLoader.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Resources/McOsu_ng-AsyncResourceLoader.obj -MD -MP -MF src/Engine/Resources/$(DEPDIR)/McOsu_ng-AsyncResourceLoader.Tpo -c -o src/Engine/Resources/McOsu_ng-AsyncResourceLoader.obj `if test -f 'src/Engine/Resources/AsyncResourceLoader.cpp'; then $(CYGPATH_W) 'src/Engine/Resources/AsyncResourceLoader.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Resources/AsyncResourceLoader.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Resources/$(DEPDIR)/McOsu_ng-AsyncResourceLoader.Tpo src/Engine/Resources/$(DEPDIR)/McOsu_ng-AsyncResourceLoader.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Resources/AsyncResourceLoader.cpp' object='src/Engine/Resources/McOsu_ng-AsyncResourceLoader.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/McOsu_ng-Resource.obj `if test -f 'src/Engine/Resource.cpp'; then $(CYGPATH_W) 'src/Engine/Resource.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Resource.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Resources/McOsu_ng-AsyncResourceLoader.obj `if test -f 'src/Engine/Resources/AsyncResourceLoader.cpp'; then $(CYGPATH_W) 'src/Engine/Resources/AsyncResourceLoader.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Resources/AsyncResourceLoader.cpp'; fi`
 
-src/Engine/McOsu_ng-ResourceManager.o: src/Engine/ResourceManager.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/McOsu_ng-ResourceManager.o -MD -MP -MF src/Engine/$(DEPDIR)/McOsu_ng-ResourceManager.Tpo -c -o src/Engine/McOsu_ng-ResourceManager.o `test -f 'src/Engine/ResourceManager.cpp' || echo '$(srcdir)/'`src/Engine/ResourceManager.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/$(DEPDIR)/McOsu_ng-ResourceManager.Tpo src/Engine/$(DEPDIR)/McOsu_ng-ResourceManager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/ResourceManager.cpp' object='src/Engine/McOsu_ng-ResourceManager.o' libtool=no @AMDEPBACKSLASH@
+src/Engine/Resources/McOsu_ng-Resource.o: src/Engine/Resources/Resource.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Resources/McOsu_ng-Resource.o -MD -MP -MF src/Engine/Resources/$(DEPDIR)/McOsu_ng-Resource.Tpo -c -o src/Engine/Resources/McOsu_ng-Resource.o `test -f 'src/Engine/Resources/Resource.cpp' || echo '$(srcdir)/'`src/Engine/Resources/Resource.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Resources/$(DEPDIR)/McOsu_ng-Resource.Tpo src/Engine/Resources/$(DEPDIR)/McOsu_ng-Resource.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Resources/Resource.cpp' object='src/Engine/Resources/McOsu_ng-Resource.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/McOsu_ng-ResourceManager.o `test -f 'src/Engine/ResourceManager.cpp' || echo '$(srcdir)/'`src/Engine/ResourceManager.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Resources/McOsu_ng-Resource.o `test -f 'src/Engine/Resources/Resource.cpp' || echo '$(srcdir)/'`src/Engine/Resources/Resource.cpp
 
-src/Engine/McOsu_ng-ResourceManager.obj: src/Engine/ResourceManager.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/McOsu_ng-ResourceManager.obj -MD -MP -MF src/Engine/$(DEPDIR)/McOsu_ng-ResourceManager.Tpo -c -o src/Engine/McOsu_ng-ResourceManager.obj `if test -f 'src/Engine/ResourceManager.cpp'; then $(CYGPATH_W) 'src/Engine/ResourceManager.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/ResourceManager.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/$(DEPDIR)/McOsu_ng-ResourceManager.Tpo src/Engine/$(DEPDIR)/McOsu_ng-ResourceManager.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/ResourceManager.cpp' object='src/Engine/McOsu_ng-ResourceManager.obj' libtool=no @AMDEPBACKSLASH@
+src/Engine/Resources/McOsu_ng-Resource.obj: src/Engine/Resources/Resource.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Resources/McOsu_ng-Resource.obj -MD -MP -MF src/Engine/Resources/$(DEPDIR)/McOsu_ng-Resource.Tpo -c -o src/Engine/Resources/McOsu_ng-Resource.obj `if test -f 'src/Engine/Resources/Resource.cpp'; then $(CYGPATH_W) 'src/Engine/Resources/Resource.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Resources/Resource.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Resources/$(DEPDIR)/McOsu_ng-Resource.Tpo src/Engine/Resources/$(DEPDIR)/McOsu_ng-Resource.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Resources/Resource.cpp' object='src/Engine/Resources/McOsu_ng-Resource.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/McOsu_ng-ResourceManager.obj `if test -f 'src/Engine/ResourceManager.cpp'; then $(CYGPATH_W) 'src/Engine/ResourceManager.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/ResourceManager.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Resources/McOsu_ng-Resource.obj `if test -f 'src/Engine/Resources/Resource.cpp'; then $(CYGPATH_W) 'src/Engine/Resources/Resource.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Resources/Resource.cpp'; fi`
+
+src/Engine/Resources/McOsu_ng-ResourceManager.o: src/Engine/Resources/ResourceManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Resources/McOsu_ng-ResourceManager.o -MD -MP -MF src/Engine/Resources/$(DEPDIR)/McOsu_ng-ResourceManager.Tpo -c -o src/Engine/Resources/McOsu_ng-ResourceManager.o `test -f 'src/Engine/Resources/ResourceManager.cpp' || echo '$(srcdir)/'`src/Engine/Resources/ResourceManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Resources/$(DEPDIR)/McOsu_ng-ResourceManager.Tpo src/Engine/Resources/$(DEPDIR)/McOsu_ng-ResourceManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Resources/ResourceManager.cpp' object='src/Engine/Resources/McOsu_ng-ResourceManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Resources/McOsu_ng-ResourceManager.o `test -f 'src/Engine/Resources/ResourceManager.cpp' || echo '$(srcdir)/'`src/Engine/Resources/ResourceManager.cpp
+
+src/Engine/Resources/McOsu_ng-ResourceManager.obj: src/Engine/Resources/ResourceManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Resources/McOsu_ng-ResourceManager.obj -MD -MP -MF src/Engine/Resources/$(DEPDIR)/McOsu_ng-ResourceManager.Tpo -c -o src/Engine/Resources/McOsu_ng-ResourceManager.obj `if test -f 'src/Engine/Resources/ResourceManager.cpp'; then $(CYGPATH_W) 'src/Engine/Resources/ResourceManager.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Resources/ResourceManager.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Resources/$(DEPDIR)/McOsu_ng-ResourceManager.Tpo src/Engine/Resources/$(DEPDIR)/McOsu_ng-ResourceManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Resources/ResourceManager.cpp' object='src/Engine/Resources/McOsu_ng-ResourceManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Resources/McOsu_ng-ResourceManager.obj `if test -f 'src/Engine/Resources/ResourceManager.cpp'; then $(CYGPATH_W) 'src/Engine/Resources/ResourceManager.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Resources/ResourceManager.cpp'; fi`
 
 src/Engine/McOsu_ng-Shader.o: src/Engine/Shader.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/McOsu_ng-Shader.o -MD -MP -MF src/Engine/$(DEPDIR)/McOsu_ng-Shader.Tpo -c -o src/Engine/McOsu_ng-Shader.o `test -f 'src/Engine/Shader.cpp' || echo '$(srcdir)/'`src/Engine/Shader.cpp
@@ -3569,19 +3440,19 @@ src/Engine/McOsu_ng-Shader.obj: src/Engine/Shader.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/McOsu_ng-Shader.obj `if test -f 'src/Engine/Shader.cpp'; then $(CYGPATH_W) 'src/Engine/Shader.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Shader.cpp'; fi`
 
-src/Engine/Sound/BASS/McOsu_ng-BassLoader.o: src/Engine/Sound/BASS/BassLoader.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/BASS/McOsu_ng-BassLoader.o -MD -MP -MF src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassLoader.Tpo -c -o src/Engine/Sound/BASS/McOsu_ng-BassLoader.o `test -f 'src/Engine/Sound/BASS/BassLoader.cpp' || echo '$(srcdir)/'`src/Engine/Sound/BASS/BassLoader.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassLoader.Tpo src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassLoader.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Sound/BASS/BassLoader.cpp' object='src/Engine/Sound/BASS/McOsu_ng-BassLoader.o' libtool=no @AMDEPBACKSLASH@
+src/Engine/Sound/BASS/McOsu_ng-BassManager.o: src/Engine/Sound/BASS/BassManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/BASS/McOsu_ng-BassManager.o -MD -MP -MF src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassManager.Tpo -c -o src/Engine/Sound/BASS/McOsu_ng-BassManager.o `test -f 'src/Engine/Sound/BASS/BassManager.cpp' || echo '$(srcdir)/'`src/Engine/Sound/BASS/BassManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassManager.Tpo src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Sound/BASS/BassManager.cpp' object='src/Engine/Sound/BASS/McOsu_ng-BassManager.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/BASS/McOsu_ng-BassLoader.o `test -f 'src/Engine/Sound/BASS/BassLoader.cpp' || echo '$(srcdir)/'`src/Engine/Sound/BASS/BassLoader.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/BASS/McOsu_ng-BassManager.o `test -f 'src/Engine/Sound/BASS/BassManager.cpp' || echo '$(srcdir)/'`src/Engine/Sound/BASS/BassManager.cpp
 
-src/Engine/Sound/BASS/McOsu_ng-BassLoader.obj: src/Engine/Sound/BASS/BassLoader.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/BASS/McOsu_ng-BassLoader.obj -MD -MP -MF src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassLoader.Tpo -c -o src/Engine/Sound/BASS/McOsu_ng-BassLoader.obj `if test -f 'src/Engine/Sound/BASS/BassLoader.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/BASS/BassLoader.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/BASS/BassLoader.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassLoader.Tpo src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassLoader.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Sound/BASS/BassLoader.cpp' object='src/Engine/Sound/BASS/McOsu_ng-BassLoader.obj' libtool=no @AMDEPBACKSLASH@
+src/Engine/Sound/BASS/McOsu_ng-BassManager.obj: src/Engine/Sound/BASS/BassManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/BASS/McOsu_ng-BassManager.obj -MD -MP -MF src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassManager.Tpo -c -o src/Engine/Sound/BASS/McOsu_ng-BassManager.obj `if test -f 'src/Engine/Sound/BASS/BassManager.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/BASS/BassManager.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/BASS/BassManager.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassManager.Tpo src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Sound/BASS/BassManager.cpp' object='src/Engine/Sound/BASS/McOsu_ng-BassManager.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/BASS/McOsu_ng-BassLoader.obj `if test -f 'src/Engine/Sound/BASS/BassLoader.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/BASS/BassLoader.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/BASS/BassLoader.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/BASS/McOsu_ng-BassManager.obj `if test -f 'src/Engine/Sound/BASS/BassManager.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/BASS/BassManager.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/BASS/BassManager.cpp'; fi`
 
 src/Engine/Sound/BASS/McOsu_ng-BassSound.o: src/Engine/Sound/BASS/BassSound.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/BASS/McOsu_ng-BassSound.o -MD -MP -MF src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSound.Tpo -c -o src/Engine/Sound/BASS/McOsu_ng-BassSound.o `test -f 'src/Engine/Sound/BASS/BassSound.cpp' || echo '$(srcdir)/'`src/Engine/Sound/BASS/BassSound.cpp
@@ -3597,6 +3468,20 @@ src/Engine/Sound/BASS/McOsu_ng-BassSound.obj: src/Engine/Sound/BASS/BassSound.cp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/BASS/McOsu_ng-BassSound.obj `if test -f 'src/Engine/Sound/BASS/BassSound.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/BASS/BassSound.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/BASS/BassSound.cpp'; fi`
 
+src/Engine/Sound/BASS/McOsu_ng-BassSound2.o: src/Engine/Sound/BASS/BassSound2.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/BASS/McOsu_ng-BassSound2.o -MD -MP -MF src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSound2.Tpo -c -o src/Engine/Sound/BASS/McOsu_ng-BassSound2.o `test -f 'src/Engine/Sound/BASS/BassSound2.cpp' || echo '$(srcdir)/'`src/Engine/Sound/BASS/BassSound2.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSound2.Tpo src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSound2.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Sound/BASS/BassSound2.cpp' object='src/Engine/Sound/BASS/McOsu_ng-BassSound2.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/BASS/McOsu_ng-BassSound2.o `test -f 'src/Engine/Sound/BASS/BassSound2.cpp' || echo '$(srcdir)/'`src/Engine/Sound/BASS/BassSound2.cpp
+
+src/Engine/Sound/BASS/McOsu_ng-BassSound2.obj: src/Engine/Sound/BASS/BassSound2.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/BASS/McOsu_ng-BassSound2.obj -MD -MP -MF src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSound2.Tpo -c -o src/Engine/Sound/BASS/McOsu_ng-BassSound2.obj `if test -f 'src/Engine/Sound/BASS/BassSound2.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/BASS/BassSound2.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/BASS/BassSound2.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSound2.Tpo src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSound2.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Sound/BASS/BassSound2.cpp' object='src/Engine/Sound/BASS/McOsu_ng-BassSound2.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/BASS/McOsu_ng-BassSound2.obj `if test -f 'src/Engine/Sound/BASS/BassSound2.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/BASS/BassSound2.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/BASS/BassSound2.cpp'; fi`
+
 src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine.o: src/Engine/Sound/BASS/BassSoundEngine.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine.o -MD -MP -MF src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine.Tpo -c -o src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine.o `test -f 'src/Engine/Sound/BASS/BassSoundEngine.cpp' || echo '$(srcdir)/'`src/Engine/Sound/BASS/BassSoundEngine.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine.Tpo src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine.Po
@@ -3610,6 +3495,20 @@ src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine.obj: src/Engine/Sound/BASS/BassSo
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Sound/BASS/BassSoundEngine.cpp' object='src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine.obj `if test -f 'src/Engine/Sound/BASS/BassSoundEngine.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/BASS/BassSoundEngine.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/BASS/BassSoundEngine.cpp'; fi`
+
+src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine2.o: src/Engine/Sound/BASS/BassSoundEngine2.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine2.o -MD -MP -MF src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine2.Tpo -c -o src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine2.o `test -f 'src/Engine/Sound/BASS/BassSoundEngine2.cpp' || echo '$(srcdir)/'`src/Engine/Sound/BASS/BassSoundEngine2.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine2.Tpo src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine2.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Sound/BASS/BassSoundEngine2.cpp' object='src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine2.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine2.o `test -f 'src/Engine/Sound/BASS/BassSoundEngine2.cpp' || echo '$(srcdir)/'`src/Engine/Sound/BASS/BassSoundEngine2.cpp
+
+src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine2.obj: src/Engine/Sound/BASS/BassSoundEngine2.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine2.obj -MD -MP -MF src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine2.Tpo -c -o src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine2.obj `if test -f 'src/Engine/Sound/BASS/BassSoundEngine2.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/BASS/BassSoundEngine2.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/BASS/BassSoundEngine2.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine2.Tpo src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine2.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Sound/BASS/BassSoundEngine2.cpp' object='src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine2.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/BASS/McOsu_ng-BassSoundEngine2.obj `if test -f 'src/Engine/Sound/BASS/BassSoundEngine2.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/BASS/BassSoundEngine2.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/BASS/BassSoundEngine2.cpp'; fi`
 
 src/Engine/Sound/SDL_mixer/McOsu_ng-SDLSound.o: src/Engine/Sound/SDL_mixer/SDLSound.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/SDL_mixer/McOsu_ng-SDLSound.o -MD -MP -MF src/Engine/Sound/SDL_mixer/$(DEPDIR)/McOsu_ng-SDLSound.Tpo -c -o src/Engine/Sound/SDL_mixer/McOsu_ng-SDLSound.o `test -f 'src/Engine/Sound/SDL_mixer/SDLSound.cpp' || echo '$(srcdir)/'`src/Engine/Sound/SDL_mixer/SDLSound.cpp
@@ -3639,6 +3538,20 @@ src/Engine/Sound/SDL_mixer/McOsu_ng-SDLSoundEngine.obj: src/Engine/Sound/SDL_mix
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/SDL_mixer/McOsu_ng-SDLSoundEngine.obj `if test -f 'src/Engine/Sound/SDL_mixer/SDLSoundEngine.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/SDL_mixer/SDLSoundEngine.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/SDL_mixer/SDLSoundEngine.cpp'; fi`
 
+src/Engine/Sound/SoLoud/McOsu_ng-SoLoudFX.o: src/Engine/Sound/SoLoud/SoLoudFX.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/SoLoud/McOsu_ng-SoLoudFX.o -MD -MP -MF src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudFX.Tpo -c -o src/Engine/Sound/SoLoud/McOsu_ng-SoLoudFX.o `test -f 'src/Engine/Sound/SoLoud/SoLoudFX.cpp' || echo '$(srcdir)/'`src/Engine/Sound/SoLoud/SoLoudFX.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudFX.Tpo src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudFX.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Sound/SoLoud/SoLoudFX.cpp' object='src/Engine/Sound/SoLoud/McOsu_ng-SoLoudFX.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/SoLoud/McOsu_ng-SoLoudFX.o `test -f 'src/Engine/Sound/SoLoud/SoLoudFX.cpp' || echo '$(srcdir)/'`src/Engine/Sound/SoLoud/SoLoudFX.cpp
+
+src/Engine/Sound/SoLoud/McOsu_ng-SoLoudFX.obj: src/Engine/Sound/SoLoud/SoLoudFX.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/SoLoud/McOsu_ng-SoLoudFX.obj -MD -MP -MF src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudFX.Tpo -c -o src/Engine/Sound/SoLoud/McOsu_ng-SoLoudFX.obj `if test -f 'src/Engine/Sound/SoLoud/SoLoudFX.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/SoLoud/SoLoudFX.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/SoLoud/SoLoudFX.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudFX.Tpo src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudFX.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Sound/SoLoud/SoLoudFX.cpp' object='src/Engine/Sound/SoLoud/McOsu_ng-SoLoudFX.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/SoLoud/McOsu_ng-SoLoudFX.obj `if test -f 'src/Engine/Sound/SoLoud/SoLoudFX.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/SoLoud/SoLoudFX.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/SoLoud/SoLoudFX.cpp'; fi`
+
 src/Engine/Sound/SoLoud/McOsu_ng-SoLoudSound.o: src/Engine/Sound/SoLoud/SoLoudSound.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/SoLoud/McOsu_ng-SoLoudSound.o -MD -MP -MF src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudSound.Tpo -c -o src/Engine/Sound/SoLoud/McOsu_ng-SoLoudSound.o `test -f 'src/Engine/Sound/SoLoud/SoLoudSound.cpp' || echo '$(srcdir)/'`src/Engine/Sound/SoLoud/SoLoudSound.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudSound.Tpo src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudSound.Po
@@ -3666,20 +3579,6 @@ src/Engine/Sound/SoLoud/McOsu_ng-SoLoudSoundEngine.obj: src/Engine/Sound/SoLoud/
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Sound/SoLoud/SoLoudSoundEngine.cpp' object='src/Engine/Sound/SoLoud/McOsu_ng-SoLoudSoundEngine.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/SoLoud/McOsu_ng-SoLoudSoundEngine.obj `if test -f 'src/Engine/Sound/SoLoud/SoLoudSoundEngine.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/SoLoud/SoLoudSoundEngine.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/SoLoud/SoLoudSoundEngine.cpp'; fi`
-
-src/Engine/Sound/SoLoud/McOsu_ng-SoundTouchFilter.o: src/Engine/Sound/SoLoud/SoundTouchFilter.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/SoLoud/McOsu_ng-SoundTouchFilter.o -MD -MP -MF src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoundTouchFilter.Tpo -c -o src/Engine/Sound/SoLoud/McOsu_ng-SoundTouchFilter.o `test -f 'src/Engine/Sound/SoLoud/SoundTouchFilter.cpp' || echo '$(srcdir)/'`src/Engine/Sound/SoLoud/SoundTouchFilter.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoundTouchFilter.Tpo src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoundTouchFilter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Sound/SoLoud/SoundTouchFilter.cpp' object='src/Engine/Sound/SoLoud/McOsu_ng-SoundTouchFilter.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/SoLoud/McOsu_ng-SoundTouchFilter.o `test -f 'src/Engine/Sound/SoLoud/SoundTouchFilter.cpp' || echo '$(srcdir)/'`src/Engine/Sound/SoLoud/SoundTouchFilter.cpp
-
-src/Engine/Sound/SoLoud/McOsu_ng-SoundTouchFilter.obj: src/Engine/Sound/SoLoud/SoundTouchFilter.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/SoLoud/McOsu_ng-SoundTouchFilter.obj -MD -MP -MF src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoundTouchFilter.Tpo -c -o src/Engine/Sound/SoLoud/McOsu_ng-SoundTouchFilter.obj `if test -f 'src/Engine/Sound/SoLoud/SoundTouchFilter.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/SoLoud/SoundTouchFilter.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/SoLoud/SoundTouchFilter.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoundTouchFilter.Tpo src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoundTouchFilter.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Engine/Sound/SoLoud/SoundTouchFilter.cpp' object='src/Engine/Sound/SoLoud/McOsu_ng-SoundTouchFilter.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Engine/Sound/SoLoud/McOsu_ng-SoundTouchFilter.obj `if test -f 'src/Engine/Sound/SoLoud/SoundTouchFilter.cpp'; then $(CYGPATH_W) 'src/Engine/Sound/SoLoud/SoundTouchFilter.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Engine/Sound/SoLoud/SoundTouchFilter.cpp'; fi`
 
 src/Engine/Sound/McOsu_ng-Sound.o: src/Engine/Sound/Sound.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Engine/Sound/McOsu_ng-Sound.o -MD -MP -MF src/Engine/Sound/$(DEPDIR)/McOsu_ng-Sound.Tpo -c -o src/Engine/Sound/McOsu_ng-Sound.o `test -f 'src/Engine/Sound/Sound.cpp' || echo '$(srcdir)/'`src/Engine/Sound/Sound.cpp
@@ -4143,20 +4042,6 @@ src/GUI/Windows/McOsu_ng-VisualProfiler.obj: src/GUI/Windows/VisualProfiler.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/GUI/Windows/McOsu_ng-VisualProfiler.obj `if test -f 'src/GUI/Windows/VisualProfiler.cpp'; then $(CYGPATH_W) 'src/GUI/Windows/VisualProfiler.cpp'; else $(CYGPATH_W) '$(srcdir)/src/GUI/Windows/VisualProfiler.cpp'; fi`
 
-src/Util/McOsu_ng-MD5.o: src/Util/MD5.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Util/McOsu_ng-MD5.o -MD -MP -MF src/Util/$(DEPDIR)/McOsu_ng-MD5.Tpo -c -o src/Util/McOsu_ng-MD5.o `test -f 'src/Util/MD5.cpp' || echo '$(srcdir)/'`src/Util/MD5.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Util/$(DEPDIR)/McOsu_ng-MD5.Tpo src/Util/$(DEPDIR)/McOsu_ng-MD5.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Util/MD5.cpp' object='src/Util/McOsu_ng-MD5.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Util/McOsu_ng-MD5.o `test -f 'src/Util/MD5.cpp' || echo '$(srcdir)/'`src/Util/MD5.cpp
-
-src/Util/McOsu_ng-MD5.obj: src/Util/MD5.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Util/McOsu_ng-MD5.obj -MD -MP -MF src/Util/$(DEPDIR)/McOsu_ng-MD5.Tpo -c -o src/Util/McOsu_ng-MD5.obj `if test -f 'src/Util/MD5.cpp'; then $(CYGPATH_W) 'src/Util/MD5.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Util/MD5.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Util/$(DEPDIR)/McOsu_ng-MD5.Tpo src/Util/$(DEPDIR)/McOsu_ng-MD5.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/Util/MD5.cpp' object='src/Util/McOsu_ng-MD5.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -c -o src/Util/McOsu_ng-MD5.obj `if test -f 'src/Util/MD5.cpp'; then $(CYGPATH_W) 'src/Util/MD5.cpp'; else $(CYGPATH_W) '$(srcdir)/src/Util/MD5.cpp'; fi`
-
 src/Util/McOsu_ng-McMath.o: src/Util/McMath.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(McOsu_ng_CPPFLAGS) $(CPPFLAGS) $(McOsu_ng_CXXFLAGS) $(CXXFLAGS) -MT src/Util/McOsu_ng-McMath.o -MD -MP -MF src/Util/$(DEPDIR)/McOsu_ng-McMath.Tpo -c -o src/Util/McOsu_ng-McMath.o `test -f 'src/Util/McMath.cpp' || echo '$(srcdir)/'`src/Util/McMath.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/Util/$(DEPDIR)/McOsu_ng-McMath.Tpo src/Util/$(DEPDIR)/McOsu_ng-McMath.Po
@@ -4482,8 +4367,10 @@ clean-generic:
 distclean-generic:
 	-$(am__rm_f) $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || $(am__rm_f) $(CONFIG_CLEAN_VPATH_FILES)
-	-$(am__rm_f) libraries/glad/glad/$(DEPDIR)/$(am__dirstamp)
-	-$(am__rm_f) libraries/glad/glad/$(am__dirstamp)
+	-$(am__rm_f) libraries/include/$(DEPDIR)/$(am__dirstamp)
+	-$(am__rm_f) libraries/include/$(am__dirstamp)
+	-$(am__rm_f) libraries/include/glad/$(DEPDIR)/$(am__dirstamp)
+	-$(am__rm_f) libraries/include/glad/$(am__dirstamp)
 	-$(am__rm_f) src/App/Osu/$(DEPDIR)/$(am__dirstamp)
 	-$(am__rm_f) src/App/Osu/$(am__dirstamp)
 	-$(am__rm_f) src/Engine/$(DEPDIR)/$(am__dirstamp)
@@ -4496,6 +4383,8 @@ distclean-generic:
 	-$(am__rm_f) src/Engine/Platform/$(am__dirstamp)
 	-$(am__rm_f) src/Engine/Renderer/$(DEPDIR)/$(am__dirstamp)
 	-$(am__rm_f) src/Engine/Renderer/$(am__dirstamp)
+	-$(am__rm_f) src/Engine/Resources/$(DEPDIR)/$(am__dirstamp)
+	-$(am__rm_f) src/Engine/Resources/$(am__dirstamp)
 	-$(am__rm_f) src/Engine/Sound/$(DEPDIR)/$(am__dirstamp)
 	-$(am__rm_f) src/Engine/Sound/$(am__dirstamp)
 	-$(am__rm_f) src/Engine/Sound/BASS/$(DEPDIR)/$(am__dirstamp)
@@ -4524,9 +4413,9 @@ clean-am: clean-binPROGRAMS clean-generic clean-local mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-	-rm -f libraries/glad/glad/$(DEPDIR)/McOsu_ng-glad.Po
+	-rm -f libraries/include/$(DEPDIR)/McOsu_ng-MD5.Po
+	-rm -f libraries/include/glad/$(DEPDIR)/McOsu_ng-glad.Po
 	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-Osu.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-Osu2.Po
 	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuBackgroundImageHandler.Po
 	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuBackgroundStarCacheLoader.Po
 	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuBeatmap.Po
@@ -4591,13 +4480,6 @@ distclean: distclean-am
 	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuUIVolumeSlider.Po
 	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuUpdateHandler.Po
 	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuUserStatsScreen.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVR.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRTutorial.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIButton.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIElement.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageButton.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageCheckbox.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUISlider.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-AnimationHandler.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-Camera.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-ConVar.Po
@@ -4609,11 +4491,8 @@ distclean: distclean-am
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-Graphics.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-Image.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-NetworkHandler.Po
-	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-OpenVRInterface.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-Profiler.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-RenderTarget.Po
-	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-Resource.Po
-	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-ResourceManager.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-Shader.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-SteamworksInterface.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-TextureAtlas.Po
@@ -4622,7 +4501,6 @@ distclean: distclean-am
 	-rm -f src/Engine/Input/$(DEPDIR)/McOsu_ng-Keyboard.Po
 	-rm -f src/Engine/Input/$(DEPDIR)/McOsu_ng-KeyboardEvent.Po
 	-rm -f src/Engine/Input/$(DEPDIR)/McOsu_ng-Mouse.Po
-	-rm -f src/Engine/Input/$(DEPDIR)/McOsu_ng-OpenVRController.Po
 	-rm -f src/Engine/Main/$(DEPDIR)/McOsu_ng-main.Po
 	-rm -f src/Engine/Platform/$(DEPDIR)/McOsu_ng-SDLGLInterface.Po
 	-rm -f src/Engine/Renderer/$(DEPDIR)/McOsu_ng-DirectX11Image.Po
@@ -4649,16 +4527,21 @@ distclean: distclean-am
 	-rm -f src/Engine/Renderer/$(DEPDIR)/McOsu_ng-OpenGLStateCache.Po
 	-rm -f src/Engine/Renderer/$(DEPDIR)/McOsu_ng-OpenGLSync.Po
 	-rm -f src/Engine/Renderer/$(DEPDIR)/McOsu_ng-OpenGLVertexArrayObject.Po
+	-rm -f src/Engine/Resources/$(DEPDIR)/McOsu_ng-AsyncResourceLoader.Po
+	-rm -f src/Engine/Resources/$(DEPDIR)/McOsu_ng-Resource.Po
+	-rm -f src/Engine/Resources/$(DEPDIR)/McOsu_ng-ResourceManager.Po
 	-rm -f src/Engine/Sound/$(DEPDIR)/McOsu_ng-Sound.Po
 	-rm -f src/Engine/Sound/$(DEPDIR)/McOsu_ng-SoundEngine.Po
-	-rm -f src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassLoader.Po
+	-rm -f src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassManager.Po
 	-rm -f src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSound.Po
+	-rm -f src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSound2.Po
 	-rm -f src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine.Po
+	-rm -f src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine2.Po
 	-rm -f src/Engine/Sound/SDL_mixer/$(DEPDIR)/McOsu_ng-SDLSound.Po
 	-rm -f src/Engine/Sound/SDL_mixer/$(DEPDIR)/McOsu_ng-SDLSoundEngine.Po
+	-rm -f src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudFX.Po
 	-rm -f src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudSound.Po
 	-rm -f src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudSoundEngine.Po
-	-rm -f src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoundTouchFilter.Po
 	-rm -f src/GUI/$(DEPDIR)/McOsu_ng-CBaseUIBoxShadow.Po
 	-rm -f src/GUI/$(DEPDIR)/McOsu_ng-CBaseUIButton.Po
 	-rm -f src/GUI/$(DEPDIR)/McOsu_ng-CBaseUICanvas.Po
@@ -4686,7 +4569,6 @@ distclean: distclean-am
 	-rm -f src/GUI/Windows/VinylScratcher/$(DEPDIR)/McOsu_ng-VSMusicBrowser.Po
 	-rm -f src/GUI/Windows/VinylScratcher/$(DEPDIR)/McOsu_ng-VSTitleBar.Po
 	-rm -f src/GUI/Windows/VinylScratcher/$(DEPDIR)/McOsu_ng-VinylScratcher.Po
-	-rm -f src/Util/$(DEPDIR)/McOsu_ng-MD5.Po
 	-rm -f src/Util/$(DEPDIR)/McOsu_ng-McMath.Po
 	-rm -f src/Util/$(DEPDIR)/McOsu_ng-Quaternion.Po
 	-rm -f src/Util/$(DEPDIR)/McOsu_ng-Rect.Po
@@ -4739,9 +4621,9 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-	-rm -f libraries/glad/glad/$(DEPDIR)/McOsu_ng-glad.Po
+	-rm -f libraries/include/$(DEPDIR)/McOsu_ng-MD5.Po
+	-rm -f libraries/include/glad/$(DEPDIR)/McOsu_ng-glad.Po
 	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-Osu.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-Osu2.Po
 	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuBackgroundImageHandler.Po
 	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuBackgroundStarCacheLoader.Po
 	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuBeatmap.Po
@@ -4806,13 +4688,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuUIVolumeSlider.Po
 	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuUpdateHandler.Po
 	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuUserStatsScreen.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVR.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRTutorial.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIButton.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIElement.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageButton.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUIImageCheckbox.Po
-	-rm -f src/App/Osu/$(DEPDIR)/McOsu_ng-OsuVRUISlider.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-AnimationHandler.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-Camera.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-ConVar.Po
@@ -4824,11 +4699,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-Graphics.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-Image.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-NetworkHandler.Po
-	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-OpenVRInterface.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-Profiler.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-RenderTarget.Po
-	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-Resource.Po
-	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-ResourceManager.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-Shader.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-SteamworksInterface.Po
 	-rm -f src/Engine/$(DEPDIR)/McOsu_ng-TextureAtlas.Po
@@ -4837,7 +4709,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f src/Engine/Input/$(DEPDIR)/McOsu_ng-Keyboard.Po
 	-rm -f src/Engine/Input/$(DEPDIR)/McOsu_ng-KeyboardEvent.Po
 	-rm -f src/Engine/Input/$(DEPDIR)/McOsu_ng-Mouse.Po
-	-rm -f src/Engine/Input/$(DEPDIR)/McOsu_ng-OpenVRController.Po
 	-rm -f src/Engine/Main/$(DEPDIR)/McOsu_ng-main.Po
 	-rm -f src/Engine/Platform/$(DEPDIR)/McOsu_ng-SDLGLInterface.Po
 	-rm -f src/Engine/Renderer/$(DEPDIR)/McOsu_ng-DirectX11Image.Po
@@ -4864,16 +4735,21 @@ maintainer-clean: maintainer-clean-am
 	-rm -f src/Engine/Renderer/$(DEPDIR)/McOsu_ng-OpenGLStateCache.Po
 	-rm -f src/Engine/Renderer/$(DEPDIR)/McOsu_ng-OpenGLSync.Po
 	-rm -f src/Engine/Renderer/$(DEPDIR)/McOsu_ng-OpenGLVertexArrayObject.Po
+	-rm -f src/Engine/Resources/$(DEPDIR)/McOsu_ng-AsyncResourceLoader.Po
+	-rm -f src/Engine/Resources/$(DEPDIR)/McOsu_ng-Resource.Po
+	-rm -f src/Engine/Resources/$(DEPDIR)/McOsu_ng-ResourceManager.Po
 	-rm -f src/Engine/Sound/$(DEPDIR)/McOsu_ng-Sound.Po
 	-rm -f src/Engine/Sound/$(DEPDIR)/McOsu_ng-SoundEngine.Po
-	-rm -f src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassLoader.Po
+	-rm -f src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassManager.Po
 	-rm -f src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSound.Po
+	-rm -f src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSound2.Po
 	-rm -f src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine.Po
+	-rm -f src/Engine/Sound/BASS/$(DEPDIR)/McOsu_ng-BassSoundEngine2.Po
 	-rm -f src/Engine/Sound/SDL_mixer/$(DEPDIR)/McOsu_ng-SDLSound.Po
 	-rm -f src/Engine/Sound/SDL_mixer/$(DEPDIR)/McOsu_ng-SDLSoundEngine.Po
+	-rm -f src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudFX.Po
 	-rm -f src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudSound.Po
 	-rm -f src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoLoudSoundEngine.Po
-	-rm -f src/Engine/Sound/SoLoud/$(DEPDIR)/McOsu_ng-SoundTouchFilter.Po
 	-rm -f src/GUI/$(DEPDIR)/McOsu_ng-CBaseUIBoxShadow.Po
 	-rm -f src/GUI/$(DEPDIR)/McOsu_ng-CBaseUIButton.Po
 	-rm -f src/GUI/$(DEPDIR)/McOsu_ng-CBaseUICanvas.Po
@@ -4901,7 +4777,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f src/GUI/Windows/VinylScratcher/$(DEPDIR)/McOsu_ng-VSMusicBrowser.Po
 	-rm -f src/GUI/Windows/VinylScratcher/$(DEPDIR)/McOsu_ng-VSTitleBar.Po
 	-rm -f src/GUI/Windows/VinylScratcher/$(DEPDIR)/McOsu_ng-VinylScratcher.Po
-	-rm -f src/Util/$(DEPDIR)/McOsu_ng-MD5.Po
 	-rm -f src/Util/$(DEPDIR)/McOsu_ng-McMath.Po
 	-rm -f src/Util/$(DEPDIR)/McOsu_ng-Quaternion.Po
 	-rm -f src/Util/$(DEPDIR)/McOsu_ng-Rect.Po
@@ -5061,12 +4936,12 @@ $(DEPS_CACHE)/SoundTouch.source:
 @USE_BASS_FALSE@@USE_SDLMIXER_TRUE@		-D SDLMIXER_VENDORED=ON \
 @USE_BASS_FALSE@@USE_SDLMIXER_TRUE@		-D SDLMIXER_MP3=ON \
 @USE_BASS_FALSE@@USE_SDLMIXER_TRUE@		-D SDLMIXER_MP3_MPG123=ON \
-@USE_BASS_FALSE@@USE_SDLMIXER_TRUE@		-D BUILD_SHARED_LIBS="$(if $(SDL3_STATIC),OFF,ON)" \
-@USE_BASS_FALSE@@USE_SDLMIXER_TRUE@		-D SDLMIXER_DEPS_SHARED="$(if $(SDL3_STATIC),OFF,ON)" && \
+@USE_BASS_FALSE@@USE_SDLMIXER_TRUE@		-D BUILD_SHARED_LIBS="$(if $(STATICBUILD),OFF,ON)" \
+@USE_BASS_FALSE@@USE_SDLMIXER_TRUE@		-D SDLMIXER_DEPS_SHARED="$(if $(STATICBUILD),OFF,ON)" && \
 @USE_BASS_FALSE@@USE_SDLMIXER_TRUE@	cmake --build build && \
 @USE_BASS_FALSE@@USE_SDLMIXER_TRUE@	cmake --install build
 @USE_BASS_FALSE@@USE_SDLMIXER_TRUE@	$(SED) -i 's|Libs\.private.*|Libs.private: -lmpg123 -logg -lopus -lwavpack -lopusfile -lxmp|' $(DEPS_PREFIX)/lib/pkgconfig/sdl3-mixer.pc # wtf is this weird cmake issue?
-@USE_BASS_FALSE@@USE_SDLMIXER_TRUE@	rm -rf $(DEPS_PREFIX)/lib/*SDL3_mixer$(if $(SDL3_STATIC),$(DLLEXT),.a)*
+@USE_BASS_FALSE@@USE_SDLMIXER_TRUE@	rm -rf $(DEPS_PREFIX)/lib/*SDL3_mixer$(if $(STATICBUILD),$(DLLEXT),.a)*
 @USE_BASS_FALSE@@USE_SDLMIXER_TRUE@	$(PKG_CONFIG) --exists --print-errors sdl3-mixer
 @USE_BASS_FALSE@@USE_SDLMIXER_TRUE@	touch $@
 @USE_BASS_FALSE@@USE_SDLMIXER_TRUE@$(DEPS_PREFIX)/SoLoud.built:
@@ -5086,6 +4961,7 @@ $(DEPS_CACHE)/SoundTouch.source:
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@	patch -Np1<$(abs_top_srcdir)/build/aux/soloud-bump-dr_libs.patch && \
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@	patch -Np1<$(abs_top_srcdir)/build/aux/soloud-fastseek.patch && \
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@	patch -Np1<$(abs_top_srcdir)/build/aux/soloud-null-getAudio.patch && \
+@USE_BASS_FALSE@@USE_SDLMIXER_FALSE@	patch -Np1<$(abs_top_srcdir)/build/aux/soloud-fix-global-volume-data-race.patch && \
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@	$(SED) -i -e 's|#define VOICE_COUNT 1024|#define VOICE_COUNT 4095|g' \
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@			-e 's|#define SOLOUD_DEFAULT_RESAMPLER.*|#define SOLOUD_DEFAULT_RESAMPLER SoLoud::Soloud::RESAMPLER_CATMULLROM|g' include/soloud.h # raise max # concurrent voices from 1024 default to 4095 (hard limit)
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@	cd $(DEPS_PREFIX)/SoLoud/build && \
@@ -5138,17 +5014,17 @@ $(DEPS_CACHE)/SoundTouch.source:
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@		-D CMAKE_SYSTEM_NAME="$(CMAKE_SYSTEM_NAME)" \
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@		-D CMAKE_SYSTEM_PROCESSOR="$(host_cpu)" \
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@		-D CMAKE_C_COMPILER="$(CC)" \
-@USE_BASS_FALSE@@USE_SDLMIXER_FALSE@		-D CMAKE_C_FLAGS="$(CFLAGS) $(if $(ENABLE_DEBUG),,-DST_NO_EXCEPTION_HANDLING)" \
+@USE_BASS_FALSE@@USE_SDLMIXER_FALSE@		-D CMAKE_C_FLAGS="$(CFLAGS) -DST_NO_EXCEPTION_HANDLING" \
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@		-D CMAKE_CXX_COMPILER="$(CXX)" \
-@USE_BASS_FALSE@@USE_SDLMIXER_FALSE@		-D CMAKE_CXX_FLAGS="$(CXXFLAGS) $(if $(ENABLE_DEBUG),,-DST_NO_EXCEPTION_HANDLING)" \
+@USE_BASS_FALSE@@USE_SDLMIXER_FALSE@		-D CMAKE_CXX_FLAGS="$(CXXFLAGS) -DST_NO_EXCEPTION_HANDLING" \
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@		$(CMAKERCOPT) \
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@		-D SOUNDSTRETCH=OFF \
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@		-D SOUNDTOUCH_DLL=OFF \
-@USE_BASS_FALSE@@USE_SDLMIXER_FALSE@		-D OPENMP="$(if $(SDL3_STATIC),OFF,ON)" \
-@USE_BASS_FALSE@@USE_SDLMIXER_FALSE@		-D BUILD_SHARED_LIBS="$(if $(SDL3_STATIC),OFF,ON)" && \
+@USE_BASS_FALSE@@USE_SDLMIXER_FALSE@		-D OPENMP="$(if $(STATICBUILD),OFF,ON)" \
+@USE_BASS_FALSE@@USE_SDLMIXER_FALSE@		-D BUILD_SHARED_LIBS="$(if $(STATICBUILD),OFF,ON)" && \
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@	cmake --build build && \
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@	cmake --install build
-@USE_BASS_FALSE@@USE_SDLMIXER_FALSE@	rm -rf $(DEPS_PREFIX)/lib/*SoundTouch$(if $(SDL3_STATIC),$(DLLEXT),.a)*
+@USE_BASS_FALSE@@USE_SDLMIXER_FALSE@	rm -rf $(DEPS_PREFIX)/lib/*SoundTouch$(if $(STATICBUILD),$(DLLEXT),.a)*
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@	$(PKG_CONFIG) --env-only --exists --print-errors soundtouch
 @USE_BASS_FALSE@@USE_SDLMIXER_FALSE@	touch $@
 
@@ -5183,11 +5059,11 @@ $(DEPS_CACHE)/libjpeg-$(LIBJPEG_VERSION).source:
 @BUILD_LIBJPEG_TRUE@		-DWITH_JPEG8=ON \
 @BUILD_LIBJPEG_TRUE@		-DCMAKE_ASM_NASM_OBJECT_FORMAT=$(NASMOBJ) \
 @BUILD_LIBJPEG_TRUE@		$(if $(filter x86_64,$(host_cpu)),-DWITH_SIMD=ON,$(if $(findstring gcc,$(CC)),-DWITH_SIMD=ON,-DWITH_SIMD=OFF)) \
-@BUILD_LIBJPEG_TRUE@		$(if $(SDL3_STATIC),-DENABLE_STATIC=ON -DENABLE_SHARED=OFF,-DENABLE_STATIC=OFF -DENABLE_SHARED=ON) && \
+@BUILD_LIBJPEG_TRUE@		$(if $(STATICBUILD),-DENABLE_STATIC=ON -DENABLE_SHARED=OFF,-DENABLE_STATIC=OFF -DENABLE_SHARED=ON) && \
 @BUILD_LIBJPEG_TRUE@	cmake --build build && \
 @BUILD_LIBJPEG_TRUE@	cmake --install build
 @BUILD_LIBJPEG_TRUE@	PKG_CONFIG="$(PKG_CONFIG)" \
-@BUILD_LIBJPEG_TRUE@		$(PKG_CONFIG) --exists --print-errors libjpeg
+@BUILD_LIBJPEG_TRUE@		$(PKG_CONFIG) --exists --print-errors libturbojpeg
 @BUILD_LIBJPEG_TRUE@	touch $@
 @BUILD_LIBJPEG_FALSE@$(DEPS_PREFIX)/libjpeg.built:
 @BUILD_LIBJPEG_FALSE@	$(MKDIR_P) $(DEPS_PREFIX) && touch $@
@@ -5231,8 +5107,8 @@ $(DEPS_CACHE)/libpng-$(LIBPNG_VERSION).source:
 @BUILD_LIBPNG_TRUE@	$(TAR) xf $(DEPS_CACHE)/libpng-$(LIBPNG_VERSION).tar.gz -C $(DEPS_PREFIX)/libpng --strip-components=1 && \
 @BUILD_LIBPNG_TRUE@	cd $(DEPS_PREFIX)/libpng && PKG_CONFIG="$(PKG_CONFIG)" \
 @BUILD_LIBPNG_TRUE@		./configure lt_cv_prog_gnu_ld=yes --host=$(host_alias) --build=$(build) --prefix="$(DEPS_PREFIX)" \
-@BUILD_LIBPNG_TRUE@		$(if $(SDL3_STATIC),--enable-static --disable-shared,--enable-shared --disable-static) \
-@BUILD_LIBPNG_TRUE@		--disable-tools --disable-tests --with-gnu-ld \
+@BUILD_LIBPNG_TRUE@		$(if $(STATICBUILD),--enable-static --disable-shared,--enable-shared --disable-static) \
+@BUILD_LIBPNG_TRUE@		--disable-tools --disable-tests --with-gnu-ld $(if $(DISABLE_NATIVE),,--enable-hardware-optimizations=on) \
 @BUILD_LIBPNG_TRUE@			CC="$(CC) $(shell $(PKG_CONFIG) --cflags zlib)" RANLIB="$(RANLIB)" AR="$(AR)" CXX="$(CXX)" LD="$(if $(findstring linux,$(host_os)),$(CC),$(LD))" \
 @BUILD_LIBPNG_TRUE@			CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(LDFLAGS) $(shell $(PKG_CONFIG) --libs zlib)" && \
 @BUILD_LIBPNG_TRUE@	$(MAKE) && \
@@ -5252,11 +5128,11 @@ $(DEPS_CACHE)/bzip2-$(BZIP2_VERSION).source:
 @BUILD_BZIP2_TRUE@	$(MKDIR_P) $(DEPS_PREFIX)/bzip2/build $(DEPS_PREFIX)/lib/pkgconfig $(DEPS_PREFIX)/include
 @BUILD_BZIP2_TRUE@	$(TAR) xf $(DEPS_CACHE)/bzip2-$(BZIP2_VERSION).tar.gz -C $(DEPS_PREFIX)/bzip2 --strip-components=1 && \
 @BUILD_BZIP2_TRUE@	cd $(DEPS_PREFIX)/bzip2 && \
-@BUILD_BZIP2_TRUE@	$(if $(findstring linux,$(host_os)),true,$(if $(SDL3_STATIC),true,cp $(abs_top_srcdir)/build/aux/libbz2-Makefile-mingw) ./) && \
-@BUILD_BZIP2_TRUE@	$(MAKE) PREFIX="$(DEPS_PREFIX)" RANLIB="$(RANLIB)" AR="$(AR)" CC="$(CC)" CXX="$(CXX)" LD="$(LD)" CFLAGS="$(CFLAGS) $(if $(SDL3_STATIC),,-fPIC)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(LDFLAGS) $(if $(SDL3_STATIC),,-fPIC)" \
-@BUILD_BZIP2_TRUE@		$(if $(SDL3_STATIC),"libbz2.a",$(if $(findstring linux,$(host_os)),-f Makefile-libbz2_so,-f libbz2-Makefile-mingw install)) && \
+@BUILD_BZIP2_TRUE@	$(if $(findstring linux,$(host_os)),true,$(if $(STATICBUILD),true,cp $(abs_top_srcdir)/build/aux/libbz2-Makefile-mingw) ./) && \
+@BUILD_BZIP2_TRUE@	$(MAKE) PREFIX="$(DEPS_PREFIX)" RANLIB="$(RANLIB)" AR="$(AR)" CC="$(CC)" CXX="$(CXX)" LD="$(LD)" CFLAGS="$(CFLAGS) $(if $(STATICBUILD),,-fPIC)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(LDFLAGS) $(if $(STATICBUILD),,-fPIC)" \
+@BUILD_BZIP2_TRUE@		$(if $(STATICBUILD),"libbz2.a",$(if $(findstring linux,$(host_os)),-f Makefile-libbz2_so,-f libbz2-Makefile-mingw install)) && \
 @BUILD_BZIP2_TRUE@	cp -f bzlib.h $(DEPS_PREFIX)/include/ && \
-@BUILD_BZIP2_TRUE@	test -f $(DEPS_PREFIX)/lib/pkgconfig/bzip2.pc || { cp -f $(if $(SDL3_STATIC),"libbz2.a",libbz2*$(DLLEXT)*) $(DEPS_PREFIX)/lib/ && \
+@BUILD_BZIP2_TRUE@	test -f $(DEPS_PREFIX)/lib/pkgconfig/bzip2.pc || { cp -f $(if $(STATICBUILD),"libbz2.a",libbz2*$(DLLEXT)*) $(DEPS_PREFIX)/lib/ && \
 @BUILD_BZIP2_TRUE@	$(MKDIR_P) "$(DEPS_PREFIX)/lib/pkgconfig" && \
 @BUILD_BZIP2_TRUE@	( echo 'prefix=$(DEPS_PREFIX)'; \
 @BUILD_BZIP2_TRUE@	  echo 'exec_prefix=$${prefix}'; \
@@ -5284,7 +5160,7 @@ $(DEPS_CACHE)/zlib-$(ZLIB_VERSION).source:
 @BUILD_ZLIB_TRUE@	$(TAR) xf $(DEPS_CACHE)/zlib-$(ZLIB_VERSION).tar.gz -C $(DEPS_PREFIX)/zlib --strip-components=1 && \
 @BUILD_ZLIB_TRUE@	cd $(DEPS_PREFIX)/zlib/build && PKG_CONFIG="$(PKG_CONFIG)" \
 @BUILD_ZLIB_TRUE@		$(if $(findstring linux,$(host_os)),,uname=mingw CHOST=$(host_alias)) RANLIB="$(RANLIB)" AR="$(AR)" CC="$(CC)" CXX="$(CXX)" LD="$(LD)" CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(LDFLAGS)" \
-@BUILD_ZLIB_TRUE@		../configure --zlib-compat --prefix="$(DEPS_PREFIX)" $(if $(SDL3_STATIC),--static,) && \
+@BUILD_ZLIB_TRUE@		../configure --zlib-compat --prefix="$(DEPS_PREFIX)" $(if $(STATICBUILD),--static,) && \
 @BUILD_ZLIB_TRUE@	$(MAKE) install && \
 @BUILD_ZLIB_TRUE@	$(SED) -i 's|sharedlibdir=.*|sharedlibdir=$${libdir}|' $(DEPS_PREFIX)/lib/pkgconfig/zlib.pc && \
 @BUILD_ZLIB_TRUE@	PKG_CONFIG="$(PKG_CONFIG)" \
@@ -5322,7 +5198,7 @@ $(DEPS_CACHE)/FMT-$(FMT_VERSION).source:
 @BUILD_FMT_TRUE@		-DFMT_MODULE=OFF \
 @BUILD_FMT_TRUE@		-DFMT_SYSTEM_HEADERS=OFF \
 @BUILD_FMT_TRUE@		-DFMT_UNICODE=ON \
-@BUILD_FMT_TRUE@		-DBUILD_SHARED_LIBS="$(if $(SDL3_STATIC),OFF,ON)" && \
+@BUILD_FMT_TRUE@		-DBUILD_SHARED_LIBS="$(if $(STATICBUILD),OFF,ON)" && \
 @BUILD_FMT_TRUE@	cmake --build build && \
 @BUILD_FMT_TRUE@	cmake --install build
 @BUILD_FMT_TRUE@	PKG_CONFIG="$(PKG_CONFIG)" \
@@ -5335,7 +5211,7 @@ $(DEPS_CACHE)/FREETYPE2-$(FREETYPE2_VERSION).source:
 	$(MKDIR_P) $(DEPS_CACHE)
 	$(WGET) -qO $(DEPS_CACHE)/freetype-$(FREETYPE2_VERSION).tar.gz "https://download.savannah.gnu.org/releases/freetype/freetype-$(FREETYPE2_VERSION).tar.gz" && \
 	touch $@
-@BUILD_FREETYPE2_TRUE@$(DEPS_PREFIX)/FREETYPE2.built: $(DEPS_PREFIX)/libpng.built $(DEPS_PREFIX)/bzip2.built $(DEPS_PREFIX)/zlib.built $(DEPS_CACHE)/FREETYPE2-$(FREETYPE2_VERSION).source
+@BUILD_FREETYPE2_TRUE@$(DEPS_PREFIX)/FREETYPE2.built: $(DEPS_PREFIX)/libpng.built $(DEPS_PREFIX)/libjpeg.built $(DEPS_PREFIX)/bzip2.built $(DEPS_PREFIX)/zlib.built $(DEPS_CACHE)/FREETYPE2-$(FREETYPE2_VERSION).source
 @BUILD_FREETYPE2_TRUE@	rm -rf $(DEPS_PREFIX)/FREETYPE2
 @BUILD_FREETYPE2_TRUE@	$(MKDIR_P) $(DEPS_PREFIX)/FREETYPE2/build $(DEPS_PREFIX)/lib/pkgconfig
 @BUILD_FREETYPE2_TRUE@	$(TAR) xf $(DEPS_CACHE)/freetype-$(FREETYPE2_VERSION).tar.gz -C $(DEPS_PREFIX)/FREETYPE2 --strip-components=1 && \
@@ -5343,7 +5219,7 @@ $(DEPS_CACHE)/FREETYPE2-$(FREETYPE2_VERSION).source:
 @BUILD_FREETYPE2_TRUE@	patch -Np1<$(abs_top_srcdir)/build/aux/freetype-win.patch && \
 @BUILD_FREETYPE2_TRUE@	PKG_CONFIG="$(PKG_CONFIG)" \
 @BUILD_FREETYPE2_TRUE@		./configure lt_cv_prog_gnu_ld=yes --host=$(host_alias) --prefix="$(DEPS_PREFIX)" --with-harfbuzz=no --with-brotli=no \
-@BUILD_FREETYPE2_TRUE@		$(if $(SDL3_STATIC),--enable-static --disable-shared,--enable-shared --disable-static) \
+@BUILD_FREETYPE2_TRUE@		$(if $(STATICBUILD),--enable-static --disable-shared,--enable-shared --disable-static) \
 @BUILD_FREETYPE2_TRUE@		RANLIB="$(RANLIB)" AR="$(AR)" CC="$(CC)" CXX="$(CXX)" LD="$(LD)" CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(LDFLAGS)" && \
 @BUILD_FREETYPE2_TRUE@	$(MAKE) && \
 @BUILD_FREETYPE2_TRUE@	$(MAKE) install
@@ -5364,7 +5240,8 @@ compile_commands.json: mostlyclean-compile
 	  echo '{'; \
 	  echo '"executable": "emc++"'; \
 	  echo '}'; \
-	  echo ']'; \
+	  echo '],'; \
+	  echo '"compilers_to_exclude": ["$(CXX)"]'; \
 	  echo '}'; \
 	  echo '}' ) > bear.cfg
 	$(BEAR) --config bear.cfg --append -- $(MAKE) $(AM_MAKEFLAGS) $(McOsu_ng_OBJECTS) $(McOsu_ng_DEPENDENCIES) $(EXTRA_McOsu_ng_DEPENDENCIES) && \
@@ -5402,17 +5279,21 @@ install-libs:
 	find $(srcdir)/$(ASSETS_DIR)/cfg -type f -exec $(INSTALL) -Dm 644 '{''}' "$(DESTDIR)$(bindir)/cfg" ';'
 @BUILD_MIMALLOC_TRUE@@WIN_PLATFORM_TRUE@	@cp -P "$(DEPS_PREFIX)/bin/mimalloc"{,-redirect$(if $(filter x86_64,$(host_cpu)),,32)}".dll" "$(DESTDIR)$(bindir)/$(LIBDEST)"
 @WINSHARED_DLLS_NEEDED_TRUE@@WIN_PLATFORM_TRUE@	@cp -P $(WINSHARED_DLLS) "$(DESTDIR)$(bindir)/$(LIBDEST)"
-@USE_BASS_FALSE@@USE_SDLMIXER_TRUE@	$(if $(SDL3_STATIC),,@cp -P "$(SDL3_MIXER_PREFIX)/lib"/{*$(LIBPREFIX)SDL3_mixer*$(DLLEXT)*,*$(LIBPREFIX)mpg123*$(DLLEXT)*,*$(LIBPREFIX)xmp*$(DLLEXT)*,*$(LIBPREFIX)wavpack*$(DLLEXT)*,*$(LIBPREFIX)opus*$(DLLEXT)*,*$(LIBPREFIX)ogg*$(DLLEXT)*} "$(DESTDIR)$(bindir)/$(LIBDEST)")
-@USE_BASS_FALSE@@USE_SDLMIXER_FALSE@	$(if $(SDL3_STATIC),,@cp -P "$(SOLOUD_PREFIX)/lib"/*$(LIBPREFIX)SoundTouch*$(DLLEXT)* "$(DESTDIR)$(bindir)/$(LIBDEST)")
+@USE_BASS_FALSE@@USE_SDLMIXER_TRUE@	$(if $(STATICBUILD),,@cp -P "$(SDL3_MIXER_PREFIX)/lib"/{*$(LIBPREFIX)SDL3_mixer*$(DLLEXT)*,*$(LIBPREFIX)mpg123*$(DLLEXT)*,*$(LIBPREFIX)xmp*$(DLLEXT)*,*$(LIBPREFIX)wavpack*$(DLLEXT)*,*$(LIBPREFIX)opus*$(DLLEXT)*,*$(LIBPREFIX)ogg*$(DLLEXT)*} "$(DESTDIR)$(bindir)/$(LIBDEST)")
+@USE_BASS_FALSE@@USE_SDLMIXER_FALSE@	$(if $(STATICBUILD),,@cp -P "$(SOLOUD_PREFIX)/lib"/*$(LIBPREFIX)SoundTouch*$(DLLEXT)* "$(DESTDIR)$(bindir)/$(LIBDEST)")
 @USE_BASS_TRUE@	$(INSTALL) -m 755 $(srcdir)/$(BUNDLED_BASS_DIR)/lib/$(SYSNAME)/$(host_cpu)/$(LIBPREFIX)bass$(DLLEXT) "$(DESTDIR)$(bindir)/$(LIBDEST)"
 @USE_BASS_TRUE@	$(INSTALL) -m 755 $(srcdir)/$(BUNDLED_BASS_FX_DIR)/lib/$(SYSNAME)/$(host_cpu)/$(LIBPREFIX)bass_fx$(DLLEXT) "$(DESTDIR)$(bindir)/$(LIBDEST)"
+@USE_BASS_TRUE@	$(INSTALL) -m 755 $(srcdir)/$(BUNDLED_BASS_MIX_DIR)/lib/$(SYSNAME)/$(host_cpu)/$(LIBPREFIX)bassmix$(DLLEXT) "$(DESTDIR)$(bindir)/$(LIBDEST)"
+@USE_BASS_TRUE@@WIN_PLATFORM_TRUE@	$(INSTALL) -m 755 $(srcdir)/$(BUNDLED_BASS_ASIO_DIR)/lib/$(SYSNAME)/$(host_cpu)/$(LIBPREFIX)bassasio$(DLLEXT) "$(DESTDIR)$(bindir)/$(LIBDEST)"
+@USE_BASS_TRUE@@WIN_PLATFORM_TRUE@	$(INSTALL) -m 755 $(srcdir)/$(BUNDLED_BASS_WASAPI_DIR)/lib/$(SYSNAME)/$(host_cpu)/$(LIBPREFIX)basswasapi$(DLLEXT) "$(DESTDIR)$(bindir)/$(LIBDEST)"
 @BUILD_SDL3_TRUE@	$(if $(SDL3_STATIC),,@`find $(SDL3_PREFIX) '(' -iname '*SDL3*'$(DLLEXT) -o -iname '*SDL3*''.so.*' ')' -exec cp -P '{''}' "$(DESTDIR)$(bindir)/$(LIBDEST)" ';'`)
-@BUILD_LIBJPEG_TRUE@	$(if $(SDL3_STATIC),,@`find $(LIBJPEG_PREFIX) '(' -iname '*libjpeg-*'$(DLLEXT) -o -iname '*libjpeg*''.so.*' ')' -exec cp -P '{''}' "$(DESTDIR)$(bindir)/$(LIBDEST)" ';'`)
-@BUILD_LIBPNG_TRUE@	$(if $(SDL3_STATIC),,@`find $(LIBPNG_PREFIX) '(' -iname '*libpng*'$(DLLEXT) -o -iname '*libpng*''.so.*' ')' -exec cp -P '{''}' "$(DESTDIR)$(bindir)/$(LIBDEST)" ';'`)
-@BUILD_BZIP2_TRUE@	$(if $(SDL3_STATIC),,@`find $(BZIP2_PREFIX) '(' -iname '*bz2*'$(DLLEXT) -o -iname '*bz2*''.so.*' ')' -exec cp -P '{''}' "$(DESTDIR)$(bindir)/$(LIBDEST)" ';'`)
-@BUILD_ZLIB_TRUE@	$(if $(SDL3_STATIC),,@`find $(ZLIB_PREFIX) '(' -iname '*libz-*'$(DLLEXT) -o -iname '*libz*''.so.*' ')' -exec cp -P '{''}' "$(DESTDIR)$(bindir)/$(LIBDEST)" ';'`)
-@BUILD_FREETYPE2_TRUE@	$(if $(SDL3_STATIC),,@`find $(FREETYPE2_PREFIX) '(' -iname '*freetype*'$(DLLEXT) -o -iname '*freetype*''.so.*' ')' -exec cp -P '{''}' "$(DESTDIR)$(bindir)/$(LIBDEST)" ';'`)
-@BUILD_FMT_TRUE@	$(if $(SDL3_STATIC),,@`find $(FMT_PREFIX) '(' -iname '*fmt*'$(DLLEXT) -o -iname '*fmt*''.so.*' ')' -exec cp -P '{''}' "$(DESTDIR)$(bindir)/$(LIBDEST)" ';'`)
+@BUILD_LIBJPEG_TRUE@	$(if $(STATICBUILD),,@`find $(LIBJPEG_PREFIX) '(' -iname '*libjpeg-*'$(DLLEXT) -o -iname '*libjpeg*''.so.*' ')' -exec cp -P '{''}' "$(DESTDIR)$(bindir)/$(LIBDEST)" ';'`)
+@BUILD_LIBJPEG_TRUE@	$(if $(STATICBUILD),,@`find $(LIBJPEG_PREFIX) '(' -iname '*libturbojpeg-*'$(DLLEXT) -o -iname '*libturbojpeg''.so.*' ')' -exec cp -P '{''}' "$(DESTDIR)$(bindir)/$(LIBDEST)" ';'`)
+@BUILD_LIBPNG_TRUE@	$(if $(STATICBUILD),,@`find $(LIBPNG_PREFIX) '(' -iname '*libpng*'$(DLLEXT) -o -iname '*libpng*''.so.*' ')' -exec cp -P '{''}' "$(DESTDIR)$(bindir)/$(LIBDEST)" ';'`)
+@BUILD_BZIP2_TRUE@	$(if $(STATICBUILD),,@`find $(BZIP2_PREFIX) '(' -iname '*bz2*'$(DLLEXT) -o -iname '*bz2*''.so.*' ')' -exec cp -P '{''}' "$(DESTDIR)$(bindir)/$(LIBDEST)" ';'`)
+@BUILD_ZLIB_TRUE@	$(if $(STATICBUILD),,@`find $(ZLIB_PREFIX) '(' -iname '*libz-*'$(DLLEXT) -o -iname '*libz*''.so.*' ')' -exec cp -P '{''}' "$(DESTDIR)$(bindir)/$(LIBDEST)" ';'`)
+@BUILD_FREETYPE2_TRUE@	$(if $(STATICBUILD),,@`find $(FREETYPE2_PREFIX) '(' -iname '*freetype*'$(DLLEXT) -o -iname '*freetype*''.so.*' ')' -exec cp -P '{''}' "$(DESTDIR)$(bindir)/$(LIBDEST)" ';'`)
+@BUILD_FMT_TRUE@	$(if $(STATICBUILD),,@`find $(FMT_PREFIX) '(' -iname '*fmt*'$(DLLEXT) -o -iname '*fmt*''.so.*' ')' -exec cp -P '{''}' "$(DESTDIR)$(bindir)/$(LIBDEST)" ';'`)
 
 # install hooks
 install-exec-hook: install-libs

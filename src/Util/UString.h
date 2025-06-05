@@ -9,22 +9,30 @@
 #ifndef USTRING_H
 #define USTRING_H
 
-#include "fmt/printf.h"
-
 #include "BaseEnvironment.h" // for Env::cfg (consteval)
 #include <algorithm>
 #include <cstring>
+#include <cwctype>
 #include <ranges>
 #include <span>
 #include <string>
 #include <string_view>
 #include <vector>
 
+#include "fmt/compile.h"
+#include "fmt/format.h"
+#include "fmt/printf.h"
+
+using namespace fmt::literals;
+
 class UString
 {
 public:
 	template <typename... Args>
 	[[nodiscard]] static UString format(std::string_view fmt, Args &&...args) noexcept;
+
+	template <typename... Args>
+	[[nodiscard]] static UString fmt(fmt::format_string<Args...> fmt, Args &&...args) noexcept;
 
 	template <typename Range>
 	    requires std::ranges::range<Range> && std::convertible_to<std::ranges::range_value_t<Range>, UString>
@@ -38,6 +46,7 @@ public:
 	UString(const wchar_t *str);
 	UString(const char *utf8);
 	UString(const char *utf8, int length);
+	UString(const wchar_t *str, int length);
 	UString(std::string_view utf8);
 
 	// member functions
@@ -51,7 +60,7 @@ public:
 	void clear() noexcept;
 
 	// getters
-	[[nodiscard]] constexpr int length() const noexcept { return m_length; }
+	[[nodiscard]] constexpr int length() const noexcept { return m_length & LENGTH_MASK; }
 	[[nodiscard]] constexpr int lengthUtf8() const noexcept { return m_lengthUtf8; }
 	[[nodiscard]] constexpr std::string_view utf8View() const noexcept { return m_utf8; }
 	[[nodiscard]] constexpr const char *toUtf8() const noexcept { return m_utf8.c_str(); }
@@ -61,12 +70,20 @@ public:
 	// basically just for autodetecting windows' wchar_t preference (paths)
 	[[nodiscard]] constexpr auto plat_str() const noexcept
 	{
-		if constexpr (Env::cfg(OS::WINDOWS)) return m_unicode.c_str();
-		else return m_utf8.c_str();
+		if constexpr (Env::cfg(OS::WINDOWS))
+			return m_unicode.c_str();
+		else
+			return m_utf8.c_str();
 	}
-
+	[[nodiscard]] constexpr auto plat_view() const noexcept
+	{
+		if constexpr (Env::cfg(OS::WINDOWS))
+			return m_unicode;
+		else
+			return m_utf8;
+	}
 	// state queries
-	[[nodiscard]] constexpr bool isAsciiOnly() const noexcept { return m_isAsciiOnly; }
+	[[nodiscard]] constexpr bool isAsciiOnly() const noexcept { return (m_length & ASCII_FLAG) != 0; }
 	[[nodiscard]] bool isWhitespaceOnly() const noexcept;
 	[[nodiscard]] constexpr bool isEmpty() const noexcept { return m_unicode.empty(); }
 
@@ -75,7 +92,9 @@ public:
 	[[nodiscard]] constexpr bool endsWith(wchar_t ch) const noexcept { return !m_unicode.empty() && m_unicode.back() == ch; }
 	[[nodiscard]] constexpr bool endsWith(const UString &suffix) const noexcept
 	{
-		return suffix.m_length <= m_length && std::equal(suffix.m_unicode.begin(), suffix.m_unicode.end(), m_unicode.end() - suffix.m_length);
+		int suffixLen = suffix.length();
+		int thisLen = length();
+		return suffixLen <= thisLen && std::equal(suffix.m_unicode.begin(), suffix.m_unicode.end(), m_unicode.end() - suffixLen);
 	}
 
 	// search functions
@@ -108,15 +127,16 @@ public:
 	template <typename T = UString>
 	[[nodiscard]] constexpr T substr(int offset, int charCount = -1) const
 	{
-		offset = std::clamp<int>(offset, 0, m_length);
+		int len = length();
+		offset = std::clamp<int>(offset, 0, len);
 
 		if (charCount < 0)
-			charCount = m_length - offset;
-		charCount = std::clamp<int>(charCount, 0, m_length - offset);
+			charCount = len - offset;
+		charCount = std::clamp<int>(charCount, 0, len - offset);
 
 		UString result;
 		result.m_unicode = m_unicode.substr(offset, charCount);
-		result.m_length = static_cast<int>(result.m_unicode.length());
+		result.setLength(static_cast<int>(result.m_unicode.length()));
 		result.updateUtf8();
 
 		if constexpr (std::is_same_v<T, UString>)
@@ -129,7 +149,9 @@ public:
 	[[nodiscard]] std::vector<T> split(const UString &delim) const
 	{
 		std::vector<T> results;
-		if (delim.m_length < 1 || m_length < 1)
+		int delimLen = delim.length();
+		int thisLen = length();
+		if (delimLen < 1 || thisLen < 1)
 			return results;
 
 		int start = 0;
@@ -138,7 +160,7 @@ public:
 		while ((end = find(delim, start)) != -1)
 		{
 			results.push_back(substr<T>(start, end - start));
-			start = end + delim.m_length;
+			start = end + delimLen;
 		}
 		results.push_back(substr<T>(start));
 
@@ -205,7 +227,11 @@ public:
 	void upperCase();
 
 	// operators
-	[[nodiscard]] constexpr wchar_t operator[](int index) const { return (m_length > 0) ? m_unicode[std::clamp(index, 0, m_length - 1)] : static_cast<wchar_t>(0); }
+	[[nodiscard]] constexpr wchar_t operator[](int index) const
+	{
+		int len = length();
+		return (len > 0) ? m_unicode[std::clamp(index, 0, len - 1)] : static_cast<wchar_t>(0);
+	}
 
 	bool operator==(const UString &ustr) const = default;
 	auto operator<=>(const UString &ustr) const = default;
@@ -220,18 +246,47 @@ public:
 	[[nodiscard]] bool equalsIgnoreCase(const UString &ustr) const;
 	[[nodiscard]] bool lessThanIgnoreCase(const UString &ustr) const;
 
+	// for strict-weak-ordering
+	[[nodiscard]] bool lessThanIgnoreCaseStrict(const UString &rhs) const noexcept { return ncasecomp{}(*this, rhs); }
+
+	class ncasecomp
+	{
+	public:
+		bool operator()(const UString &lhs, const UString &rhs) const noexcept;
+
+	private:
+		// consistent case normalization that avoids locale-dependent behavior (to use with std::sort to satisfy strict-weak-ordering)
+		static constexpr wchar_t normalizeCase(wchar_t ch) noexcept
+		{
+			// ASCII fast path
+			if (ch >= L'A' && ch <= L'Z')
+				return ch + (L'a' - L'A');
+			// clamp to valid wchar_t range
+			if (ch <= 0xFFFF)
+				return static_cast<wchar_t>(std::towlower(static_cast<std::wint_t>(ch)));
+			// outside BMP (basic multi-lingual plane) is returned as-is to stay deterministic because they aren't handled by UString currently
+			return ch;
+		}
+	};
+
 	friend struct std::hash<UString>;
 
 private:
+	// pack ascii flag into the high bit of m_length so we don't need an extra field just to store that information, which adds 8 bytes due to padding
+	static constexpr int ASCII_FLAG = 0x40000000;
+	static constexpr int LENGTH_MASK = 0x3FFFFFFF;
+
+	void setLength(int len) noexcept { m_length = (m_length & ASCII_FLAG) | (len & LENGTH_MASK); }
+	void setAsciiFlag(bool isAscii) noexcept { m_length = isAscii ? (m_length | ASCII_FLAG) : (m_length & LENGTH_MASK); }
+
 	int fromUtf8(const char *utf8, int length = -1);
 	void updateUtf8();
 
 	std::wstring m_unicode;
 	std::string m_utf8;
 
-	int m_length = 0;
+	int m_length = ASCII_FLAG; // start with ascii flag set
 	int m_lengthUtf8 = 0;
-	bool m_isAsciiOnly = true;
 };
 
 namespace std
@@ -243,10 +298,31 @@ struct hash<UString>
 };
 } // namespace std
 
+// for printf-style formatting (legacy McEngine style, should convert over to UString::fmt because it's nicer)
 template <typename... Args>
 UString UString::format(std::string_view fmt, Args &&...args) noexcept
 {
 	return UString(fmt::sprintf(fmt, std::forward<Args>(args)...));
+}
+
+// need a specialization for fmt, so that UStrings can be passed directly without needing .toUtf8() (for UString::fmt)
+namespace fmt
+{
+template <>
+struct formatter<UString> : formatter<string_view>
+{
+	template <typename FormatContext>
+	auto format(const UString &str, FormatContext &ctx) const
+	{
+		return formatter<string_view>::format(str.utf8View(), ctx);
+	}
+};
+} // namespace fmt
+
+template <typename... Args>
+UString UString::fmt(fmt::format_string<Args...> fmt, Args &&...args) noexcept
+{
+	return UString(fmt::format(fmt, std::forward<Args>(args)...));
 }
 
 template <typename Range>

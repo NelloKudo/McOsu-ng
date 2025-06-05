@@ -20,7 +20,7 @@ class OsuUIModSelectorModButton : public CBaseUIButton
 public:
 	OsuUIModSelectorModButton(OsuModSelector* osuModSelector, float xPos, float yPos, float xSize, float ySize, UString name);
 
-	virtual void draw(Graphics *g);
+	virtual void draw();
 	virtual void update();
 
 	void click() {onMouseDownInside();}
@@ -32,8 +32,8 @@ public:
 	void setAvailable(bool available) {m_bAvailable = available;}
 
 	UString getActiveModName();
-	inline int getState() const {return m_iState;}
-	inline bool isOn() const {return m_bOn;}
+	[[nodiscard]] inline int getState() const {return m_iState;}
+	[[nodiscard]] inline bool isOn() const {return m_bOn;}
 
 private:
 	virtual void onMouseDownInside();

@@ -14,25 +14,24 @@
 #include "Engine.h"
 
 // shared convars
+namespace cv {
 ConVar debug_opengl("debug_opengl", false, FCVAR_NONE);
+}
 
-SDLGLInterface::SDLGLInterface(SDL_Window *window) : BackendGLInterface()
+void SDLGLInterface::load()
 {
 	// resolve GL functions
 #ifndef MCENGINE_PLATFORM_WASM
+	if (!gladLoadGL())
 	{
-		if (!gladLoadGL())
-		{
-			debugLog("gladLoadGL() error\n");
-			engine->showMessageErrorFatal("OpenGL Error", "Couldn't gladLoadGL()!\nThe engine will exit now.");
-			engine->shutdown();
-			return;
-		}
-		debugLog("gladLoadGL() version: {:d}.{:d}, EGL: {:s}\n", GLVersion.major, GLVersion.minor, !!SDL_EGL_GetCurrentDisplay() ? "true" : "false");
+		debugLog("gladLoadGL() error\n");
+		engine->showMessageErrorFatal("OpenGL Error", "Couldn't gladLoadGL()!\nThe engine will exit now.");
+		engine->shutdown();
+		return;
 	}
+	debugLog("gladLoadGL() version: {:d}.{:d}, EGL: {:s}\n", GLVersion.major, GLVersion.minor, !!SDL_EGL_GetCurrentDisplay() ? "true" : "false");
 #endif
 	debugLog("GL_VERSION string: {}\n", reinterpret_cast<const char *>(glGetString(GL_VERSION)));
-	m_window = window;
 }
 
 void SDLGLInterface::endScene()

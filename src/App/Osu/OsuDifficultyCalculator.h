@@ -46,16 +46,13 @@ public:
 		unsigned long long sortHack;
 	};
 
-	struct SliderScoringTimeComparator
+	static bool sliderScoringTimeComparator(const SLIDER_SCORING_TIME &a, const SLIDER_SCORING_TIME &b)
 	{
-		bool operator() (const SLIDER_SCORING_TIME &a, const SLIDER_SCORING_TIME &b) const
-		{
-			// strict weak ordering!
-			if (a.time == b.time)
-				return a.sortHack < b.sortHack;
-			else
-				return a.time < b.time;
-		}
+		// strict weak ordering!
+		if (a.time == b.time)
+			return a.sortHack < b.sortHack;
+		else
+			return a.time < b.time;
 	};
 
 public:
@@ -72,10 +69,10 @@ public:
 	void updateStackPosition(float stackOffset);
 	void updateCurveStackPosition(float stackOffset);
 
-	Vector2 getOriginalRawPosAt(long pos) const; // for stacking calculations, always returns the unstacked original position at that point in time
+	[[nodiscard]] Vector2 getOriginalRawPosAt(long pos) const; // for stacking calculations, always returns the unstacked original position at that point in time
 	[[nodiscard]] float getT(long pos, bool raw) const;
 
-	inline long getDuration() const {return endTime - time;}
+	[[nodiscard]] inline long getDuration() const {return endTime - time;}
 
 public:
 	// circles (base)
@@ -202,9 +199,9 @@ public:
 
 		DiffObject(OsuDifficultyHitObject *base_object, float radius_scaling_factor, std::vector<DiffObject> &diff_objects, int prevObjectIdx);
 
-		inline const DiffObject *get_previous(int backwardsIdx) const {return (objects.size() > 0 && prevObjectIndex - backwardsIdx < (int)objects.size() ? &objects[std::max(0, prevObjectIndex - backwardsIdx)] : NULL);}
-		inline double get_strain(Skills::Skill type) const {return strains[Skills::skillToIndex(type)] * (type == Skills::Skill::SPEED ? rhythm : 1.0);}
-		inline double get_slider_aim_strain() const {return ho->type == OsuDifficultyHitObject::TYPE::SLIDER ? strains[Skills::skillToIndex(Skills::Skill::AIM_SLIDERS)] : -1.0;}
+		[[nodiscard]] inline const DiffObject *get_previous(int backwardsIdx) const {return (objects.size() > 0 && prevObjectIndex - backwardsIdx < (int)objects.size() ? &objects[std::max(0, prevObjectIndex - backwardsIdx)] : NULL);}
+		[[nodiscard]] inline double get_strain(Skills::Skill type) const {return strains[Skills::skillToIndex(type)] * (type == Skills::Skill::SPEED ? rhythm : 1.0);}
+		[[nodiscard]] inline double get_slider_aim_strain() const {return ho->type == OsuDifficultyHitObject::TYPE::SLIDER ? strains[Skills::skillToIndex(Skills::Skill::AIM_SLIDERS)] : -1.0;}
 		inline static double applyDiminishingExp(double val) {return std::pow(val, 0.99);}
 		inline static double strainDecay(Skills::Skill type, double ms) {return std::pow(decay_base[Skills::skillToIndex(type)], ms / 1000.0);}
 
@@ -232,9 +229,9 @@ public:
 	static double calculateTotalStarsFromSkills(double aim, double speed);
 
 private:
-	static ConVar *m_osu_slider_scorev2_ref;
-	static ConVar *m_osu_slider_end_inside_check_offset_ref;
-	static ConVar *m_osu_slider_curve_max_length_ref;
+	
+	
+	
 
 private:
 	struct Attributes

@@ -22,10 +22,10 @@ class OsuSkinImage;
 class OsuSkin
 {
 public:
-	static const char *OSUSKIN_DEFAULT_SKIN_PATH;
+	static UString DEFAULT_SKIN_PATH;
 
-	static ConVar *m_osu_skin_async;
-	static ConVar *m_osu_skin_hd;
+	
+	
 
 public:
 	OsuSkin(UString name, UString filepath, bool isDefaultSkin = false, bool isWorkshopSkin = false);
@@ -338,8 +338,9 @@ public:
 	[[nodiscard]] inline int getSampleSet() const {return m_iSampleSet;}
 
 private:
-	static ConVar *m_osu_skin_ref;
-	static ConVar *m_osu_mod_fposu_ref;
+friend class OsuSkinImage;
+	
+	
 
 	static Image *m_missingTexture;
 
@@ -363,6 +364,10 @@ private:
 	void onIgnoreBeatmapSampleVolumeChange(UString oldValue, UString newValue);
 	void onExport(UString folderName);
 
+	bool skinFileExists(const UString &path);
+	UString buildUserPath(const UString &element, const char *ext, bool hd = false) const;
+	UString buildDefaultPath(const UString &element, const char *ext, bool hd = false) const;
+
 	bool m_bReady;
 	bool m_bReadyOnce;
 	bool m_bIsDefaultSkin;
@@ -374,6 +379,8 @@ private:
 	std::vector<Sound*> m_sounds;
 	std::vector<SOUND_SAMPLE> m_soundSamples;
 	std::vector<OsuSkinImage*> m_images;
+
+	std::unordered_map<UString, bool> m_fileExistsCache;
 
 	// images
 	Image *m_hitCircle;

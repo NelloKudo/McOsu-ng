@@ -20,9 +20,9 @@
 #include "CBaseUIContainer.h"
 #include "CBaseUIButton.h"
 #include "CBaseUIScrollView.h"
-
+namespace cv {
 ConVar vs_browser_animspeed("vs_browser_animspeed", 0.15f, FCVAR_NONE);
-
+}
 
 
 struct VSMusicBrowserNaturalSortStringComparator
@@ -215,7 +215,7 @@ public:
 		anim->deleteExistingAnimation(&m_fSelectionAnim);
 	}
 
-	virtual void draw(Graphics *g)
+	virtual void draw()
 	{
 		if (!m_bVisible) return;
 
@@ -276,15 +276,15 @@ public:
 		//g->setColor(0xffff0000);
 		//g->drawRect(m_vPos.x, m_vPos.y, m_vSize.x, m_vSize.y);
 
-		drawText(g);
+		drawText();
 	}
 
 	void setSelected(bool selected)
 	{
 		if (selected && !m_bSelected)
-			anim->moveQuadInOut(&m_fSelectionAnim, 1.0f, vs_browser_animspeed.getFloat(), 0.0f, true);
+			anim->moveQuadInOut(&m_fSelectionAnim, 1.0f, cv::vs_browser_animspeed.getFloat(), 0.0f, true);
 		else if (!selected)
-			anim->moveQuadInOut(&m_fSelectionAnim, 0.0f, vs_browser_animspeed.getFloat(), 0.0f, true);
+			anim->moveQuadInOut(&m_fSelectionAnim, 0.0f, cv::vs_browser_animspeed.getFloat(), 0.0f, true);
 
 		m_bSelected = selected;
 	}
@@ -292,7 +292,7 @@ public:
 	void setDirectory(bool directory) {m_bIsDirectory = directory;}
 	void setPlaying(bool playing) {m_bPlaying = playing;}
 
-	inline bool isDirectory() const {return m_bIsDirectory;}
+	[[nodiscard]] inline bool isDirectory() const {return m_bIsDirectory;}
 
 private:
 	bool m_bSelected;
@@ -310,7 +310,7 @@ public:
 		m_fAnim = 0.0f;
 
 		// spawn animation
-		anim->moveQuadInOut(&m_fAnim, 1.0f, vs_browser_animspeed.getFloat(), 0.0f, true);
+		anim->moveQuadInOut(&m_fAnim, 1.0f, cv::vs_browser_animspeed.getFloat(), 0.0f, true);
 	}
 
 	virtual ~VSMusicBrowserColumnScrollView()
@@ -318,7 +318,7 @@ public:
 		anim->deleteExistingAnimation(&m_fAnim);
 	}
 
-	virtual void draw(Graphics *g)
+	virtual void draw()
 	{
 		if (anim->isAnimating(&m_fAnim))
 		{
@@ -326,12 +326,12 @@ public:
 			{
 				g->offset3DScene(-m_vSize.x/2, 0, 0);
 				g->rotate3DScene(0, 100 - m_fAnim*100, 0);
-				CBaseUIScrollView::draw(g);
+				CBaseUIScrollView::draw();
 			}
 			g->pop3DScene();
 		}
 		else
-			CBaseUIScrollView::draw(g);
+			CBaseUIScrollView::draw();
 	}
 
 private:
@@ -362,9 +362,9 @@ VSMusicBrowser::~VSMusicBrowser()
 	SAFE_DELETE(m_mainContainer);
 }
 
-void VSMusicBrowser::draw(Graphics *g)
+void VSMusicBrowser::draw()
 {
-	m_mainContainer->draw(g);
+	m_mainContainer->draw();
 }
 
 void VSMusicBrowser::update()

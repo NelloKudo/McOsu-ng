@@ -31,71 +31,71 @@
 #include <sstream>
 #include <iostream>
 #include <utility>
+namespace cv::osu {
+ConVar mod_random("osu_mod_random", false, FCVAR_NONE);
+ConVar mod_random_seed("osu_mod_random_seed", 0, FCVAR_NONE, "0 = random seed every reload, any other value will force that value to be used as the seed");
+ConVar mod_random_circle_offset_x_percent("osu_mod_random_circle_offset_x_percent", 1.0f, FCVAR_NONE, "how much the randomness affects things");
+ConVar mod_random_circle_offset_y_percent("osu_mod_random_circle_offset_y_percent", 1.0f, FCVAR_NONE, "how much the randomness affects things");
+ConVar mod_random_slider_offset_x_percent("osu_mod_random_slider_offset_x_percent", 1.0f, FCVAR_NONE, "how much the randomness affects things");
+ConVar mod_random_slider_offset_y_percent("osu_mod_random_slider_offset_y_percent", 1.0f, FCVAR_NONE, "how much the randomness affects things");
+ConVar mod_random_spinner_offset_x_percent("osu_mod_random_spinner_offset_x_percent", 1.0f, FCVAR_NONE, "how much the randomness affects things");
+ConVar mod_random_spinner_offset_y_percent("osu_mod_random_spinner_offset_y_percent", 1.0f, FCVAR_NONE, "how much the randomness affects things");
+ConVar mod_reverse_sliders("osu_mod_reverse_sliders", false, FCVAR_NONE);
+ConVar mod_strict_tracking("osu_mod_strict_tracking", false, FCVAR_NONE);
+ConVar mod_strict_tracking_remove_slider_ticks("osu_mod_strict_tracking_remove_slider_ticks", false, FCVAR_NONE, "whether the strict tracking mod should remove slider ticks or not, this changed after its initial implementation in lazer");
 
-ConVar osu_mod_random("osu_mod_random", false, FCVAR_NONE);
-ConVar osu_mod_random_seed("osu_mod_random_seed", 0, FCVAR_NONE, "0 = random seed every reload, any other value will force that value to be used as the seed");
-ConVar osu_mod_random_circle_offset_x_percent("osu_mod_random_circle_offset_x_percent", 1.0f, FCVAR_NONE, "how much the randomness affects things");
-ConVar osu_mod_random_circle_offset_y_percent("osu_mod_random_circle_offset_y_percent", 1.0f, FCVAR_NONE, "how much the randomness affects things");
-ConVar osu_mod_random_slider_offset_x_percent("osu_mod_random_slider_offset_x_percent", 1.0f, FCVAR_NONE, "how much the randomness affects things");
-ConVar osu_mod_random_slider_offset_y_percent("osu_mod_random_slider_offset_y_percent", 1.0f, FCVAR_NONE, "how much the randomness affects things");
-ConVar osu_mod_random_spinner_offset_x_percent("osu_mod_random_spinner_offset_x_percent", 1.0f, FCVAR_NONE, "how much the randomness affects things");
-ConVar osu_mod_random_spinner_offset_y_percent("osu_mod_random_spinner_offset_y_percent", 1.0f, FCVAR_NONE, "how much the randomness affects things");
-ConVar osu_mod_reverse_sliders("osu_mod_reverse_sliders", false, FCVAR_NONE);
-ConVar osu_mod_strict_tracking("osu_mod_strict_tracking", false, FCVAR_NONE);
-ConVar osu_mod_strict_tracking_remove_slider_ticks("osu_mod_strict_tracking_remove_slider_ticks", false, FCVAR_NONE, "whether the strict tracking mod should remove slider ticks or not, this changed after its initial implementation in lazer");
+ConVar show_approach_circle_on_first_hidden_object("osu_show_approach_circle_on_first_hidden_object", true, FCVAR_NONE);
 
-ConVar osu_show_approach_circle_on_first_hidden_object("osu_show_approach_circle_on_first_hidden_object", true, FCVAR_NONE);
+ConVar stars_stacking("osu_stars_stacking", true, FCVAR_NONE, "respect hitobject stacking before calculating stars/pp");
 
-ConVar osu_stars_stacking("osu_stars_stacking", true, FCVAR_NONE, "respect hitobject stacking before calculating stars/pp");
+ConVar slider_max_repeats("osu_slider_max_repeats", 9000, FCVAR_NONE, "maximum number of repeats allowed per slider (clamp range)");
+ConVar slider_max_ticks("osu_slider_max_ticks", 2048, FCVAR_NONE, "maximum number of ticks allowed per slider (clamp range)");
 
-ConVar osu_slider_max_repeats("osu_slider_max_repeats", 9000, FCVAR_NONE, "maximum number of repeats allowed per slider (clamp range)");
-ConVar osu_slider_max_ticks("osu_slider_max_ticks", 2048, FCVAR_NONE, "maximum number of ticks allowed per slider (clamp range)");
+ConVar number_max("osu_number_max", 0, FCVAR_NONE, "0 = disabled, 1/2/3/4/etc. limits visual circle numbers to this number");
+ConVar ignore_beatmap_combo_numbers("osu_ignore_beatmap_combo_numbers", false, FCVAR_NONE, "may be used in conjunction with osu_number_max");
 
-ConVar osu_number_max("osu_number_max", 0, FCVAR_NONE, "0 = disabled, 1/2/3/4/etc. limits visual circle numbers to this number");
-ConVar osu_ignore_beatmap_combo_numbers("osu_ignore_beatmap_combo_numbers", false, FCVAR_NONE, "may be used in conjunction with osu_number_max");
+ConVar beatmap_version("osu_beatmap_version", 128, FCVAR_NONE, "maximum supported .osu file version, above this will simply not load (this was 14 but got bumped to 128 due to lazer backports)");
+ConVar beatmap_max_num_hitobjects("osu_beatmap_max_num_hitobjects", 40000, FCVAR_NONE, "maximum number of total allowed hitobjects per beatmap (prevent crashing on deliberate game-breaking beatmaps)");
+ConVar beatmap_max_num_slider_scoringtimes("osu_beatmap_max_num_slider_scoringtimes", 32768, FCVAR_NONE, "maximum number of slider score increase events allowed per slider (prevent crashing on deliberate game-breaking beatmaps)");
+}
 
-ConVar osu_beatmap_version("osu_beatmap_version", 128, FCVAR_NONE, "maximum supported .osu file version, above this will simply not load (this was 14 but got bumped to 128 due to lazer backports)");
-ConVar osu_beatmap_max_num_hitobjects("osu_beatmap_max_num_hitobjects", 40000, FCVAR_NONE, "maximum number of total allowed hitobjects per beatmap (prevent crashing on deliberate game-breaking beatmaps)");
-ConVar osu_beatmap_max_num_slider_scoringtimes("osu_beatmap_max_num_slider_scoringtimes", 32768, FCVAR_NONE, "maximum number of slider score increase events allowed per slider (prevent crashing on deliberate game-breaking beatmaps)");
+namespace {
+bool timingPointSortComparator(OsuDatabaseBeatmap::TIMINGPOINT const &a, OsuDatabaseBeatmap::TIMINGPOINT const &b)
+{
+	// first condition: offset
+	// second condition: if offset is the same, non-inherited timingpoints go before inherited timingpoints
+
+	// strict weak ordering!
+	if (a.offset == b.offset && ((a.msPerBeat >= 0 && b.msPerBeat < 0) == (b.msPerBeat >= 0 && a.msPerBeat < 0)))
+		return a.sortHack < b.sortHack;
+	else
+		return (a.offset < b.offset) || (a.offset == b.offset && a.msPerBeat >= 0 && b.msPerBeat < 0);
+}
+}
 
 unsigned long long OsuDatabaseBeatmap::sortHackCounter = 0;
-
-ConVar *OsuDatabaseBeatmap::m_osu_slider_curve_max_length_ref = NULL;
-ConVar *OsuDatabaseBeatmap::m_osu_stars_xexxar_angles_sliders_ref = NULL;
-ConVar *OsuDatabaseBeatmap::m_osu_stars_stacking_ref = NULL;
-ConVar *OsuDatabaseBeatmap::m_osu_debug_pp_ref = NULL;
-ConVar *OsuDatabaseBeatmap::m_osu_slider_end_inside_check_offset_ref = NULL;
 
 OsuDatabaseBeatmap::OsuDatabaseBeatmap(UString filePath, UString folder, bool filePathIsInMemoryBeatmap)
 {
 	
 
-	m_sFilePath = filePath;
+	m_sFilePath = std::move(filePath);
 	m_bFilePathIsInMemoryBeatmap = filePathIsInMemoryBeatmap;
 
-	m_sFolder = folder;
+	m_sFolder = std::move(folder);
 
 	m_iSortHack = sortHackCounter++;
 
-
-
 	// convar refs
-	if (m_osu_slider_curve_max_length_ref == NULL)
-		m_osu_slider_curve_max_length_ref = convar->getConVarByName("osu_slider_curve_max_length");
-	if (m_osu_stars_xexxar_angles_sliders_ref == NULL)
-		m_osu_stars_xexxar_angles_sliders_ref = convar->getConVarByName("osu_stars_xexxar_angles_sliders");
-	if (m_osu_stars_stacking_ref == NULL)
-		m_osu_stars_stacking_ref = convar->getConVarByName("osu_stars_stacking");
-	if (m_osu_debug_pp_ref == NULL)
-		m_osu_debug_pp_ref = convar->getConVarByName("osu_debug_pp");
-	if (m_osu_slider_end_inside_check_offset_ref == NULL)
-		m_osu_slider_end_inside_check_offset_ref = convar->getConVarByName("osu_slider_end_inside_check_offset");
+
+
+
 
 
 
 	// raw metadata (note the special default values)
 
-	m_iVersion = osu_beatmap_version.getInt();
+	m_iVersion = cv::osu::beatmap_version.getInt();
 	m_iGameMode = 0;
 	m_iID = 0;
 	m_iSetID = -1;
@@ -144,9 +144,9 @@ OsuDatabaseBeatmap::OsuDatabaseBeatmap(std::vector<OsuDatabaseBeatmap*> &difficu
 
 OsuDatabaseBeatmap::~OsuDatabaseBeatmap()
 {
-	for (size_t i=0; i<m_difficulties.size(); i++)
+	for (auto & diff : m_difficulties)
 	{
-		delete m_difficulties[i];
+		delete diff;
 	}
 }
 
@@ -171,8 +171,8 @@ OsuDatabaseBeatmap::PRIMITIVE_CONTAINER OsuDatabaseBeatmap::loadPrimitiveObjects
 		c.version = 14;
 	}
 
-	const float sliderSanityRange = m_osu_slider_curve_max_length_ref->getFloat(); // infinity sanity check, same as before
-	const int sliderMaxRepeatRange = osu_slider_max_repeats.getInt(); // NOTE: osu! will refuse to play any beatmap which has sliders with more than 9000 repeats, here we just clamp it instead
+	const float sliderSanityRange = cv::osu::slider_curve_max_length.getFloat(); // infinity sanity check, same as before
+	const int sliderMaxRepeatRange = cv::osu::slider_max_repeats.getInt(); // NOTE: osu! will refuse to play any beatmap which has sliders with more than 9000 repeats, here we just clamp it instead
 
 
 
@@ -287,38 +287,38 @@ OsuDatabaseBeatmap::PRIMITIVE_CONTAINER OsuDatabaseBeatmap::loadPrimitiveObjects
 						if (sscanf(curLineChar, " %lf , %f , %i , %i , %i , %i , %i , %i", &tpOffset, &tpMSPerBeat, &tpMeter, &tpSampleType, &tpSampleSet, &tpVolume, &tpTimingChange, &tpKiai) == 8
 							|| sscanf(curLineChar, " %lf , %f , %i , %i , %i , %i , %i", &tpOffset, &tpMSPerBeat, &tpMeter, &tpSampleType, &tpSampleSet, &tpVolume, &tpTimingChange) == 7)
 						{
-							TIMINGPOINT t;
+							TIMINGPOINT t
 							{
-								t.offset = (long)std::round(tpOffset);
-								t.msPerBeat = tpMSPerBeat;
+								.offset = (long)std::round(tpOffset),
+								.msPerBeat = tpMSPerBeat,
 
-								t.sampleType = tpSampleType;
-								t.sampleSet = tpSampleSet;
-								t.volume = tpVolume;
+								.sampleType = tpSampleType,
+								.sampleSet = tpSampleSet,
+								.volume = tpVolume,
 
-								t.timingChange = tpTimingChange == 1;
-								t.kiai = tpKiai > 0;
+								.timingChange = tpTimingChange == 1,
+								.kiai = tpKiai > 0,
 
-								t.sortHack = timingPointSortHack++;
-							}
+								.sortHack = timingPointSortHack++
+							};
 							c.timingpoints.push_back(t);
 						}
 						else if (sscanf(curLineChar, " %lf , %f", &tpOffset, &tpMSPerBeat) == 2)
 						{
-							TIMINGPOINT t;
+							TIMINGPOINT t
 							{
-								t.offset = (long)std::round(tpOffset);
-								t.msPerBeat = tpMSPerBeat;
+								.offset = (long)std::round(tpOffset),
+								.msPerBeat = tpMSPerBeat,
 
-								t.sampleType = 0;
-								t.sampleSet = 0;
-								t.volume = 100;
+								.sampleType = 0,
+								.sampleSet = 0,
+								.volume = 100,
 
-								t.timingChange = true;
-								t.kiai = false;
+								.timingChange = true,
+								.kiai = false,
 
-								t.sortHack = timingPointSortHack++;
-							}
+								.sortHack = timingPointSortHack++
+							};
 							c.timingpoints.push_back(t);
 						}
 					}
@@ -539,7 +539,7 @@ OsuDatabaseBeatmap::PRIMITIVE_CONTAINER OsuDatabaseBeatmap::loadPrimitiveObjects
 
 	// late bail if too many hitobjects would run out of memory and crash
 	const size_t numHitobjects = c.hitcircles.size() + c.sliders.size() + c.spinners.size();
-	if (std::cmp_greater(numHitobjects ,osu_beatmap_max_num_hitobjects.getInt()))
+	if (std::cmp_greater(numHitobjects ,cv::osu::beatmap_max_num_hitobjects.getInt()))
 	{
 		c.errorCode = 5;
 		return c;
@@ -547,7 +547,7 @@ OsuDatabaseBeatmap::PRIMITIVE_CONTAINER OsuDatabaseBeatmap::loadPrimitiveObjects
 
 	// sort timingpoints by time
 	if (c.timingpoints.size() > 0)
-		std::ranges::sort(c.timingpoints, TimingPointSortComparator());
+		std::ranges::sort(c.timingpoints, timingPointSortComparator);
 
 	return c;
 }
@@ -605,7 +605,7 @@ OsuDatabaseBeatmap::CALCULATE_SLIDER_TIMES_CLICKS_TICKS_RESULT OsuDatabaseBeatma
 	};
 
 	unsigned long long sortHackCounter = 0;
-	for (int i=0; i<sliders.size(); i++)
+	for (auto & s : sliders)
 	{
 		if (dead.load())
 		{
@@ -613,9 +613,7 @@ OsuDatabaseBeatmap::CALCULATE_SLIDER_TIMES_CLICKS_TICKS_RESULT OsuDatabaseBeatma
 			return r;
 		}
 
-		SLIDER &s = sliders[i];
-
-		// sanity reset
+			// sanity reset
 		s.ticks.clear();
 		s.scoringTimesForStarCalc.clear();
 
@@ -629,7 +627,7 @@ OsuDatabaseBeatmap::CALCULATE_SLIDER_TIMES_CLICKS_TICKS_RESULT OsuDatabaseBeatma
 			const float minTickPixelDistanceFromEnd = 0.01f * SliderHelper::getSliderVelocity(s, timingInfo, sliderMultiplier, sliderTickRate);
 			const float tickPixelLength = (beatmapVersion < 8 ? SliderHelper::getSliderTickDistance(sliderMultiplier, sliderTickRate) : SliderHelper::getSliderTickDistance(sliderMultiplier, sliderTickRate) / SliderHelper::getTimingPointMultiplierForSlider(s, timingInfo));
 			const float tickDurationPercentOfSliderLength = tickPixelLength / (s.pixelLength == 0.0f ? 1.0f : s.pixelLength);
-			const int tickCount = std::min((int)std::ceil(s.pixelLength / tickPixelLength) - 1, osu_slider_max_ticks.getInt()); // NOTE: hard sanity limit number of ticks per slider
+			const int tickCount = std::min((int)std::ceil(s.pixelLength / tickPixelLength) - 1, cv::osu::slider_max_ticks.getInt()); // NOTE: hard sanity limit number of ticks per slider
 
 			if (tickCount > 0 && !timingInfo.isNaN && !std::isnan(s.pixelLength) && !std::isnan(tickPixelLength)) // don't generate ticks for NaN timingpoints and infinite values
 			{
@@ -649,7 +647,7 @@ OsuDatabaseBeatmap::CALCULATE_SLIDER_TIMES_CLICKS_TICKS_RESULT OsuDatabaseBeatma
 		}
 
 		// bail if too many predicted heuristic scoringTimes would run out of memory and crash
-		if ((size_t)std::abs(s.repeat) * s.ticks.size() > (size_t)osu_beatmap_max_num_slider_scoringtimes.getInt())
+		if ((size_t)std::abs(s.repeat) * s.ticks.size() > (size_t)cv::osu::beatmap_max_num_slider_scoringtimes.getInt())
 		{
 			r.errorCode = 5;
 			return r;
@@ -658,9 +656,9 @@ OsuDatabaseBeatmap::CALCULATE_SLIDER_TIMES_CLICKS_TICKS_RESULT OsuDatabaseBeatma
 		// calculate s.scoringTimesForStarCalc, which should include every point in time where the cursor must be within the followcircle radius and at least one key must be pressed:
 		// see https://github.com/ppy/osu/blob/master/osu.Game.Rulesets.Osu/Difficulty/Preprocessing/OsuDifficultyHitObject.cs
 		// NOTE: only necessary since the latest pp changes (Xexxar)
-		if (m_osu_stars_xexxar_angles_sliders_ref->getBool())
+		if (cv::osu::stars_xexxar_angles_sliders.getBool())
 		{
-			const long osuSliderEndInsideCheckOffset = (long)m_osu_slider_end_inside_check_offset_ref->getInt();
+			const long osuSliderEndInsideCheckOffset = (long)cv::osu::slider_end_inside_check_offset.getInt();
 
 			// 1) "skip the head circle"
 
@@ -700,7 +698,7 @@ OsuDatabaseBeatmap::CALCULATE_SLIDER_TIMES_CLICKS_TICKS_RESULT OsuDatabaseBeatma
 			});
 
 			// 5) sort scoringTimes from earliest to latest
-			std::ranges::sort(s.scoringTimesForStarCalc, OsuDifficultyHitObject::SliderScoringTimeComparator());
+			std::ranges::sort(s.scoringTimesForStarCalc, OsuDifficultyHitObject::sliderScoringTimeComparator);
 		}
 	}
 
@@ -740,11 +738,9 @@ OsuDatabaseBeatmap::LOAD_DIFFOBJ_RESULT OsuDatabaseBeatmap::loadDifficultyHitObj
 	// now we can calculate the max possible combo (because that needs ticks/clicks to be filled, mostly convenience)
 	{
 		result.maxPossibleCombo += c.hitcircles.size();
-		for (int i=0; i<c.sliders.size(); i++)
+		for (const auto & s : c.sliders)
 		{
-			const SLIDER &s = c.sliders[i];
-
-			const int repeats = std::max((s.repeat - 1), 0);
+				const int repeats = std::max((s.repeat - 1), 0);
 			result.maxPossibleCombo += 2 + repeats + (repeats+1)*s.ticks.size(); // start/end + repeat arrow + ticks
 		}
 		result.maxPossibleCombo += c.spinners.size();
@@ -753,16 +749,16 @@ OsuDatabaseBeatmap::LOAD_DIFFOBJ_RESULT OsuDatabaseBeatmap::loadDifficultyHitObj
 	// and generate the difficultyhitobjects
 	result.diffobjects.reserve(c.hitcircles.size() + c.sliders.size() + c.spinners.size());
 
-	for (int i=0; i<c.hitcircles.size(); i++)
+	for (auto & hitcircle : c.hitcircles)
 	{
 		result.diffobjects.emplace_back(
 				OsuDifficultyHitObject::TYPE::CIRCLE,
-				Vector2(c.hitcircles[i].x, c.hitcircles[i].y),
-				(long)c.hitcircles[i].time);
+				Vector2(hitcircle.x, hitcircle.y),
+				(long)hitcircle.time);
 	}
 
 	const bool calculateSliderCurveInConstructor = (c.sliders.size() < 5000); // NOTE: for explanation see OsuDifficultyHitObject constructor
-	for (int i=0; i<c.sliders.size(); i++)
+	for (auto & slider : c.sliders)
 	{
 		if (dead.load())
 		{
@@ -774,62 +770,60 @@ OsuDatabaseBeatmap::LOAD_DIFFOBJ_RESULT OsuDatabaseBeatmap::loadDifficultyHitObj
 		{
 			result.diffobjects.emplace_back(
 					OsuDifficultyHitObject::TYPE::SLIDER,
-					Vector2(c.sliders[i].x, c.sliders[i].y),
-					c.sliders[i].time,
-					c.sliders[i].time + (long)c.sliders[i].sliderTime,
-					c.sliders[i].sliderTimeWithoutRepeats,
-					c.sliders[i].type,
-					c.sliders[i].points,
-					c.sliders[i].pixelLength,
-					c.sliders[i].scoringTimesForStarCalc,
-					c.sliders[i].repeat,
+					Vector2(slider.x, slider.y),
+					slider.time,
+					slider.time + (long)slider.sliderTime,
+					slider.sliderTimeWithoutRepeats,
+					slider.type,
+					slider.points,
+					slider.pixelLength,
+					slider.scoringTimesForStarCalc,
+					slider.repeat,
 					calculateSliderCurveInConstructor);
 		}
 		else
 		{
 			result.diffobjects.emplace_back(
 					OsuDifficultyHitObject::TYPE::SLIDER,
-					Vector2(c.sliders[i].x, c.sliders[i].y),
-					c.sliders[i].time,
-					c.sliders[i].time + (long)c.sliders[i].sliderTime,
-					c.sliders[i].sliderTimeWithoutRepeats,
-					c.sliders[i].type,
+					Vector2(slider.x, slider.y),
+					slider.time,
+					slider.time + (long)slider.sliderTime,
+					slider.sliderTimeWithoutRepeats,
+					slider.type,
 					std::vector<Vector2>(),	// NOTE: ignore curve when calculating inaccurately
-					c.sliders[i].pixelLength,
+					slider.pixelLength,
 					std::vector<OsuDifficultyHitObject::SLIDER_SCORING_TIME>(),	// NOTE: ignore curve when calculating inaccurately
-					c.sliders[i].repeat,
+					slider.repeat,
 					false);				// NOTE: ignore curve when calculating inaccurately
 		}
 	}
 
-	for (int i=0; i<c.spinners.size(); i++)
+	for (auto & spinner : c.spinners)
 	{
 		result.diffobjects.emplace_back(
 				OsuDifficultyHitObject::TYPE::SPINNER,
-				Vector2(c.spinners[i].x, c.spinners[i].y),
-				(long)c.spinners[i].time,
-				(long)c.spinners[i].endTime);
+				Vector2(spinner.x, spinner.y),
+				(long)spinner.time,
+				(long)spinner.endTime);
 	}
 
 	// sort hitobjects by time
-	struct DiffHitObjectSortComparator
+	constexpr auto diffHitObjectSortComparator = [](const OsuDifficultyHitObject &a, const OsuDifficultyHitObject &b) -> bool
 	{
-	    bool operator() (const OsuDifficultyHitObject &a, const OsuDifficultyHitObject &b) const
-	    {
-	    	// strict weak ordering!
-	    	if (a.time == b.time)
-	    		return a.sortHack < b.sortHack;
-	    	else
-	    		return a.time < b.time;
-	    }
+		// strict weak ordering!
+		if (a.time == b.time)
+			return a.sortHack < b.sortHack;
+		else
+			return a.time < b.time;
 	};
-	std::ranges::sort(result.diffobjects, DiffHitObjectSortComparator());
+
+	std::ranges::sort(result.diffobjects, diffHitObjectSortComparator);
 
 	// calculate stacks
 	// see OsuBeatmapStandard.cpp
 	// NOTE: this must be done before the speed multiplier is applied!
 	// HACKHACK: code duplication ffs
-	if (m_osu_stars_stacking_ref->getBool() && !calculateStarsInaccurately) // NOTE: ignore stacking when calculating inaccurately
+	if (cv::osu::stars_stacking.getBool() && !calculateStarsInaccurately) // NOTE: ignore stacking when calculating inaccurately
 	{
 		const float finalAR = AR;
 		const float finalCS = CS;
@@ -993,9 +987,9 @@ OsuDatabaseBeatmap::LOAD_DIFFOBJ_RESULT OsuDatabaseBeatmap::loadDifficultyHitObj
 			if (!calculateStarsInaccurately) // NOTE: ignore slider curves when calculating inaccurately
 			{
 				result.diffobjects[i].spanDuration = (double)result.diffobjects[i].spanDuration * invSpeedMultiplier;
-				for (int s=0; s<result.diffobjects[i].scoringTimes.size(); s++)
+				for (auto & scoringTime : result.diffobjects[i].scoringTimes)
 				{
-					result.diffobjects[i].scoringTimes[s].time = (double)result.diffobjects[i].scoringTimes[s].time * invSpeedMultiplier;
+					scoringTime.time = (double)scoringTime.time * invSpeedMultiplier;
 				}
 			}
 		}
@@ -1012,7 +1006,7 @@ bool OsuDatabaseBeatmap::loadMetadata(OsuDatabaseBeatmap *databaseBeatmap)
 	// reset
 	databaseBeatmap->m_timingpoints = std::vector<TIMINGPOINT>();
 
-	if (Osu::debug->getBool())
+	if (cv::osu::debug.getBool())
 		debugLog("{:s}\n", databaseBeatmap->m_sFilePath.toUtf8());
 
 	// generate MD5 hash (loads entire file, very slow)
@@ -1096,7 +1090,7 @@ bool OsuDatabaseBeatmap::loadMetadata(OsuDatabaseBeatmap *databaseBeatmap)
 					{
 						if (sscanf(curLineChar, " osu file format v %i \n", &databaseBeatmap->m_iVersion) == 1)
 						{
-							if (databaseBeatmap->m_iVersion > osu_beatmap_version.getInt())
+							if (databaseBeatmap->m_iVersion > cv::osu::beatmap_version.getInt())
 							{
 								debugLog("Ignoring unknown/invalid beatmap version {}\n", databaseBeatmap->m_iVersion);
 								return false;
@@ -1214,38 +1208,38 @@ bool OsuDatabaseBeatmap::loadMetadata(OsuDatabaseBeatmap *databaseBeatmap)
 						if (sscanf(curLineChar, " %lf , %f , %i , %i , %i , %i , %i , %i", &tpOffset, &tpMSPerBeat, &tpMeter, &tpSampleType, &tpSampleSet, &tpVolume, &tpTimingChange, &tpKiai) == 8
 							|| sscanf(curLineChar, " %lf , %f , %i , %i , %i , %i , %i", &tpOffset, &tpMSPerBeat, &tpMeter, &tpSampleType, &tpSampleSet, &tpVolume, &tpTimingChange) == 7)
 						{
-							TIMINGPOINT t;
+							TIMINGPOINT t
 							{
-								t.offset = (long)std::round(tpOffset);
-								t.msPerBeat = tpMSPerBeat;
+								.offset = (long)std::round(tpOffset),
+								.msPerBeat = tpMSPerBeat,
 
-								t.sampleType = tpSampleType;
-								t.sampleSet = tpSampleSet;
-								t.volume = tpVolume;
+								.sampleType = tpSampleType,
+								.sampleSet = tpSampleSet,
+								.volume = tpVolume,
 
-								t.timingChange = tpTimingChange == 1;
-								t.kiai = tpKiai > 0;
+								.timingChange = tpTimingChange == 1,
+								.kiai = tpKiai > 0,
 
-								t.sortHack = timingPointSortHack++;
-							}
+								.sortHack = timingPointSortHack++
+							};
 							databaseBeatmap->m_timingpoints.push_back(t);
 						}
 						else if (sscanf(curLineChar, " %lf , %f", &tpOffset, &tpMSPerBeat) == 2)
 						{
-							TIMINGPOINT t;
+							TIMINGPOINT t
 							{
-								t.offset = (long)std::round(tpOffset);
-								t.msPerBeat = tpMSPerBeat;
+								.offset = (long)std::round(tpOffset),
+								.msPerBeat = tpMSPerBeat,
 
-								t.sampleType = 0;
-								t.sampleSet = 0;
-								t.volume = 100;
+								.sampleType = 0,
+								.sampleSet = 0,
+								.volume = 100,
 
-								t.timingChange = true;
-								t.kiai = false;
+								.timingChange = true,
+								.kiai = false,
 
-								t.sortHack = timingPointSortHack++;
-							}
+								.sortHack = timingPointSortHack++
+							};
 							databaseBeatmap->m_timingpoints.push_back(t);
 						}
 					}
@@ -1262,7 +1256,7 @@ bool OsuDatabaseBeatmap::loadMetadata(OsuDatabaseBeatmap *databaseBeatmap)
 	// general sanity checks
 	if ((databaseBeatmap->m_timingpoints.size() < 1))
 	{
-		if (Osu::debug->getBool())
+		if (cv::osu::debug.getBool())
 			debugLog("no timingpoints in beatmap!\n");
 
 		return false; // nothing more to do here
@@ -1275,21 +1269,19 @@ bool OsuDatabaseBeatmap::loadMetadata(OsuDatabaseBeatmap *databaseBeatmap)
 	// sort timingpoints and calculate BPM range
 	if (databaseBeatmap->m_timingpoints.size() > 0)
 	{
-		if (Osu::debug->getBool())
+		if (cv::osu::debug.getBool())
 			debugLog("calculating BPM range ...\n");
 
 		// sort timingpoints by time
-		std::ranges::sort(databaseBeatmap->m_timingpoints, TimingPointSortComparator());
+		std::ranges::sort(databaseBeatmap->m_timingpoints, timingPointSortComparator);
 
 		// calculate bpm range
 		float tempMinBPM = 0.0f;
 		float tempMaxBPM = std::numeric_limits<float>::max();
 		std::vector<TIMINGPOINT> uninheritedTimingpoints;
-		for (int i=0; i<databaseBeatmap->m_timingpoints.size(); i++)
+		for (const auto & t : databaseBeatmap->m_timingpoints)
 		{
-			const TIMINGPOINT &t = databaseBeatmap->m_timingpoints[i];
-
-			if (t.msPerBeat >= 0.0f) // NOT inherited
+				if (t.msPerBeat >= 0.0f) // NOT inherited
 			{
 				uninheritedTimingpoints.push_back(t);
 
@@ -1371,11 +1363,9 @@ bool OsuDatabaseBeatmap::loadMetadata(OsuDatabaseBeatmap *databaseBeatmap)
 				// "Aggregate durations into a set of (beatLength, duration) tuples for each beat length"
 				std::vector<Tuple> aggregations;
 				aggregations.reserve(tuples.size());
-				for (size_t i=0; i<tuples.size(); i++)
+				for (const auto & t : tuples)
 				{
-					const Tuple &t = tuples[i];
-
-					bool foundExistingAggregation = false;
+						bool foundExistingAggregation = false;
 					size_t aggregationIndex = 0;
 					for (size_t j=0; j<aggregations.size(); j++)
 					{
@@ -1394,23 +1384,20 @@ bool OsuDatabaseBeatmap::loadMetadata(OsuDatabaseBeatmap *databaseBeatmap)
 				}
 
 				// "Get the most common one, or 0 as a suitable default"
-				struct SortByDuration
+				constexpr auto sortByDuration = [](Tuple const &a, Tuple const &b) -> bool
 				{
-				    bool operator() (Tuple const &a, Tuple const &b) const
-				    {
-				    	// first condition: duration
-				    	// second condition: if duration is the same, higher BPM goes before lower BPM
+					// first condition: duration
+					// second condition: if duration is the same, higher BPM goes before lower BPM
 
-				    	// strict weak ordering!
-				    	if (a.duration == b.duration && a.beatLength == b.beatLength)
-				    		return a.sortHack > b.sortHack;
-				    	else if (a.duration == b.duration)
-				    		return (a.beatLength < b.beatLength);
-				    	else
-				    		return (a.duration > b.duration);
-				    }
+					// strict weak ordering!
+					if (a.duration == b.duration && a.beatLength == b.beatLength)
+						return a.sortHack > b.sortHack;
+					else if (a.duration == b.duration)
+						return (a.beatLength < b.beatLength);
+					else
+						return (a.duration > b.duration);
 				};
-				std::ranges::sort(aggregations, SortByDuration());
+				std::ranges::sort(aggregations, sortByDuration);
 
 				float mostCommonBPM = aggregations[0].beatLength;
 				{
@@ -1502,21 +1489,19 @@ OsuDatabaseBeatmap::LOAD_GAMEPLAY_RESULT OsuDatabaseBeatmap::loadGameplay(OsuDat
 			}
 		};
 
-		result.randomSeed = (osu_mod_random_seed.getInt() == 0 ? rand() : osu_mod_random_seed.getInt());
+		result.randomSeed = (cv::osu::mod_random_seed.getInt() == 0 ? rand() : cv::osu::mod_random_seed.getInt());
 
 		if (beatmapStandard != NULL)
 		{
 			// also calculate max possible combo
 			int maxPossibleCombo = 0;
 
-			for (size_t i=0; i<c.hitcircles.size(); i++)
+			for (auto & h : c.hitcircles)
 			{
-				HITCIRCLE &h = c.hitcircles[i];
-
-				if (osu_mod_random.getBool())
+					if (cv::osu::mod_random.getBool())
 				{
-					h.x = std::clamp<int>(h.x - (int)(((Helper::pcgHash(result.randomSeed + h.x) % OsuGameRules::OSU_COORD_WIDTH) / 8.0f) * osu_mod_random_circle_offset_x_percent.getFloat()), 0, OsuGameRules::OSU_COORD_WIDTH);
-					h.y = std::clamp<int>(h.y - (int)(((Helper::pcgHash(result.randomSeed + h.y) % OsuGameRules::OSU_COORD_HEIGHT) / 8.0f) * osu_mod_random_circle_offset_y_percent.getFloat()), 0, OsuGameRules::OSU_COORD_HEIGHT);
+					h.x = std::clamp<int>(h.x - (int)(((Helper::pcgHash(result.randomSeed + h.x) % OsuGameRules::OSU_COORD_WIDTH) / 8.0f) * cv::osu::mod_random_circle_offset_x_percent.getFloat()), 0, OsuGameRules::OSU_COORD_WIDTH);
+					h.y = std::clamp<int>(h.y - (int)(((Helper::pcgHash(result.randomSeed + h.y) % OsuGameRules::OSU_COORD_HEIGHT) / 8.0f) * cv::osu::mod_random_circle_offset_y_percent.getFloat()), 0, OsuGameRules::OSU_COORD_HEIGHT);
 				}
 
 				result.hitobjects.push_back(new OsuCircle(h.x, h.y, h.time, h.sampleType, h.number, false, h.colorCounter, h.colorOffset, beatmapStandard));
@@ -1564,23 +1549,21 @@ OsuDatabaseBeatmap::LOAD_GAMEPLAY_RESULT OsuDatabaseBeatmap::loadGameplay(OsuDat
 			}
 			maxPossibleCombo += c.hitcircles.size();
 
-			for (size_t i=0; i<c.sliders.size(); i++)
+			for (auto & s : c.sliders)
 			{
-				SLIDER &s = c.sliders[i];
-
-				if (osu_mod_strict_tracking.getBool() && osu_mod_strict_tracking_remove_slider_ticks.getBool())
+					if (cv::osu::mod_strict_tracking.getBool() && cv::osu::mod_strict_tracking_remove_slider_ticks.getBool())
 					s.ticks.clear();
 
-				if (osu_mod_random.getBool())
+				if (cv::osu::mod_random.getBool())
 				{
-					for (int p=0; p<s.points.size(); p++)
+					for (auto & point : s.points)
 					{
-						s.points[p].x = std::clamp<int>(s.points[p].x - (int)(((Helper::pcgHash(result.randomSeed + s.points[p].x) % OsuGameRules::OSU_COORD_WIDTH) / 3.0f) * osu_mod_random_slider_offset_x_percent.getFloat()), 0, OsuGameRules::OSU_COORD_WIDTH);
-						s.points[p].y = std::clamp<int>(s.points[p].y - (int)(((Helper::pcgHash(result.randomSeed + s.points[p].y) % OsuGameRules::OSU_COORD_HEIGHT) / 3.0f) * osu_mod_random_slider_offset_y_percent.getFloat()), 0, OsuGameRules::OSU_COORD_HEIGHT);
+						point.x = std::clamp<int>(point.x - (int)(((Helper::pcgHash(result.randomSeed + point.x) % OsuGameRules::OSU_COORD_WIDTH) / 3.0f) * cv::osu::mod_random_slider_offset_x_percent.getFloat()), 0, OsuGameRules::OSU_COORD_WIDTH);
+						point.y = std::clamp<int>(point.y - (int)(((Helper::pcgHash(result.randomSeed + point.y) % OsuGameRules::OSU_COORD_HEIGHT) / 3.0f) * cv::osu::mod_random_slider_offset_y_percent.getFloat()), 0, OsuGameRules::OSU_COORD_HEIGHT);
 					}
 				}
 
-				if (osu_mod_reverse_sliders.getBool())
+				if (cv::osu::mod_reverse_sliders.getBool())
 					std::ranges::reverse(s.points);
 
 				result.hitobjects.push_back(new OsuSlider(s.type, s.repeat, s.pixelLength, s.points, s.hitSounds, s.ticks, s.sliderTime, s.sliderTimeWithoutRepeats, s.time, s.sampleType, s.number, false, s.colorCounter, s.colorOffset, beatmapStandard));
@@ -1589,14 +1572,12 @@ OsuDatabaseBeatmap::LOAD_GAMEPLAY_RESULT OsuDatabaseBeatmap::loadGameplay(OsuDat
 				maxPossibleCombo += 2 + repeats + (repeats+1)*s.ticks.size(); // start/end + repeat arrow + ticks
 			}
 
-			for (size_t i=0; i<c.spinners.size(); i++)
+			for (auto & s : c.spinners)
 			{
-				SPINNER &s = c.spinners[i];
-
-				if (osu_mod_random.getBool())
+					if (cv::osu::mod_random.getBool())
 				{
-					s.x = std::clamp<int>(s.x - (int)(((Helper::pcgHash(result.randomSeed + s.x) % OsuGameRules::OSU_COORD_WIDTH) / 1.25f) * (Helper::pcgHash(result.randomSeed + s.x) % 2 == 0 ? 1.0f : -1.0f) * osu_mod_random_spinner_offset_x_percent.getFloat()), 0, OsuGameRules::OSU_COORD_WIDTH);
-					s.y = std::clamp<int>(s.y - (int)(((Helper::pcgHash(result.randomSeed + s.y) % OsuGameRules::OSU_COORD_HEIGHT) / 1.25f) * (Helper::pcgHash(result.randomSeed + s.y) % 2 == 0 ? 1.0f : -1.0f) * osu_mod_random_spinner_offset_y_percent.getFloat()), 0, OsuGameRules::OSU_COORD_HEIGHT);
+					s.x = std::clamp<int>(s.x - (int)(((Helper::pcgHash(result.randomSeed + s.x) % OsuGameRules::OSU_COORD_WIDTH) / 1.25f) * (Helper::pcgHash(result.randomSeed + s.x) % 2 == 0 ? 1.0f : -1.0f) * cv::osu::mod_random_spinner_offset_x_percent.getFloat()), 0, OsuGameRules::OSU_COORD_WIDTH);
+					s.y = std::clamp<int>(s.y - (int)(((Helper::pcgHash(result.randomSeed + s.y) % OsuGameRules::OSU_COORD_HEIGHT) / 1.25f) * (Helper::pcgHash(result.randomSeed + s.y) % 2 == 0 ? 1.0f : -1.0f) * cv::osu::mod_random_spinner_offset_y_percent.getFloat()), 0, OsuGameRules::OSU_COORD_HEIGHT);
 				}
 
 				result.hitobjects.push_back(new OsuSpinner(s.x, s.y, s.time, s.sampleType, false, s.endTime, beatmapStandard));
@@ -1606,7 +1587,7 @@ OsuDatabaseBeatmap::LOAD_GAMEPLAY_RESULT OsuDatabaseBeatmap::loadGameplay(OsuDat
 			beatmapStandard->setMaxPossibleCombo(maxPossibleCombo);
 
 			// debug
-			if (m_osu_debug_pp_ref->getBool())
+			if (cv::osu::debug_pp.getBool())
 			{
 				const UString &osuFilePath = databaseBeatmap->m_sFilePath;
 				const Osu::GAMEMODE gameMode = Osu::GAMEMODE::STD;
@@ -1652,33 +1633,28 @@ OsuDatabaseBeatmap::LOAD_GAMEPLAY_RESULT OsuDatabaseBeatmap::loadGameplay(OsuDat
 
 			const int availableColumns = beatmapMania->getNumColumns();
 
-			for (int i=0; i<c.hitcircles.size(); i++)
+			for (auto & h : c.hitcircles)
 			{
-				HITCIRCLE &h = c.hitcircles[i];
-				result.hitobjects.push_back(new OsuManiaNote(ManiaHelper::getColumn(availableColumns, h.x), h.maniaEndTime > 0 ? (h.maniaEndTime - h.time) : 0, h.time, h.sampleType, h.number, h.colorCounter, beatmapMania));
+					result.hitobjects.push_back(new OsuManiaNote(ManiaHelper::getColumn(availableColumns, h.x), h.maniaEndTime > 0 ? (h.maniaEndTime - h.time) : 0, h.time, h.sampleType, h.number, h.colorCounter, beatmapMania));
 			}
 
-			for (int i=0; i<c.sliders.size(); i++)
+			for (auto & s : c.sliders)
 			{
-				SLIDER &s = c.sliders[i];
-				result.hitobjects.push_back(new OsuManiaNote(ManiaHelper::getColumn(availableColumns, s.x), s.sliderTime, s.time, s.sampleType, s.number, s.colorCounter, beatmapMania));
+					result.hitobjects.push_back(new OsuManiaNote(ManiaHelper::getColumn(availableColumns, s.x), s.sliderTime, s.time, s.sampleType, s.number, s.colorCounter, beatmapMania));
 			}
 		}
 	}
 
 	// sort hitobjects by starttime
-	struct HitObjectSortComparator
+	constexpr auto hitObjectSortComparator = [](OsuHitObject const *a, OsuHitObject const *b) -> bool
 	{
-	    bool operator() (OsuHitObject const *a, OsuHitObject const *b) const
-	    {
-	    	// strict weak ordering!
-	    	if (a->getTime() == b->getTime())
-	    		return a->getSortHack() < b->getSortHack();
-	    	else
-	    		return a->getTime() < b->getTime();
-	    }
+		// strict weak ordering!
+		if (a->getTime() == b->getTime())
+			return a->getSortHack() < b->getSortHack();
+		else
+			return a->getTime() < b->getTime();
 	};
-	std::ranges::sort(result.hitobjects, HitObjectSortComparator());
+	std::ranges::sort(result.hitobjects, hitObjectSortComparator);
 
 	// update beatmap length stat
 	if (databaseBeatmap->m_iLengthMS == 0 && result.hitobjects.size() > 0)
@@ -1725,7 +1701,7 @@ OsuDatabaseBeatmap::LOAD_GAMEPLAY_RESULT OsuDatabaseBeatmap::loadGameplay(OsuDat
 	}
 
 	// special rule for first hitobject (for 1 approach circle with HD)
-	if (osu_show_approach_circle_on_first_hidden_object.getBool())
+	if (cv::osu::show_approach_circle_on_first_hidden_object.getBool())
 	{
 		if (result.hitobjects.size() > 0)
 			result.hitobjects[0]->setForceDrawApproachCircle(true);
@@ -1734,15 +1710,13 @@ OsuDatabaseBeatmap::LOAD_GAMEPLAY_RESULT OsuDatabaseBeatmap::loadGameplay(OsuDat
 	// custom override for forcing a hard number cap and/or sequence (visually only)
 	// NOTE: this is done after we have already calculated/set isEndOfCombos
 	{
-		if (osu_ignore_beatmap_combo_numbers.getBool())
+		if (cv::osu::ignore_beatmap_combo_numbers.getBool())
 		{
 			// NOTE: spinners don't increment the combo number
 			int comboNumber = 1;
-			for (size_t i=0; i<result.hitobjects.size(); i++)
+			for (auto currentHitObject : result.hitobjects)
 			{
-				OsuHitObject *currentHitObject = result.hitobjects[i];
-
-				if (currentHitObject->getType() != OsuHitObject::SPINNER)
+					if (currentHitObject->getType() != OsuHitObject::SPINNER)
 				{
 					currentHitObject->setComboNumber(comboNumber);
 					comboNumber++;
@@ -1750,14 +1724,12 @@ OsuDatabaseBeatmap::LOAD_GAMEPLAY_RESULT OsuDatabaseBeatmap::loadGameplay(OsuDat
 			}
 		}
 
-		const int numberMax = osu_number_max.getInt();
+		const int numberMax = cv::osu::number_max.getInt();
 		if (numberMax > 0)
 		{
-			for (size_t i=0; i<result.hitobjects.size(); i++)
+			for (auto currentHitObject : result.hitobjects)
 			{
-				OsuHitObject *currentHitObject = result.hitobjects[i];
-
-				const int currentComboNumber = currentHitObject->getComboNumber();
+					const int currentComboNumber = currentHitObject->getComboNumber();
 				const int newComboNumber = (currentComboNumber % numberMax);
 
 				currentHitObject->setComboNumber(newComboNumber == 0 ? numberMax : newComboNumber);
@@ -1793,28 +1765,28 @@ void OsuDatabaseBeatmap::setDifficulties(std::vector<OsuDatabaseBeatmap*> &diffi
 		m_iMaxBPM = 0;
 		m_iMostCommonBPM = 0;
 		m_iLastModificationTime = 0;
-		for (size_t i=0; i<m_difficulties.size(); i++)
+		for (auto & diff : m_difficulties)
 		{
-			if (m_difficulties[i]->getLengthMS() > m_iLengthMS)
-				m_iLengthMS = m_difficulties[i]->getLengthMS();
-			if (m_difficulties[i]->getCS() > m_fCS)
-				m_fCS = m_difficulties[i]->getCS();
-			if (m_difficulties[i]->getAR() > m_fAR)
-				m_fAR = m_difficulties[i]->getAR();
-			if (m_difficulties[i]->getHP() > m_fHP)
-				m_fHP = m_difficulties[i]->getHP();
-			if (m_difficulties[i]->getOD() > m_fOD)
-				m_fOD = m_difficulties[i]->getOD();
-			if (m_difficulties[i]->getStarsNomod() > m_fStarsNomod)
-				m_fStarsNomod = m_difficulties[i]->getStarsNomod();
-			if (m_difficulties[i]->getMinBPM() < m_iMinBPM)
-				m_iMinBPM = m_difficulties[i]->getMinBPM();
-			if (m_difficulties[i]->getMaxBPM() > m_iMaxBPM)
-				m_iMaxBPM = m_difficulties[i]->getMaxBPM();
-			if (m_difficulties[i]->getMostCommonBPM() > m_iMostCommonBPM)
-				m_iMostCommonBPM = m_difficulties[i]->getMostCommonBPM();
-			if (m_difficulties[i]->getLastModificationTime() > m_iLastModificationTime)
-				m_iLastModificationTime = m_difficulties[i]->getLastModificationTime();
+			if (diff->getLengthMS() > m_iLengthMS)
+				m_iLengthMS = diff->getLengthMS();
+			if (diff->getCS() > m_fCS)
+				m_fCS = diff->getCS();
+			if (diff->getAR() > m_fAR)
+				m_fAR = diff->getAR();
+			if (diff->getHP() > m_fHP)
+				m_fHP = diff->getHP();
+			if (diff->getOD() > m_fOD)
+				m_fOD = diff->getOD();
+			if (diff->getStarsNomod() > m_fStarsNomod)
+				m_fStarsNomod = diff->getStarsNomod();
+			if (diff->getMinBPM() < m_iMinBPM)
+				m_iMinBPM = diff->getMinBPM();
+			if (diff->getMaxBPM() > m_iMaxBPM)
+				m_iMaxBPM = diff->getMaxBPM();
+			if (diff->getMostCommonBPM() > m_iMostCommonBPM)
+				m_iMostCommonBPM = diff->getMostCommonBPM();
+			if (diff->getLastModificationTime() > m_iLastModificationTime)
+				m_iLastModificationTime = diff->getLastModificationTime();
 		}
 	}
 }
@@ -2070,13 +2042,13 @@ void OsuDatabaseBeatmapStarCalculator::initAsync()
 			m_iNumCircles = 0;
 			m_iNumSliders = 0;
 			m_iNumSpinners = 0;
-			for (size_t i=0; i<diffres.diffobjects.size(); i++)
+			for (auto & diffobject : diffres.diffobjects)
 			{
-				if (diffres.diffobjects[i].type == OsuDifficultyHitObject::TYPE::CIRCLE)
+				if (diffobject.type == OsuDifficultyHitObject::TYPE::CIRCLE)
 					m_iNumCircles++;
-				if (diffres.diffobjects[i].type == OsuDifficultyHitObject::TYPE::SLIDER)
+				if (diffobject.type == OsuDifficultyHitObject::TYPE::SLIDER)
 					m_iNumSliders++;
-				if (diffres.diffobjects[i].type == OsuDifficultyHitObject::TYPE::SPINNER)
+				if (diffobject.type == OsuDifficultyHitObject::TYPE::SPINNER)
 					m_iNumSpinners++;
 			}
 		}
