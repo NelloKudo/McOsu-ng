@@ -19,7 +19,7 @@ ConVar volume("volume", 1.0f, FCVAR_NONE, [](float newValue){soundEngine ? sound
 
 ConVar snd_output_device("snd_output_device", "Default", FCVAR_NONE);
 ConVar snd_restart("snd_restart");
-ConVar snd_freq("snd_freq", 44100, FCVAR_NONE, "output sampling rate in Hz");
+ConVar snd_freq("snd_freq", 44100.0f, FCVAR_NONE, "output sampling rate in Hz");
 ConVar snd_restrict_play_frame("snd_restrict_play_frame", true, FCVAR_NONE,
                                "only allow one new channel per frame for overlayable sounds (prevents lag and earrape)");
 ConVar snd_change_check_interval("snd_change_check_interval", 0.0f, FCVAR_NONE,
@@ -43,21 +43,29 @@ SoundEngine::SoundEngine()
 	m_fPrevOutputDeviceChangeCheckTime = 0.0f;
 	m_outputDeviceChangeCallback = nullptr;
 	m_fVolume = 1.0f;
+	m_iCurrentOutputDevice = -1;
 }
 
 SoundEngine::~SoundEngine() = default;
 
-SoundEngine *SoundEngine::createSoundEngine()
+SoundEngine *SoundEngine::createSoundEngine(SndEngineType type)
 {
-#ifdef MCENGINE_FEATURE_BASS
-	return new BassSoundEngine();
-#elif defined(MCENGINE_FEATURE_SDL_MIXER)
-	return new SDLSoundEngine();
-#elif defined(MCENGINE_FEATURE_SOLOUD)
-	return new SoLoudSoundEngine();
-#else
-#error No sound engine backend available!
+#if !defined(MCENGINE_FEATURE_BASS) && !defined(MCENGINE_FEATURE_SOLOUD) && !defined(MCENGINE_FEATURE_SDL_MIXER)
+	#error No sound backend available!
 #endif
+#ifdef MCENGINE_FEATURE_BASS
+	if (type == BASS)
+		return new BassSoundEngine();
+#endif
+#ifdef MCENGINE_FEATURE_SDL_MIXER
+	if (type == SDL)
+		return new SDLSoundEngine();
+#endif
+#ifdef MCENGINE_FEATURE_SOLOUD
+	if (type == SOLOUD)
+		return new SoLoudSoundEngine();
+#endif
+	return nullptr;
 }
 
 void SoundEngine::setOnOutputDeviceChange(AudioOutputChangedCallback callback)

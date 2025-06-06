@@ -218,19 +218,21 @@ void SoLoudSound::setPositionMS(unsigned long ms)
 	if (!m_bReady || !m_audioSource || !m_handle)
 		return;
 
-	unsigned long streamLengthMS = getLengthMS();
-	if (ms > streamLengthMS)
+	auto msD = static_cast<double>(ms);
+
+	auto streamLengthMS = static_cast<double>(getLengthMS());
+	if (msD > streamLengthMS)
 		return;
 
-	double positionInSeconds = ms / 1000.0;
+	double positionInSeconds = msD / 1000.0;
 
 	// reset position interp vars
-	m_fLastRawSoLoudPosition = ms;
+	m_fLastRawSoLoudPosition = msD;
 	m_fLastSoLoudPositionTime = Timing::getTimeReal();
 	m_fSoLoudPositionRate = 1000.0 * getSpeed();
 
 	if (cv::debug_snd.getBool())
-		debugLog("seeking to {}ms (length: {}ms)\n", ms, streamLengthMS);
+		debugLog("seeking to {:g}ms (length: {:g}ms)\n", msD, streamLengthMS);
 
 	// seek
 	soloud->seek(m_handle, positionInSeconds);
@@ -238,14 +240,25 @@ void SoLoudSound::setPositionMS(unsigned long ms)
 
 void SoLoudSound::setVolume(float volume)
 {
-	if (!m_bReady || !m_handle)
+	if (!m_bReady)
 		return;
 
 	m_fVolume = std::clamp<float>(volume, 0.0f, 1.0f);
 
+	if (!m_handle)
+		return;
+
 	// apply to active voice if not overlayable
 	if (!m_bIsOverlayable)
+	{
+		if (cv::debug_snd.getBool())
+			debugLog("setting handle volume for {:s} to {:f} because it overlayable\n", m_sFilePath, m_fVolume);
 		soloud->setVolume(m_handle, m_fVolume);
+	}
+	else if (cv::debug_snd.getBool())
+	{
+		debugLog("NOT setting handle volume for {:s} to {:f} because it's not overlayable\n", m_sFilePath, m_fVolume);
+	}
 }
 
 void SoLoudSound::setSpeed(float speed)
@@ -370,7 +383,7 @@ void SoLoudSound::setOverlayable(bool overlayable)
 {
 	m_bIsOverlayable = overlayable;
 	if (m_audioSource)
-		m_audioSource->setSingleInstance(overlayable);
+		m_audioSource->setSingleInstance(!overlayable);
 }
 
 float SoLoudSound::getPosition()
@@ -423,7 +436,7 @@ unsigned long SoLoudSound::getPositionMS()
 			else if (m_bIsLooped)
 			{
 				// handle loop wraparound
-				unsigned long length = getLengthMS();
+				auto length = static_cast<double>(getLengthMS());
 				if (length > 0)
 				{
 					double wrappedChange = (length - m_fLastRawSoLoudPosition) + streamPositionMS;
@@ -472,7 +485,7 @@ unsigned long SoLoudSound::getPositionMS()
 	// check for looping
 	if (m_bIsLooped)
 	{
-		unsigned long length = getLengthMS();
+		auto length = static_cast<double>(getLengthMS());
 		if (length > 0 && interpolatedPosition >= length)
 		{
 			return static_cast<unsigned long>(fmod(interpolatedPosition, length));
@@ -488,6 +501,8 @@ unsigned long SoLoudSound::getLengthMS()
 		return 0;
 
 	const double lengthInMilliSeconds = getSourceLengthInSeconds() * 1000.0;
+	if (cv::debug_snd.getBool())
+		debugLog("lengthMS for {:s}: {:g}\n", m_sFilePath, lengthInMilliSeconds);
 	return static_cast<unsigned long>(lengthInMilliSeconds);
 }
 
